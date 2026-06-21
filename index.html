@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Veyn — UK Medical Secretary Platform</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --gold-soft:#E7D9BC;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  a{ color:inherit; text-decoration:none; }
+
+  .mono{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+  }
+
+  /* ---------- layout shell ---------- */
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  /* ---------- header ---------- */
+
+  header{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+
+  .nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 32px;
+    max-width:1180px;
+    margin:0 auto;
+  }
+
+  .logo{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:24px;
+    letter-spacing:0.01em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .logo .dot{
+    width:7px; height:7px;
+    border-radius:50%;
+    background:var(--gold);
+    display:inline-block;
+  }
+
+  .nav-links{
+    display:flex;
+    gap:36px;
+    font-size:14px;
+    font-weight:500;
+    color:var(--slate);
+  }
+
+  .nav-links a:hover{ color:var(--ink); }
+
+  @media (max-width:760px){
+    .nav-links{ display:none; }
+  }
+
+  /* ---------- TOGGLE : the ledger-tab switch ---------- */
+
+  .toggle-zone{
+    display:flex;
+    justify-content:center;
+    padding:48px 32px 8px;
+  }
+
+  .toggle-frame{
+    position:relative;
+    display:inline-flex;
+    background:var(--ink);
+    border-radius:999px;
+    padding:6px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 12px 30px -10px rgba(27,36,48,0.35);
+  }
+
+  .toggle-frame .tab{
+    position:relative;
+    z-index:2;
+    padding:13px 30px;
+    border-radius:999px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    font-weight:500;
+    color:rgba(247,244,237,0.55);
+    cursor:pointer;
+    user-select:none;
+    transition:color .35s ease;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    white-space:nowrap;
+  }
+
+  .toggle-frame .tab.active{ color:var(--ink); }
+
+  .toggle-frame .tab .num{
+    font-size:10px;
+    opacity:0.6;
+  }
+
+  .toggle-pill{
+    position:absolute;
+    top:6px;
+    left:6px;
+    height:calc(100% - 12px);
+    width:calc(50% - 6px);
+    background:var(--gold);
+    border-radius:999px;
+    z-index:1;
+    transition:transform .45s cubic-bezier(.65,0,.35,1);
+    box-shadow:0 2px 8px rgba(184,146,74,0.5);
+  }
+
+  .toggle-frame[data-mode="consultant"] .toggle-pill{
+    transform:translateX(100%);
+  }
+
+  .toggle-caption{
+    text-align:center;
+    margin-top:14px;
+    font-size:12.5px;
+    color:var(--slate);
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:0.03em;
+  }
+
+  /* ---------- gated content fade ---------- */
+
+  [data-view]{
+    transition:opacity .35s ease, transform .35s ease;
+  }
+
+  body[data-active="secretary"] [data-view="consultant"],
+  body[data-active="consultant"] [data-view="secretary"]{
+    display:none;
+  }
+
+  .view-fade{
+    animation:fadeIn .45s ease both;
+  }
+
+  @keyframes fadeIn{
+    from{ opacity:0; transform:translateY(8px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* ---------- hero ---------- */
+
+  .hero{
+    padding:64px 32px 56px;
+    text-align:center;
+  }
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--gold);
+    background:rgba(184,146,74,0.1);
+    border:1px solid rgba(184,146,74,0.3);
+    padding:7px 16px;
+    border-radius:999px;
+    margin-bottom:28px;
+  }
+
+  .eyebrow .sq{
+    width:6px;height:6px;
+    background:var(--green);
+    border-radius:50%;
+    display:inline-block;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(34px, 5.4vw, 64px);
+    line-height:1.06;
+    letter-spacing:-0.01em;
+    max-width:880px;
+    margin:0 auto 22px;
+  }
+
+  h1 em{
+    font-style:italic;
+    font-weight:400;
+    color:var(--gold);
+  }
+
+  .sub{
+    font-size:18px;
+    line-height:1.6;
+    color:var(--slate);
+    max-width:560px;
+    margin:0 auto 36px;
+  }
+
+  .cta-row{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:28px;
+  }
+
+  .btn{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:15px 30px;
+    border-radius:8px;
+    cursor:pointer;
+    border:none;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+
+  .btn:hover{ transform:translateY(-1px); }
+
+  .btn-primary{
+    background:var(--ink);
+    color:var(--paper);
+    box-shadow:0 8px 20px -8px rgba(27,36,48,0.5);
+  }
+
+  .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(27,36,48,0.6); }
+
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.25);
+  }
+
+  .btn-ghost:hover{ border-color:var(--ink); }
+
+  /* depth statement */
+
+  .depth{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--slate);
+    letter-spacing:0.01em;
+    max-width:620px;
+    margin:0 auto;
+    line-height:1.7;
+  }
+
+  .depth b{
+    color:var(--ink);
+    font-weight:600;
+  }
+
+  /* ---------- verification strip ---------- */
+
+  .strip{
+    border-top:1px solid rgba(27,36,48,0.08);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+    background:var(--white);
+    padding:28px 32px;
+  }
+
+  .strip-inner{
+    max-width:1180px;
+    margin:0 auto;
+    display:flex;
+    justify-content:center;
+    gap:48px;
+    flex-wrap:wrap;
+  }
+
+  .strip-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13.5px;
+    color:var(--ink);
+    font-weight:500;
+  }
+
+  .strip-item .ic{
+    width:18px;height:18px;
+    flex:0 0 18px;
+  }
+
+  /* ---------- section shell ---------- */
+
+  section.block{
+    padding:88px 32px;
+  }
+
+  .block-head{
+    text-align:center;
+    max-width:680px;
+    margin:0 auto 56px;
+  }
+
+  .label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:14px;
+    display:block;
+  }
+
+  h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(28px,3.6vw,40px);
+    line-height:1.15;
+    margin-bottom:14px;
+  }
+
+  .block-head p{
+    color:var(--slate);
+    font-size:16px;
+    line-height:1.6;
+  }
+
+  /* ---------- feature grid ---------- */
+
+  .grid3{
+    display:flex;
+    flex-wrap:wrap;
+    gap:24px;
+  }
+
+  .grid3 > .card{
+    flex:1 1 280px;
+    min-width:0;
+  }
+
+  @media (max-width:860px){
+    .grid3 > .card{ flex:1 1 100%; }
+  }
+
+  .card{
+    background:var(--white);
+    border:1px solid rgba(27,36,48,0.08);
+    border-radius:14px;
+    padding:32px 28px;
+  }
+
+  .card .ic-wrap{
+    width:42px;height:42px;
+    border-radius:10px;
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:20px;
+  }
+
+  .card h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:19px;
+    margin-bottom:10px;
+  }
+
+  .card p{
+    color:var(--slate);
+    font-size:14.5px;
+    line-height:1.6;
+  }
+
+  /* ---------- region / specialty band ---------- */
+
+  .band{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:20px;
+    padding:48px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:36px;
+  }
+
+  .band-col h4{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:14px;
+  }
+
+  .band-col .big{
+    font-family:'Fraunces', serif;
+    font-size:24px;
+    font-weight:600;
+    line-height:1.3;
+  }
+
+  .band-divider{
+    width:1px;
+    align-self:stretch;
+    background:rgba(247,244,237,0.15);
+  }
+
+  @media (max-width:760px){
+    .band{ flex-direction:column; }
+    .band-divider{ display:none; }
+  }
+
+  /* ---------- pricing ---------- */
+
+  .price-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+  }
+
+  .price-grid > .price-card{
+    flex:1 1 280px;
+    min-width:0;
+  }
+
+  @media (max-width:860px){
+    .price-grid > .price-card{ flex:1 1 100%; }
+  }
+
+  .price-card{
+    border:1.5px solid rgba(27,36,48,0.1);
+    border-radius:16px;
+    padding:30px 26px;
+    background:var(--white);
+    position:relative;
+  }
+
+  .price-card.feat{
+    border-color:var(--gold);
+    box-shadow:0 16px 32px -16px rgba(184,146,74,0.35);
+  }
+
+  .price-card .tag{
+    position:absolute;
+    top:-11px;
+    left:26px;
+    background:var(--gold);
+    color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:4px 10px;
+    border-radius:999px;
+    font-weight:600;
+  }
+
+  .price-card .name{
+    font-size:14px;
+    color:var(--slate);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+
+  .price-card .amount{
+    font-family:'Fraunces', serif;
+    font-size:34px;
+    font-weight:600;
+    margin-bottom:4px;
+  }
+
+  .price-card .amount span{
+    font-size:14px;
+    font-family:'Inter', sans-serif;
+    font-weight:500;
+    color:var(--slate);
+  }
+
+  .price-card .desc{
+    font-size:13px;
+    color:var(--slate);
+    margin-bottom:18px;
+    line-height:1.5;
+  }
+
+  .price-card ul{
+    list-style:none;
+    font-size:13.5px;
+    color:var(--ink);
+    line-height:2;
+  }
+
+  .price-card ul li{
+    display:flex;
+    gap:9px;
+    align-items:flex-start;
+  }
+
+  .price-card ul li .tick{
+    color:var(--green);
+    flex:0 0 auto;
+    margin-top:2px;
+  }
+
+  /* ---------- footer ---------- */
+
+  footer{
+    background:var(--ink);
+    color:rgba(247,244,237,0.7);
+    padding:56px 32px 32px;
+  }
+
+  .foot-inner{
+    max-width:1180px;
+    margin:0 auto;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:32px;
+  }
+
+  .foot-logo{
+    font-family:'Fraunces', serif;
+    color:var(--paper);
+    font-size:20px;
+    font-weight:600;
+    margin-bottom:10px;
+  }
+
+  .foot-col h5{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:14px;
+  }
+
+  .foot-col a{
+    display:block;
+    font-size:13.5px;
+    margin-bottom:9px;
+    color:rgba(247,244,237,0.65);
+  }
+
+  .foot-col a:hover{ color:var(--paper); }
+
+  .foot-bottom{
+    max-width:1180px;
+    margin:40px auto 0;
+    padding-top:24px;
+    border-top:1px solid rgba(247,244,237,0.1);
+    font-size:12.5px;
+    color:rgba(247,244,237,0.45);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  /* icons */
+  svg{ display:block; }
+
+</style>
+</head>
+<body data-active="secretary">
+
+<header>
+  <div class="nav">
+    <div class="logo"><span class="dot"></span>veyn</div>
+    <nav class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#trust">Verification</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#">Academy</a>
+      <a href="#">Community</a>
+    </nav>
+  </div>
+</header>
+
+<!-- TOGGLE -->
+<div class="toggle-zone">
+  <div>
+    <div class="toggle-frame" data-mode="secretary" id="toggleFrame">
+      <div class="toggle-pill"></div>
+      <div class="tab active" id="tabSecretary" onclick="setMode('secretary')">
+        <span class="num">01</span> I'm a Secretary
+      </div>
+      <div class="tab" id="tabConsultant" onclick="setMode('consultant')">
+        <span class="num">02</span> I'm a Consultant
+      </div>
+    </div>
+    <div class="toggle-caption">— viewing as <span id="captionWord">secretary</span> —</div>
+  </div>
+</div>
+
+<!-- ============= SECRETARY VIEW ============= -->
+<div data-view="secretary">
+
+  <section class="hero view-fade">
+    <div class="eyebrow"><span class="sq"></span> Free to join &amp; use</div>
+    <h1>Your experience, <em>finally</em><br>searchable.</h1>
+    <p class="sub">Build one profile. List the systems you've actually used, the specialties you know, and let consultants find you for what you can prove — not just what you say.</p>
+    <div class="cta-row">
+      <button class="btn btn-primary">Create your free profile</button>
+      <button class="btn btn-ghost">See how it works</button>
+    </div>
+    <p class="depth"><b>Currently building deep roots</b> in London and Milton Keynes, with particular focus on general surgery, orthopaedics, and urology — wherever you're based or whatever your specialty, you're welcome to join now.</p>
+  </section>
+
+  <div class="strip">
+    <div class="strip-inner">
+      <div class="strip-item">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Document verification — free, always
+      </div>
+      <div class="strip-item">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#1B2430" stroke-width="1.6"/><path d="M3 9h18" stroke="#1B2430" stroke-width="1.6"/></svg>
+        No commission, ever
+      </div>
+      <div class="strip-item">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>
+        5-minute registration
+      </div>
+    </div>
+  </div>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="label">Why secretaries join</span>
+      <h2>Built around what you can prove</h2>
+      <p>A claim isn't a credential. Veyn gives you the tools to turn your real experience into something searchable, testable, and trusted.</p>
+    </div>
+    <div class="grid3">
+      <div class="card">
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3 8-8" stroke="#1B2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <h3>Document verification, free</h3>
+        <p>Upload your DBS certificate, ID, and references. Optional, never gated behind a fee — we review what you already hold.</p>
+      </div>
+      <div class="card">
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#1B2430" stroke-width="2"/><path d="M14 3v6h6" stroke="#1B2430" stroke-width="2"/></svg></div>
+        <h3>System experience that counts</h3>
+        <p>Carebit, Semble, Healthcode, DGL — list exactly what you've used, and let it become a real, filterable signal, not a line in a CV.</p>
+      </div>
+      <div class="card">
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#1B2430" stroke-width="2" stroke-linejoin="round"/></svg></div>
+        <h3>Skills you can badge</h3>
+        <p>Typing tests, terminology quizzes, and system tests — free to take, shareable, and the start of a Skills Score consultants can actually trust.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="trust" style="padding-top:0;">
+    <div class="band">
+      <div class="band-col">
+        <h4>Where we're seeded</h4>
+        <div class="big">London &amp;<br>Milton Keynes</div>
+      </div>
+      <div class="band-divider"></div>
+      <div class="band-col">
+        <h4>Specialty depth</h4>
+        <div class="big">General surgery, orthopaedics &amp; urology</div>
+      </div>
+      <div class="band-divider"></div>
+      <div class="band-col">
+        <h4>Your verification</h4>
+        <div class="big">DBS · ID · References<br><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:500;">— reviewed free —</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="pricing">
+    <div class="block-head">
+      <span class="label">Secretary pricing</span>
+      <h2>Free to join. Free to use.</h2>
+      <p>Everything you need to build a complete, searchable profile is free, permanently. An optional premium pass exists only for extra visibility — never for access.</p>
+    </div>
+    <div class="price-grid" style="max-width:760px;margin:0 auto;">
+      <div class="price-card">
+        <div class="name mono">Core profile</div>
+        <div class="amount">£0</div>
+        <div class="desc">Full profile, all data fields, document verification, community, skills tests.</div>
+        <ul>
+          <li><span class="tick">✓</span> Document-verified badge</li>
+          <li><span class="tick">✓</span> Unlimited applications</li>
+          <li><span class="tick">✓</span> Forum &amp; skills tests</li>
+        </ul>
+      </div>
+      <div class="price-card feat">
+        <div class="tag">Optional</div>
+        <div class="name mono">Premium boost</div>
+        <div class="amount">£8<span>/month</span></div>
+        <div class="desc">Extra visibility, never extra access. Everything above stays free either way.</div>
+        <ul>
+          <li><span class="tick">✓</span> Featured placement</li>
+          <li><span class="tick">✓</span> Priority in search</li>
+          <li><span class="tick">✓</span> Profile boost badge</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============= CONSULTANT VIEW ============= -->
+<div data-view="consultant">
+
+  <section class="hero view-fade">
+    <div class="eyebrow"><span class="sq"></span> GMC-verified network</div>
+    <h1>Hire someone who already<br>speaks <em>your</em> language.</h1>
+    <p class="sub">Search by system experience, specialty, and verified availability. No recruitment fees. No commission. Pay only when you make contact.</p>
+    <div class="cta-row">
+      <button class="btn btn-primary">See who's available</button>
+      <button class="btn btn-ghost">View pricing</button>
+    </div>
+    <p class="depth">We've concentrated our first cohort of verified secretaries in <b>London and Milton Keynes</b> private practice, with particular depth in <b>general surgery, orthopaedics, and urology</b>. If you're consulting in one of these regions or specialties, you'll find genuine depth to search — not a thin national listing.</p>
+  </section>
+
+  <div class="strip">
+    <div class="strip-inner">
+      <div class="strip-item">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        You're GMC-verified to message
+      </div>
+      <div class="strip-item">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#1B2430" stroke-width="1.6"/><path d="M3 9h18" stroke="#1B2430" stroke-width="1.6"/></svg>
+        Zero commission on placements
+      </div>
+      <div class="strip-item">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Browse every profile, always free
+      </div>
+    </div>
+  </div>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="label">Why consultants search here</span>
+      <h2>Filters that already match how you hire</h2>
+      <p>You already write "must know DGL" into job ads by hand. We just built the filter that should have existed.</p>
+    </div>
+    <div class="grid3">
+      <div class="card">
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#1B2430" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <h3>Search by system &amp; specialty</h3>
+        <p>Filter for genuine experience with Carebit, Semble, Healthcode, DGL and more — alongside specialty depth in surgery, orthopaedics, urology, and beyond.</p>
+      </div>
+      <div class="card">
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3 8-8" stroke="#1B2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <h3>Document-verified profiles</h3>
+        <p>DBS certificate, ID and references reviewed for every Verified-badge profile — a real credential, not a self-reported tick box.</p>
+      </div>
+      <div class="card">
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 12h4l3 8 4-16 3 8h4" stroke="#1B2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Available now, in real time</h3>
+        <p>Surfaced directly in search — find cover for an urgent gap without messaging ten profiles to ask who's free.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="trust" style="padding-top:0;">
+    <div class="band">
+      <div class="band-col">
+        <h4>Searchable depth</h4>
+        <div class="big">London &amp;<br>Milton Keynes</div>
+      </div>
+      <div class="band-divider"></div>
+      <div class="band-col">
+        <h4>Specialty coverage</h4>
+        <div class="big">General surgery, orthopaedics &amp; urology</div>
+      </div>
+      <div class="band-divider"></div>
+      <div class="band-col">
+        <h4>Your verification</h4>
+        <div class="big">GMC number lookup<br><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:500;">— confirmed before you message —</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="pricing">
+    <div class="block-head">
+      <span class="label">Consultant pricing</span>
+      <h2>Pay per contact, or go unlimited</h2>
+      <p>Browsing is always free. Pay only to unlock a conversation — or take a pass if you're hiring at volume.</p>
+    </div>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="name mono">Per contact</div>
+        <div class="amount">£12<span>/contact</span></div>
+        <div class="desc">Unlock a single profile to message directly. No subscription required.</div>
+        <ul>
+          <li><span class="tick">✓</span> One unlocked conversation</li>
+          <li><span class="tick">✓</span> No expiry on the thread</li>
+          <li><span class="tick">✓</span> No commission if hired</li>
+        </ul>
+      </div>
+      <div class="price-card feat">
+        <div class="tag">Most popular</div>
+        <div class="name mono">1-month pass</div>
+        <div class="amount">£130<span>/30 days</span></div>
+        <div class="desc">Unlimited messaging across every profile for a full month.</div>
+        <ul>
+          <li><span class="tick">✓</span> Unlimited unlocks</li>
+          <li><span class="tick">✓</span> Advanced filters</li>
+          <li><span class="tick">✓</span> Priority support</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <div class="name mono">6-month pass</div>
+        <div class="amount">£600<span>/6 mo</span></div>
+        <div class="desc">Year-round cover for clinics hiring across multiple roles.</div>
+        <ul>
+          <li><span class="tick">✓</span> Everything in 1-month</li>
+          <li><span class="tick">✓</span> Flexible monthly payment</li>
+          <li><span class="tick">✓</span> Dedicated support</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="foot-inner">
+    <div style="max-width:260px;">
+      <div class="foot-logo">veyn</div>
+      <p style="font-size:13.5px;line-height:1.6;color:rgba(247,244,237,0.55);">The UK platform connecting private medical secretaries and consultants — found for what they can prove, not just what they say.</p>
+    </div>
+    <div class="foot-col">
+      <h5>Platform</h5>
+      <a href="#">For Secretaries</a>
+      <a href="#">For Consultants</a>
+      <a href="#">Pricing</a>
+      <a href="#">Verification</a>
+    </div>
+    <div class="foot-col">
+      <h5>Company</h5>
+      <a href="#">About</a>
+      <a href="#">Academy</a>
+      <a href="#">Community</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="foot-col">
+      <h5>Legal</h5>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Cookies</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Document verification free, always.</span>
+  </div>
+</footer>
+
+<script>
+  function setMode(mode){
+    document.body.setAttribute('data-active', mode);
+    document.getElementById('toggleFrame').setAttribute('data-mode', mode);
+    document.getElementById('tabSecretary').classList.toggle('active', mode === 'secretary');
+    document.getElementById('tabConsultant').classList.toggle('active', mode === 'consultant');
+    document.getElementById('captionWord').textContent = mode;
+
+    // restart the fade-in animation on the now-visible view
+    var activeView = document.querySelector('[data-view="' + mode + '"] .view-fade');
+    if(activeView){
+      activeView.style.animation = 'none';
+      requestAnimationFrame(function(){
+        activeView.style.animation = '';
+      });
+    }
+  }
+</script>
+
+</body>
+</html>
