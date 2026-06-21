@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Community — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --gold-soft:#E7D9BC;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px; max-width:1180px; margin:0 auto;
+  }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{
+    font-family:'Fraunces', serif; font-weight:600; font-size:24px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+    transition:border-color .2s ease, background .2s ease; white-space:nowrap;
+  }
+  .btn-login:hover{ border-color:var(--ink); background:rgba(27,36,48,0.04); }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+
+  .hero{ padding:64px 32px 48px; text-align:center; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.3);
+    padding:7px 16px; border-radius:999px; margin-bottom:28px;
+  }
+  .eyebrow .sq{ width:6px;height:6px; background:var(--green); border-radius:50%; display:inline-block; }
+  h1{
+    font-family:'Fraunces', serif; font-weight:600; font-size:clamp(32px, 5vw, 56px);
+    line-height:1.08; letter-spacing:-0.01em; max-width:780px; margin:0 auto 22px;
+  }
+  h1 em{ font-style:italic; font-weight:400; color:var(--gold); }
+  .sub{ font-size:18px; line-height:1.6; color:var(--slate); max-width:600px; margin:0 auto 36px; }
+  .cta-row{ display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-bottom:8px; }
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:15px 30px;
+    border-radius:8px; cursor:pointer; border:none; transition:transform .2s ease, box-shadow .2s ease;
+    display:inline-block;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-primary{ background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(27,36,48,0.5); }
+  .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(27,36,48,0.6); }
+
+  .strip{
+    border-top:1px solid rgba(27,36,48,0.08); border-bottom:1px solid rgba(27,36,48,0.08);
+    background:var(--white); padding:28px 32px;
+  }
+  .strip-inner{ max-width:1180px; margin:0 auto; display:flex; justify-content:center; gap:48px; flex-wrap:wrap; }
+  .strip-item{ display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--ink); font-weight:500; }
+  .strip-item .ic{ width:18px;height:18px; flex:0 0 18px; }
+
+  section.block{ padding:72px 32px; }
+  .block-head{ text-align:center; max-width:680px; margin:0 auto 52px; }
+  .label{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px; display:block;
+  }
+  h2{ font-family:'Fraunces', serif; font-weight:600; font-size:clamp(26px,3.4vw,38px); line-height:1.15; margin-bottom:14px; }
+  .block-head p{ color:var(--slate); font-size:16px; line-height:1.6; }
+
+  /* forum preview */
+  .preview-tag{
+    display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);
+    background:rgba(27,36,48,0.05); padding:5px 12px; border-radius:999px; margin-bottom:24px;
+  }
+  .preview-wrap{ max-width:720px; margin:0 auto; }
+  .thread-list{ background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:16px; overflow:hidden; }
+  .thread{ padding:22px 28px; border-bottom:1px solid rgba(27,36,48,0.06); display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+  .thread:last-child{ border-bottom:none; }
+  .thread-title{ font-weight:600; font-size:15px; margin-bottom:5px; }
+  .thread-meta{ font-size:12.5px; color:var(--slate); font-family:'IBM Plex Mono', monospace; }
+  .thread-replies{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--slate); white-space:nowrap; flex:0 0 auto; padding-top:2px; }
+
+  .grid3{ display:flex; flex-wrap:wrap; gap:24px; }
+  .grid3 > .card{ flex:1 1 280px; min-width:0; }
+  @media (max-width:860px){ .grid3 > .card{ flex:1 1 100%; } }
+  .card{ background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:14px; padding:32px 28px; }
+  .card .ic-wrap{ width:42px;height:42px; border-radius:10px; background:var(--paper); display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+  .card h3{ font-family:'Fraunces', serif; font-weight:600; font-size:19px; margin-bottom:10px; }
+  .card p{ color:var(--slate); font-size:14.5px; line-height:1.6; }
+
+  .final-cta{ text-align:center; background:var(--ink); border-radius:24px; padding:64px 40px; margin:0 32px 0; }
+  .final-cta h2{ color:var(--paper); }
+  .final-cta p{ color:rgba(247,244,237,0.7); font-size:16px; max-width:480px; margin:0 auto 32px; line-height:1.6; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:56px 32px 32px; margin-top:84px; }
+  .foot-inner{ max-width:1180px; margin:0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap:32px; }
+  .foot-logo{ font-family:'Fraunces', serif; color:var(--paper); font-size:20px; font-weight:600; margin-bottom:10px; }
+  .foot-col h5{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
+  .foot-col a{ display:block; font-size:13.5px; margin-bottom:9px; color:rgba(247,244,237,0.65); }
+  .foot-col a:hover{ color:var(--paper); }
+  .foot-bottom{ max-width:1180px; margin:40px auto 0; padding-top:24px; border-top:1px solid rgba(247,244,237,0.1); font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  svg{ display:block; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="veyn-for-secretaries.html">How it works</a>
+        <a href="veyn-verification-secretaries.html">Verification</a>
+        <a href="veyn-pricing-secretaries.html">Pricing</a>
+        <a href="veyn-academy.html">Academy</a>
+        <a href="#" class="active">Community</a>
+        <a href="veyn-business-hub.html">Business Hub</a>
+      </nav>
+    </div>
+    <a href="#login" class="btn-login">Log in</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow"><span class="sq"></span> See it's real before you join</div>
+  <h1>You're not figuring<br>this out <em>alone</em>.</h1>
+  <p class="sub">A place to ask another secretary how they'd handle something, compare notes on a system, or just feel like part of a profession — not a name on an invoice.</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="veyn-for-secretaries.html">Join the conversation</a>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="strip-inner">
+    <div class="strip-item">
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Free, no separate sign-up
+    </div>
+    <div class="strip-item">
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#1B2430" stroke-width="1.6"/><path d="M3 9h18" stroke="#1B2430" stroke-width="1.6"/></svg>
+      Open before you're job-hunting
+    </div>
+    <div class="strip-item">
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Real secretaries, real questions
+    </div>
+  </div>
+</div>
+
+<section class="block">
+  <div class="block-head">
+    <span class="label">Why this matters</span>
+    <h2>No community ever existed for this job</h2>
+    <p>Everyone was figuring it out alone, in parallel, repeating the same mistakes. We think that's a bug, not just how it's always been.</p>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0;">
+  <div class="preview-wrap">
+    <div class="preview-tag">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="#5C6470" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="#5C6470" stroke-width="1.8"/></svg>
+      Read-only preview
+    </div>
+    <div class="thread-list">
+      <div class="thread">
+        <div>
+          <div class="thread-title">How do you price urgent same-day cover?</div>
+          <div class="thread-meta">PRIVATE PRACTICE · LONDON</div>
+        </div>
+        <div class="thread-replies">14 replies</div>
+      </div>
+      <div class="thread">
+        <div>
+          <div class="thread-title">Carebit vs Semble — which do consultants actually prefer?</div>
+          <div class="thread-meta">SYSTEMS &amp; SOFTWARE</div>
+        </div>
+        <div class="thread-replies">22 replies</div>
+      </div>
+      <div class="thread">
+        <div>
+          <div class="thread-title">Moving from NHS to private — what surprised you most?</div>
+          <div class="thread-meta">CAREER &amp; ONBOARDING</div>
+        </div>
+        <div class="thread-replies">31 replies</div>
+      </div>
+      <div class="thread">
+        <div>
+          <div class="thread-title">IR35: am I actually self-employed if I only work for one consultant?</div>
+          <div class="thread-meta">BUSINESS &amp; IR35</div>
+        </div>
+        <div class="thread-replies">18 replies</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0;">
+  <div class="grid3">
+    <div class="card">
+      <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="#1B2430" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+      <h3>Peer Q&amp;A, not generic forums</h3>
+      <p>Every question here is from someone who's actually done this job — not a general admin forum where nobody understands the specifics of private practice.</p>
+    </div>
+    <div class="card">
+      <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#1B2430" stroke-width="2" stroke-linejoin="round"/></svg></div>
+      <h3>Join before you're hired</h3>
+      <p>You don't need a placement to be part of this. The forum is here from day one, whether or not a consultant has messaged you yet.</p>
+    </div>
+    <div class="card">
+      <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="#1B2430" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <h3>Part of a profession, not alone</h3>
+      <p>Compare notes on a system, ask how someone handled a tricky consultant, or just feel like you're not the only one figuring this out in isolation.</p>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0;display:flex;justify-content:center;">
+  <div class="final-cta">
+    <h2>Ready to join the conversation?</h2>
+    <p>Create your free profile and the forum opens up properly — no separate sign-up, no waiting.</p>
+    <a class="btn btn-primary" href="veyn-for-secretaries.html">Create your free profile</a>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-inner">
+    <div style="max-width:260px;">
+      <div class="foot-logo">veyn</div>
+      <p style="font-size:13.5px;line-height:1.6;color:rgba(247,244,237,0.55);">The UK platform connecting private medical secretaries and consultants — found for what they can prove, not just what they say.</p>
+    </div>
+    <div class="foot-col">
+      <h5>Platform</h5>
+      <a href="veyn-for-secretaries.html">For Secretaries</a>
+      <a href="veyn-for-consultants.html">For Consultants</a>
+      <a href="veyn-pricing-secretaries.html">Pricing</a>
+      <a href="veyn-verification-secretaries.html">Verification</a>
+    </div>
+    <div class="foot-col">
+      <h5>Company</h5>
+      <a href="index.html">Home</a>
+      <a href="veyn-about.html">About</a>
+      <a href="veyn-academy.html">Academy</a>
+      <a href="veyn-business-hub.html">Business Hub</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="foot-col">
+      <h5>Legal</h5>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Cookies</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Open to everyone, free, always.</span>
+  </div>
+</footer>
+
+</body>
+</html>
