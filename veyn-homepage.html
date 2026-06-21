@@ -83,6 +83,12 @@
     display:inline-block;
   }
 
+  .nav-left{
+    display:flex;
+    align-items:center;
+    gap:48px;
+  }
+
   .nav-links{
     display:flex;
     gap:36px;
@@ -92,6 +98,23 @@
   }
 
   .nav-links a:hover{ color:var(--ink); }
+
+  .btn-login{
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2);
+    padding:9px 20px;
+    border-radius:7px;
+    transition:border-color .2s ease, background .2s ease;
+    white-space:nowrap;
+  }
+
+  .btn-login:hover{
+    border-color:var(--ink);
+    background:rgba(27,36,48,0.04);
+  }
 
   @media (max-width:760px){
     .nav-links{ display:none; }
@@ -610,14 +633,17 @@
 
 <header>
   <div class="nav">
-    <div class="logo"><span class="dot"></span>veyn</div>
-    <nav class="nav-links">
-      <a href="#how">How it works</a>
-      <a href="#trust">Verification</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#">Academy</a>
-      <a href="#">Community</a>
-    </nav>
+    <div class="nav-left">
+      <div class="logo"><span class="dot"></span>veyn</div>
+      <nav class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#trust">Verification</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#" data-view="secretary">Academy</a>
+        <a href="#" data-view="secretary">Community</a>
+      </nav>
+    </div>
+    <a href="#login" class="btn-login">Log in</a>
   </div>
 </header>
 
@@ -645,7 +671,7 @@
     <h1>Your experience, <em>finally</em><br>searchable.</h1>
     <p class="sub">Build one profile. List the systems you've actually used, the specialties you know, and let consultants find you for what you can prove — not just what you say.</p>
     <div class="cta-row">
-      <button class="btn btn-primary">Create your free profile</button>
+      <a class="btn btn-primary" href="veyn-for-secretaries.html" style="display:inline-block;text-decoration:none;">Create your free profile</a>
       <button class="btn btn-ghost">See how it works</button>
     </div>
     <p class="depth"><b>Currently building deep roots</b> in London and Milton Keynes, with particular focus on general surgery, orthopaedics, and urology — wherever you're based or whatever your specialty, you're welcome to join now.</p>
@@ -681,7 +707,7 @@
         <p>Upload your DBS certificate, ID, and references. Optional, never gated behind a fee — we review what you already hold.</p>
       </div>
       <div class="card">
-        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#1B2430" stroke-width="2"/><path d="M14 3v6h6" stroke="#1B2430" stroke-width="2"/></svg></div>
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="#1B2430" stroke-width="2"/><path d="M14 3v6h6" stroke="#1B2430" stroke-width="2"/></svg></div>
         <h3>System experience that counts</h3>
         <p>Carebit, Semble, Healthcode, DGL — list exactly what you've used, and let it become a real, filterable signal, not a line in a CV.</p>
       </div>
@@ -753,7 +779,7 @@
     <h1>Hire someone who already<br>speaks <em>your</em> language.</h1>
     <p class="sub">Search by system experience, specialty, and verified availability. No recruitment fees. No commission. Pay only when you make contact.</p>
     <div class="cta-row">
-      <button class="btn btn-primary">See who's available</button>
+      <a class="btn btn-primary" href="veyn-for-consultants.html" style="display:inline-block;text-decoration:none;">See who's available</a>
       <button class="btn btn-ghost">View pricing</button>
     </div>
     <p class="depth">We've concentrated our first cohort of verified secretaries in <b>London and Milton Keynes</b> private practice, with particular depth in <b>general surgery, orthopaedics, and urology</b>. If you're consulting in one of these regions or specialties, you'll find genuine depth to search — not a thin national listing.</p>
