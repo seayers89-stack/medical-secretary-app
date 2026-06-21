@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>About — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --gold-soft:#E7D9BC;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px; max-width:1180px; margin:0 auto;
+  }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{
+    font-family:'Fraunces', serif; font-weight:600; font-size:24px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+    transition:border-color .2s ease, background .2s ease; white-space:nowrap;
+  }
+  .btn-login:hover{ border-color:var(--ink); background:rgba(27,36,48,0.04); }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+
+  .hero{ padding:64px 32px 0; text-align:center; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.3);
+    padding:7px 16px; border-radius:999px; margin-bottom:28px;
+  }
+  .eyebrow .sq{ width:6px;height:6px; background:var(--green); border-radius:50%; display:inline-block; }
+  h1{
+    font-family:'Fraunces', serif; font-weight:600; font-size:clamp(32px, 5vw, 56px);
+    line-height:1.1; letter-spacing:-0.01em; max-width:780px; margin:0 auto 22px;
+  }
+  h1 em{ font-style:italic; font-weight:400; color:var(--gold); }
+  .sub{ font-size:18px; line-height:1.6; color:var(--slate); max-width:600px; margin:0 auto 0; }
+
+  section.block{ padding:64px 32px; }
+  .block-head{ text-align:center; max-width:680px; margin:0 auto 52px; }
+  .label{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px; display:block;
+  }
+  h2{ font-family:'Fraunces', serif; font-weight:600; font-size:clamp(26px,3.4vw,38px); line-height:1.15; margin-bottom:14px; }
+  .block-head p{ color:var(--slate); font-size:16px; line-height:1.6; }
+
+  /* founder story */
+  .founder-card{
+    max-width:760px; margin:0 auto; background:var(--white); border:1px solid rgba(27,36,48,0.08);
+    border-radius:20px; padding:48px 44px;
+  }
+  .founder-card p{ font-size:16.5px; line-height:1.75; color:var(--ink); margin-bottom:20px; }
+  .founder-card p:last-of-type{ margin-bottom:0; }
+  .founder-sig{
+    display:flex; align-items:center; gap:16px; margin-top:32px; padding-top:28px;
+    border-top:1px solid rgba(27,36,48,0.08);
+  }
+  .founder-avatar{
+    width:52px; height:52px; border-radius:50%; background:var(--ink); color:var(--paper);
+    display:flex; align-items:center; justify-content:center; font-family:'Fraunces', serif;
+    font-weight:600; font-size:19px; flex:0 0 52px;
+  }
+  .founder-name{ font-family:'Fraunces', serif; font-weight:600; font-size:16px; }
+  .founder-title{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--slate); letter-spacing:0.02em; margin-top:2px; }
+
+  /* beliefs list */
+  .beliefs{ max-width:820px; margin:0 auto; }
+  .belief{ display:flex; gap:24px; padding:28px 0; border-bottom:1px solid rgba(27,36,48,0.08); }
+  .belief:last-child{ border-bottom:none; }
+  .belief-num{
+    font-family:'Fraunces', serif; font-weight:600; font-size:28px; color:var(--gold);
+    flex:0 0 48px; line-height:1;
+  }
+  .belief h3{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin-bottom:8px; }
+  .belief p{ color:var(--slate); font-size:15px; line-height:1.65; }
+
+  /* naming story */
+  .naming-card{
+    background:var(--ink); color:var(--paper); border-radius:20px; padding:48px 44px;
+    max-width:760px; margin:0 auto; display:flex; gap:32px; align-items:center; flex-wrap:wrap;
+  }
+  .naming-card .wordmark-display{
+    font-family:'Fraunces', serif; font-weight:600; font-size:48px; color:var(--paper);
+    display:flex; align-items:center; gap:12px; flex:0 0 auto;
+  }
+  .naming-card .wordmark-display .dot{ width:11px; height:11px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .naming-card .text{ flex:1; min-width:260px; }
+  .naming-card p{ color:rgba(247,244,237,0.75); font-size:15px; line-height:1.7; }
+  .naming-card p strong{ color:var(--gold-soft); font-weight:600; }
+
+  /* dual CTA */
+  .dual-cta{ display:flex; gap:24px; flex-wrap:wrap; max-width:820px; margin:0 auto; }
+  .cta-card{ flex:1 1 320px; border-radius:18px; padding:40px 36px; text-align:center; }
+  .cta-card.secretary{ background:var(--white); border:1.5px solid rgba(184,146,74,0.3); }
+  .cta-card.consultant{ background:var(--ink); }
+  .cta-card h3{ font-family:'Fraunces', serif; font-weight:600; font-size:20px; margin-bottom:10px; }
+  .cta-card.consultant h3{ color:var(--paper); }
+  .cta-card p{ font-size:14px; line-height:1.6; margin-bottom:24px; }
+  .cta-card.secretary p{ color:var(--slate); }
+  .cta-card.consultant p{ color:rgba(247,244,237,0.65); }
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; transition:transform .2s ease, box-shadow .2s ease;
+    display:inline-block;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-primary{ background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(27,36,48,0.5); }
+  .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(27,36,48,0.6); }
+  .btn-gold{ background:var(--gold); color:var(--ink); box-shadow:0 8px 20px -8px rgba(184,146,74,0.5); }
+  .btn-gold:hover{ box-shadow:0 12px 24px -8px rgba(184,146,74,0.6); }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:56px 32px 32px; margin-top:84px; }
+  .foot-inner{ max-width:1180px; margin:0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap:32px; }
+  .foot-logo{ font-family:'Fraunces', serif; color:var(--paper); font-size:20px; font-weight:600; margin-bottom:10px; }
+  .foot-col h5{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
+  .foot-col a{ display:block; font-size:13.5px; margin-bottom:9px; color:rgba(247,244,237,0.65); }
+  .foot-col a:hover{ color:var(--paper); }
+  .foot-bottom{ max-width:1180px; margin:40px auto 0; padding-top:24px; border-top:1px solid rgba(247,244,237,0.1); font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  svg{ display:block; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="veyn-for-secretaries.html">For Secretaries</a>
+        <a href="veyn-for-consultants.html">For Consultants</a>
+        <a href="#" class="active">About</a>
+      </nav>
+    </div>
+    <a href="#login" class="btn-login">Log in</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow"><span class="sq"></span> Founded by a medical secretary</div>
+  <h1>Built by someone who<br>did the job for <em>twelve years</em>.</h1>
+  <p class="sub">Veyn exists because the gaps in this market weren't theoretical to us — they were the actual experience of trying to find work, train, and feel like part of a profession rather than a line on someone else's spreadsheet.</p>
+</section>
+
+<section class="block">
+  <div class="founder-card">
+    <p>I spent twelve years as a private medical secretary before I built Veyn. Not researching the role from the outside — doing it, day after day, across different consultants, different systems, different specialties.</p>
+    <p>What struck me wasn't any one bad experience. It was three things that kept showing up, year after year, that nobody seemed to be building for.</p>
+    <p>First: <strong>there was nowhere to actually get better at the job.</strong> No training, no structured way to learn the systems consultants expected you to already know, no recognised path from "competent" to "specialist." You picked things up wherever you could, or you didn't.</p>
+    <p>Second: <strong>the pool of work was always smaller than it should have been.</strong> Looking for cover or a new placement meant relying on word of mouth, a handful of agency contacts, or whatever happened to be on a noticeboard. Good secretaries and good consultants were missing each other constantly — not because the fit wasn't there, but because there was no real way to find it.</p>
+    <p>Third: <strong>there was no community.</strong> No place to ask another secretary how they'd handled something, compare notes on a system, or just feel like part of a profession rather than a name on an invoice. Everyone was figuring it out alone, in parallel, repeating the same mistakes.</p>
+    <p>Veyn is my answer to those three things — not a theory about what secretaries need, but the platform I wish had existed across those twelve years.</p>
+    <div class="founder-sig">
+      <div class="founder-avatar">SA</div>
+      <div>
+        <div class="founder-name">Sara Ayers</div>
+        <div class="founder-title">FOUNDER · 12 YEARS AS A PRIVATE MEDICAL SECRETARY</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0;">
+  <div class="block-head">
+    <span class="label">What we believe</span>
+    <h2>Eight things we won't quietly change our minds about</h2>
+    <p>Every design, pricing, and copy decision on this platform gets checked against these first.</p>
+  </div>
+  <div class="beliefs">
+    <div class="belief">
+      <div class="belief-num">01</div>
+      <div>
+        <h3>Verification is a right, not a toll</h3>
+        <p>I never want a secretary to pay to prove who they are. You can upload a DBS certificate, ID, and references, and we review them for free — permanently, not as a launch promo. It's optional, and it never gates access to anything else on the platform.</p>
+      </div>
+    </div>
+    <div class="belief">
+      <div class="belief-num">02</div>
+      <div>
+        <h3>A claim isn't a credential</h3>
+        <p>I wrote "5 years' Carebit experience" on my own CV more times than I can count, and it never meant anything until someone actually checked. So we built the tools to prove it — skills tests, system badges, a typing score — instead of asking consultants to take adjectives on faith.</p>
+      </div>
+    </div>
+    <div class="belief">
+      <div class="belief-num">03</div>
+      <div>
+        <h3>Trust runs both ways</h3>
+        <p>Consultants got to rate me everywhere I ever worked. I never once got to rate them back. That's not a feature of this market — it's a bug, and we fixed it.</p>
+      </div>
+    </div>
+    <div class="belief">
+      <div class="belief-num">04</div>
+      <div>
+        <h3>The job is bigger than the listing</h3>
+        <p>My career didn't pause between placements, and neither does anyone else's. That's why day-rate calculators, self-employment guidance, and training live here — because the work doesn't stop the moment you're "between jobs."</p>
+      </div>
+    </div>
+    <div class="belief">
+      <div class="belief-num">05</div>
+      <div>
+        <h3>Liquidity is earned before it's announced</h3>
+        <p>I know exactly what it feels like to search a platform and find nothing. We won't claim a pool of secretaries we don't have. If a number's on this site, it's real.</p>
+      </div>
+    </div>
+    <div class="belief">
+      <div class="belief-num">06</div>
+      <div>
+        <h3>System experience is searchable, not buried in a CV</h3>
+        <p>Consultants already write "must know DGL" into job ads by hand. I just built the filter that should have existed the entire time I was job-hunting.</p>
+      </div>
+    </div>
+    <div class="belief">
+      <div class="belief-num">07</div>
+      <div>
+        <h3>Free is the strategy — with one honest exception</h3>
+        <p>Everything you'd join for before a single consultant ever messages you is free, because liquidity has to start somewhere. One optional layer exists on top — an £8/month visibility boost — and it never touches access or your data. We say so plainly, every time it's mentioned.</p>
+      </div>
+    </div>
+    <div class="belief">
+      <div class="belief-num">08</div>
+      <div>
+        <h3>Outcome-aligned, not access-aligned</h3>
+        <p>We'd rather earn a little when a placement actually works than charge a consultant a flat fee whether they find anyone or not. That's why it's pay-per-contact, not pay-to-browse.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0;">
+  <div class="block-head">
+    <span class="label">The name</span>
+    <h2>Why "Veyn"</h2>
+  </div>
+  <div class="naming-card">
+    <div class="wordmark-display"><span class="dot"></span>veyn</div>
+    <div class="text">
+      <p>An invented spelling of <strong>"vein"</strong> — apt for a platform connecting two sides of private healthcare, since a vein is literally a connective structure within the body. We tested it against four things: it had to work for both audiences, carry no NHS connotation, survive being said aloud at a networking event, and exist as one clean word. It's the only name we tested that came back clean on all four.</p>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0;">
+  <div class="dual-cta">
+    <div class="cta-card secretary">
+      <h3>If you're a secretary</h3>
+      <p>Free, permanently. Document verification, searchable experience, and a community that didn't exist before.</p>
+      <a class="btn btn-gold" href="veyn-for-secretaries.html">Create your free profile</a>
+    </div>
+    <div class="cta-card consultant">
+      <h3>If you're a consultant</h3>
+      <p>Search by system and specialty, GMC-verified, no commission. Browsing is always free.</p>
+      <a class="btn btn-primary" href="veyn-for-consultants.html">See who's available</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-inner">
+    <div style="max-width:260px;">
+      <div class="foot-logo">veyn</div>
+      <p style="font-size:13.5px;line-height:1.6;color:rgba(247,244,237,0.55);">The UK platform connecting private medical secretaries and consultants — found for what they can prove, not just what they say.</p>
+    </div>
+    <div class="foot-col">
+      <h5>Platform</h5>
+      <a href="veyn-for-secretaries.html">For Secretaries</a>
+      <a href="veyn-for-consultants.html">For Consultants</a>
+      <a href="#">Pricing</a>
+    </div>
+    <div class="foot-col">
+      <h5>Company</h5>
+      <a href="index.html">Home</a>
+      <a href="#" class="active">About</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="foot-col">
+      <h5>Legal</h5>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Cookies</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Founded by a medical secretary, not a market gap.</span>
+  </div>
+</footer>
+
+</body>
+</html>
