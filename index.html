@@ -634,9 +634,9 @@
 <header>
   <div class="nav">
     <div class="nav-left">
-      <div class="logo"><span class="dot"></span>veyn</div>
+      <a href="index.html" class="logo"><span class="dot"></span>veyn</a>
       <nav class="nav-links">
-        <a href="#how">How it works</a>
+        <a href="veyn-for-secretaries.html" onclick="event.preventDefault(); window.location.href = document.body.getAttribute('data-active') === 'consultant' ? 'veyn-for-consultants.html' : 'veyn-for-secretaries.html';">How it works</a>
         <a href="#trust">Verification</a>
         <a href="#pricing">Pricing</a>
         <a href="#" data-view="secretary">Academy</a>
