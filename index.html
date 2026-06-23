@@ -320,7 +320,7 @@
     font-weight:600;
   }
 
-  /* ---------- verification strip ---------- */
+  /* ---------- trust strip ---------- */
 
   .strip{
     border-top:1px solid rgba(27,36,48,0.08);
@@ -637,14 +637,13 @@
       <a href="index.html" class="logo"><span class="dot"></span>veyn</a>
       <nav class="nav-links">
         <a href="veyn-for-secretaries.html" onclick="event.preventDefault(); window.location.href = document.body.getAttribute('data-active') === 'consultant' ? 'veyn-for-consultants.html' : 'veyn-for-secretaries.html';">How it works</a>
-        <a href="veyn-verification-secretaries.html" onclick="event.preventDefault(); window.location.href = document.body.getAttribute('data-active') === 'consultant' ? 'veyn-verification-consultants.html' : 'veyn-verification-secretaries.html';">Verification</a>
         <a href="veyn-pricing-secretaries.html" onclick="event.preventDefault(); window.location.href = document.body.getAttribute('data-active') === 'consultant' ? 'veyn-pricing-consultants.html' : 'veyn-pricing-secretaries.html';">Pricing</a>
         <a href="veyn-academy.html" data-view="secretary">Academy</a>
         <a href="veyn-community.html" data-view="secretary">Community</a>
         <a href="veyn-business-hub.html" data-view="secretary">Business Hub</a>
       </nav>
     </div>
-    <a href="#login" class="btn-login">Log in</a>
+    <a href="account/login.html" class="btn-login">Log in</a>
   </div>
 </header>
 
@@ -672,7 +671,7 @@
     <h1>Your experience, <em>finally</em><br>searchable.</h1>
     <p class="sub">Build one profile. List the systems you've actually used, the specialties you know, and let consultants find you for what you can prove — not just what you say.</p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="veyn-for-secretaries.html" style="display:inline-block;text-decoration:none;">Create your free profile</a>
+      <a class="btn btn-primary" href="account/create-profile-secretary.html" style="display:inline-block;text-decoration:none;">Create your free profile</a>
       <a class="btn btn-ghost" href="veyn-for-secretaries.html" style="display:inline-block;text-decoration:none;">See how it works</a>
     </div>
     <p class="depth"><b>Currently building deep roots</b> in London and Milton Keynes, with particular focus on general surgery, orthopaedics, and urology — wherever you're based or whatever your specialty, you're welcome to join now.</p>
@@ -682,7 +681,7 @@
     <div class="strip-inner">
       <div class="strip-item">
         <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Document verification — free, always
+        Free skills tests, with real badges
       </div>
       <div class="strip-item">
         <svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#1B2430" stroke-width="1.6"/><path d="M3 9h18" stroke="#1B2430" stroke-width="1.6"/></svg>
@@ -703,9 +702,9 @@
     </div>
     <div class="grid3">
       <div class="card">
-        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3 8-8" stroke="#1B2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <h3>Document verification, free</h3>
-        <p>Upload your DBS certificate, ID, and references. Optional, never gated behind a fee — we review what you already hold.</p>
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="#1B2430" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <h3>Trust runs both ways</h3>
+        <p>Rate consultants too — not just the other way round. We treat that as basic fairness, not a feature.</p>
       </div>
       <div class="card">
         <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="#1B2430" stroke-width="2"/><path d="M14 3v6h6" stroke="#1B2430" stroke-width="2"/></svg></div>
@@ -733,8 +732,8 @@
       </div>
       <div class="band-divider"></div>
       <div class="band-col">
-        <h4>Your verification</h4>
-        <div class="big">DBS · ID · References<br><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:500;">— reviewed free —</span></div>
+        <h4>Your trust signal</h4>
+        <div class="big">Skills-Tested badge<br><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:500;">— earned, not claimed —</span></div>
       </div>
     </div>
   </section>
@@ -749,9 +748,9 @@
       <div class="price-card">
         <div class="name mono">Core profile</div>
         <div class="amount">£0</div>
-        <div class="desc">Full profile, all data fields, document verification, community, skills tests.</div>
+        <div class="desc">Full profile, all data fields, community, skills tests.</div>
         <ul>
-          <li><span class="tick">✓</span> Document-verified badge</li>
+          <li><span class="tick">✓</span> Skills-Tested badge</li>
           <li><span class="tick">✓</span> Unlimited applications</li>
           <li><span class="tick">✓</span> Forum &amp; skills tests</li>
         </ul>
@@ -776,21 +775,21 @@
 <div data-view="consultant">
 
   <section class="hero view-fade">
-    <div class="eyebrow"><span class="sq"></span> GMC-verified network</div>
+    <div class="eyebrow"><span class="sq"></span> Skills-tested network</div>
     <h1>Hire someone who already<br>speaks <em>your</em> language.</h1>
-    <p class="sub">Search by system experience, specialty, and verified availability. No recruitment fees. No commission. Pay only when you make contact.</p>
+    <p class="sub">Search by system experience, specialty, and tested skills. No recruitment fees. No commission. Pay only when you make contact.</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="veyn-for-consultants.html" style="display:inline-block;text-decoration:none;">See who's available</a>
       <a class="btn btn-ghost" href="veyn-pricing-consultants.html" style="display:inline-block;text-decoration:none;">View pricing</a>
     </div>
-    <p class="depth">We've concentrated our first cohort of verified secretaries in <b>London and Milton Keynes</b> private practice, with particular depth in <b>general surgery, orthopaedics, and urology</b>. If you're consulting in one of these regions or specialties, you'll find genuine depth to search — not a thin national listing.</p>
+    <p class="depth">We've concentrated our first cohort of secretaries in <b>London and Milton Keynes</b> private practice, with particular depth in <b>general surgery, orthopaedics, and urology</b>. If you're consulting in one of these regions or specialties, you'll find genuine depth to search — not a thin national listing.</p>
   </section>
 
   <div class="strip">
     <div class="strip-inner">
       <div class="strip-item">
         <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        You're GMC-verified to message
+        Filter by real, tested skills
       </div>
       <div class="strip-item">
         <svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#1B2430" stroke-width="1.6"/><path d="M3 9h18" stroke="#1B2430" stroke-width="1.6"/></svg>
@@ -817,8 +816,8 @@
       </div>
       <div class="card">
         <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3 8-8" stroke="#1B2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <h3>Document-verified profiles</h3>
-        <p>DBS certificate, ID and references reviewed for every Verified-badge profile — a real credential, not a self-reported tick box.</p>
+        <h3>Skills-Tested badges</h3>
+        <p>Typing speed, terminology, and system proficiency — passed assessments, not self-reported claims. A real, earned credential.</p>
       </div>
       <div class="card">
         <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 12h4l3 8 4-16 3 8h4" stroke="#1B2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -841,8 +840,8 @@
       </div>
       <div class="band-divider"></div>
       <div class="band-col">
-        <h4>Your verification</h4>
-        <div class="big">GMC number lookup<br><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:500;">— confirmed before you message —</span></div>
+        <h4>Trust signal</h4>
+        <div class="big">Skills-Tested badges<br><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:500;">— passed, not claimed —</span></div>
       </div>
     </div>
   </section>
@@ -901,7 +900,6 @@
       <a href="veyn-for-secretaries.html">For Secretaries</a>
       <a href="veyn-for-consultants.html">For Consultants</a>
       <a href="veyn-pricing-secretaries.html">Pricing</a>
-      <a href="veyn-verification-secretaries.html">Verification</a>
     </div>
     <div class="foot-col">
       <h5>Company</h5>
@@ -920,7 +918,7 @@
   </div>
   <div class="foot-bottom">
     <span>© 2026 Veyn. All rights reserved.</span>
-    <span>Document verification free, always.</span>
+    <span>Free skills tests, always.</span>
   </div>
 </footer>
 

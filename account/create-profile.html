@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Create your profile — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --gold-soft:#E7D9BC;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px; max-width:1180px; margin:0 auto;
+  }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{
+    font-family:'Fraunces', serif; font-weight:600; font-size:24px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+    transition:border-color .2s ease, background .2s ease; white-space:nowrap;
+  }
+  .btn-login:hover{ border-color:var(--ink); background:rgba(27,36,48,0.04); }
+
+  .hero{ padding:64px 32px 0; text-align:center; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.3);
+    padding:7px 16px; border-radius:999px; margin-bottom:28px;
+  }
+  .eyebrow .sq{ width:6px;height:6px; background:var(--green); border-radius:50%; display:inline-block; }
+  h1{
+    font-family:'Fraunces', serif; font-weight:600; font-size:clamp(32px, 5vw, 56px);
+    line-height:1.1; letter-spacing:-0.01em; max-width:780px; margin:0 auto 22px;
+  }
+  h1 em{ font-style:italic; font-weight:400; color:var(--gold); }
+  .sub{ font-size:18px; line-height:1.6; color:var(--slate); max-width:600px; margin:0 auto 0; }
+
+  section.block{ padding:64px 32px; }
+
+  .dual-cta{ display:flex; gap:24px; flex-wrap:wrap; max-width:820px; margin:0 auto; }
+  .cta-card{ flex:1 1 320px; border-radius:18px; padding:40px 36px; text-align:center; }
+  .cta-card.secretary{ background:var(--white); border:1.5px solid rgba(184,146,74,0.3); }
+  .cta-card.consultant{ background:var(--ink); }
+  .cta-card h3{ font-family:'Fraunces', serif; font-weight:600; font-size:20px; margin-bottom:10px; }
+  .cta-card.consultant h3{ color:var(--paper); }
+  .cta-card p{ font-size:14px; line-height:1.6; margin-bottom:24px; }
+  .cta-card.secretary p{ color:var(--slate); }
+  .cta-card.consultant p{ color:rgba(247,244,237,0.65); }
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; transition:transform .2s ease, box-shadow .2s ease;
+    display:inline-block;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-primary{ background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(27,36,48,0.5); }
+  .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(27,36,48,0.6); }
+  .btn-gold{ background:var(--gold); color:var(--ink); box-shadow:0 8px 20px -8px rgba(184,146,74,0.5); }
+  .btn-gold:hover{ box-shadow:0 12px 24px -8px rgba(184,146,74,0.6); }
+
+  .auth-switch{ text-align:center; font-size:14px; color:var(--slate); margin-top:36px; }
+  .auth-switch a{ color:var(--gold); font-weight:600; }
+  .auth-switch a:hover{ text-decoration:underline; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:60px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <a href="login.html" class="btn-login">Log in</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow"><span class="sq"></span> Takes about 2 minutes</div>
+  <h1>Create your <em>free</em> profile</h1>
+  <p class="sub">Tell us which side of the desk you're on, and we'll set up the right profile for you.</p>
+</section>
+
+<section class="block">
+  <div class="dual-cta">
+    <div class="cta-card secretary">
+      <h3>I'm a secretary</h3>
+      <p>Build a searchable profile, take your skills tests, and get found by consultants — free, permanently.</p>
+      <a class="btn btn-gold" href="create-profile-secretary.html">Continue as a secretary</a>
+    </div>
+    <div class="cta-card consultant">
+      <h3>I'm a consultant</h3>
+      <p>Set up your practice profile and start searching by system, specialty, and tested skills.</p>
+      <a class="btn btn-primary" href="create-profile-consultant.html">Continue as a consultant</a>
+    </div>
+  </div>
+  <div class="auth-switch">Already have an account? <a href="login.html">Log in</a></div>
+</section>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Founded by a medical secretary, not a market gap.</span>
+  </div>
+</footer>
+
+</body>
+</html>

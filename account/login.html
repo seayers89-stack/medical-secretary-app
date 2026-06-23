@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Log in — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --gold-soft:#E7D9BC;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px; max-width:1180px; margin:0 auto;
+  }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{
+    font-family:'Fraunces', serif; font-weight:600; font-size:24px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+
+  .auth-wrap{ display:flex; align-items:center; justify-content:center; padding:80px 32px 100px; min-height:60vh; }
+  .auth-card{
+    width:100%; max-width:420px; background:var(--white); border:1px solid rgba(27,36,48,0.08);
+    border-radius:20px; padding:44px 40px;
+  }
+  .auth-eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  .auth-card h1{ font-family:'Fraunces', serif; font-weight:600; font-size:28px; margin-bottom:10px; }
+  .auth-sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:30px; }
+
+  .field{ margin-bottom:18px; }
+  .field label{
+    display:block; font-size:13px; font-weight:600; margin-bottom:7px; color:var(--ink);
+  }
+  .field input{
+    width:100%; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper);
+    color:var(--ink); transition:border-color .2s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--gold); }
+
+  .field-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+  .forgot{ font-size:13px; color:var(--gold); font-weight:600; }
+  .forgot:hover{ text-decoration:underline; }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; transition:transform .2s ease, box-shadow .2s ease;
+    display:inline-block; width:100%; text-align:center;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-primary{ background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(27,36,48,0.5); }
+  .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(27,36,48,0.6); }
+
+  .divider{ display:flex; align-items:center; gap:14px; margin:28px 0; color:var(--slate); font-size:12.5px; }
+  .divider::before, .divider::after{ content:''; flex:1; height:1px; background:rgba(27,36,48,0.1); }
+
+  .auth-switch{ text-align:center; font-size:14px; color:var(--slate); margin-top:8px; }
+  .auth-switch a{ color:var(--gold); font-weight:600; }
+  .auth-switch a:hover{ text-decoration:underline; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <a href="login.html" class="btn-login">Log in</a>
+  </div>
+</header>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-eyebrow">Welcome back</div>
+    <h1>Log in to Veyn</h1>
+    <p class="auth-sub">Pick up where you left off — your profile, messages, and saved searches are waiting.</p>
+
+    <p id="form-error" style="display:none; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; padding:12px 14px; border-radius:8px; font-size:13.5px; margin-bottom:18px;"></p>
+
+    <form id="login-form">
+      <div class="field">
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+      </div>
+      <div class="field-row">
+        <span></span>
+        <a href="#" class="forgot">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn btn-primary" id="submit-btn">Log in</button>
+    </form>
+
+    <div class="divider">or</div>
+
+    <div class="auth-switch">New to Veyn? <a href="create-profile.html">Create your profile</a></div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Founded by a medical secretary, not a market gap.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+  const form = document.getElementById('login-form');
+  const errorBox = document.getElementById('form-error');
+  const submitBtn = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in…';
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      errorBox.textContent = error.message;
+      errorBox.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Log in';
+      return;
+    }
+
+    window.location.href = 'profile.html';
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Your profile — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --gold-soft:#E7D9BC;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px; max-width:1180px; margin:0 auto;
+  }
+  .logo{
+    font-family:'Fraunces', serif; font-weight:600; font-size:24px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer;
+    background:none; transition:border-color .2s ease, background .2s ease;
+  }
+  .btn-login:hover{ border-color:var(--ink); background:rgba(27,36,48,0.04); }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:64px 32px 100px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:32px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:15px; line-height:1.6; margin-bottom:36px; }
+
+  .card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:32px 36px; margin-bottom:20px;
+  }
+  .card h3{ font-family:'Fraunces', serif; font-weight:600; font-size:17px; margin-bottom:14px; }
+  .row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(27,36,48,0.06); font-size:14.5px; }
+  .row:last-child{ border-bottom:none; }
+  .row span:first-child{ color:var(--slate); }
+  .row span:last-child{ font-weight:600; }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+    <button class="btn-login" id="logout-btn">Log out</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Your account</div>
+  <h1 id="greeting">Welcome</h1>
+  <p class="sub">This is your profile snapshot. Editing tools (skills tests, systems, day rate) come next.</p>
+
+  <p id="loading">Loading your profile…</p>
+  <div class="card" id="profile-card" style="display:none;"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const userId = session.user.id;
+
+    const { data: profile, error } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    const loading = document.getElementById('loading');
+    const card = document.getElementById('profile-card');
+
+    if (error || !profile) {
+      loading.textContent = 'Could not load your profile.';
+      return;
+    }
+
+    document.getElementById('greeting').textContent = `Welcome, ${profile.first_name}`;
+
+    let extraRows = '';
+    if (profile.role === 'secretary') {
+      const { data: sec } = await supabaseClient
+        .from('secretary_profiles')
+        .select('*')
+        .eq('profile_id', userId)
+        .single();
+      if (sec) {
+        extraRows = `<div class="row"><span>Experience</span><span>${sec.years_experience || '—'}</span></div>`;
+      }
+    } else if (profile.role === 'consultant') {
+      const { data: con } = await supabaseClient
+        .from('consultant_profiles')
+        .select('*')
+        .eq('profile_id', userId)
+        .single();
+      if (con) {
+        extraRows = `
+          <div class="row"><span>Practice</span><span>${con.practice_name || '—'}</span></div>
+          <div class="row"><span>Specialty</span><span>${con.specialty || '—'}</span></div>
+        `;
+      }
+    }
+
+    card.innerHTML = `
+      <h3>Profile details</h3>
+      <div class="row"><span>Name</span><span>${profile.first_name} ${profile.last_name}</span></div>
+      <div class="row"><span>Role</span><span>${profile.role}</span></div>
+      <div class="row"><span>Email</span><span>${session.user.email}</span></div>
+      ${extraRows}
+    `;
+
+    loading.style.display = 'none';
+    card.style.display = 'block';
+  })();
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+  });
+</script>
+
+</body>
+</html>
