@@ -33,6 +33,10 @@ create table secretary_profiles (
   dbs_level text,
   work_mode text[],
   availability_type text[],
+  availability_start text,
+  daily_availability text[],
+  available_evenings boolean,
+  available_weekends boolean,
   hourly_rate_min numeric,
   hourly_rate_max numeric
 );

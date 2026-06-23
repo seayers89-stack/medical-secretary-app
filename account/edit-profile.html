@@ -42,6 +42,10 @@
     display:flex; align-items:center; gap:8px;
   }
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  @media (max-width:760px){ .nav-links{ display:none; } }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
     border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer;
@@ -119,7 +123,15 @@
 
 <header>
   <div class="nav">
-    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
     <button class="btn-login" id="logout-btn">Log out</button>
   </div>
 </header>
@@ -305,6 +317,7 @@
             <label for="typing-speed">Typing speed</label>
             <select id="typing-speed">
               <option value="">Select</option>
+              <option>Unknown</option>
               <option>Under 40 WPM</option>
               <option>40–59 WPM</option>
               <option>60–79 WPM</option>
@@ -369,6 +382,36 @@
         <div class="field toggle-row">
           <input type="checkbox" id="available">
           <label for="available" style="margin:0;">Available for new placements right now</label>
+        </div>
+        <div class="field">
+          <label for="availability-start">Availability start date</label>
+          <select id="availability-start">
+            <option>Available now</option>
+            <option>Within 2 weeks</option>
+            <option>Within 1 month</option>
+            <option>Within 2 months</option>
+            <option>Within 3 months</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Days available</label>
+          <div class="chip-row" id="daily-availability-row">
+            <label class="chip-toggle"><input type="checkbox" value="Monday"><span>Monday</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Tuesday"><span>Tuesday</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Wednesday"><span>Wednesday</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Thursday"><span>Thursday</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Friday"><span>Friday</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Saturday"><span>Saturday</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Sunday"><span>Sunday</span></label>
+          </div>
+        </div>
+        <div class="field toggle-row">
+          <input type="checkbox" id="available-evenings">
+          <label for="available-evenings" style="margin:0;">Available evenings</label>
+        </div>
+        <div class="field toggle-row">
+          <input type="checkbox" id="available-weekends">
+          <label for="available-weekends" style="margin:0;">Available weekends</label>
         </div>
 
         <span class="section-label">Rate</span>
@@ -464,6 +507,13 @@
           if (el) el.checked = true;
         });
         document.getElementById('available').checked = !!sec.available;
+        if (sec.availability_start) document.getElementById('availability-start').value = sec.availability_start;
+        (sec.daily_availability || []).forEach(v => {
+          const el = document.querySelector(`#daily-availability-row input[value="${v}"]`);
+          if (el) el.checked = true;
+        });
+        document.getElementById('available-evenings').checked = !!sec.available_evenings;
+        document.getElementById('available-weekends').checked = !!sec.available_weekends;
 
         if (sec.region) document.getElementById('region').value = sec.region;
         if (sec.postcode) document.getElementById('postcode').value = sec.postcode;
@@ -553,6 +603,10 @@
       const dbsLevel = document.getElementById('dbs-level').value;
       const workMode = Array.from(document.querySelectorAll('#work-mode-row input:checked')).map(el => el.value);
       const availabilityType = Array.from(document.querySelectorAll('#availability-type-row input:checked')).map(el => el.value);
+      const availabilityStart = document.getElementById('availability-start').value;
+      const dailyAvailability = Array.from(document.querySelectorAll('#daily-availability-row input:checked')).map(el => el.value);
+      const availableEvenings = document.getElementById('available-evenings').checked;
+      const availableWeekends = document.getElementById('available-weekends').checked;
       const hourlyRateMin = document.getElementById('hourly-rate-min').value || null;
       const hourlyRateMax = document.getElementById('hourly-rate-max').value || null;
 
@@ -573,6 +627,10 @@
           dbs_level: dbsLevel || null,
           work_mode: workMode,
           availability_type: availabilityType,
+          availability_start: availabilityStart,
+          daily_availability: dailyAvailability,
+          available_evenings: availableEvenings,
+          available_weekends: availableWeekends,
           hourly_rate_min: hourlyRateMin,
           hourly_rate_max: hourlyRateMax,
         })

@@ -42,6 +42,11 @@
     display:flex; align-items:center; gap:8px;
   }
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
     border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer;
@@ -75,15 +80,16 @@
 
 <header>
   <div class="nav">
-    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
-    <div style="display:flex; gap:10px;">
-      <a href="job-board.html" class="btn-login" id="job-board-link" style="display:none;">Job board</a>
-      <a href="post-job.html" class="btn-login" id="post-job-link" style="display:none;">Post a job</a>
-      <a href="my-postings.html" class="btn-login" id="my-postings-link" style="display:none;">My postings</a>
-      <a href="messages.html" class="btn-login">Messages<span id="unread-badge"></span></a>
-      <a href="edit-profile.html" class="btn-login">Edit profile</a>
-      <button class="btn-login" id="logout-btn">Log out</button>
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
     </div>
+    <button class="btn-login" id="logout-btn">Log out</button>
   </div>
 </header>
 
@@ -98,15 +104,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
 <script>
   (async () => {
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'profile');
 
-    if (!session) {
+    if (!navResult) {
       window.location.href = 'login.html';
       return;
     }
 
+    const { session } = navResult;
     const userId = session.user.id;
 
     const { data: profile, error } = await supabaseClient
@@ -124,13 +132,6 @@
     }
 
     document.getElementById('greeting').textContent = `Welcome, ${profile.first_name}`;
-
-    if (profile.role === 'secretary') {
-      document.getElementById('job-board-link').style.display = 'inline-block';
-    } else if (profile.role === 'consultant') {
-      document.getElementById('post-job-link').style.display = 'inline-block';
-      document.getElementById('my-postings-link').style.display = 'inline-block';
-    }
 
     let extraRows = '';
     if (profile.role === 'secretary') {
@@ -159,6 +160,10 @@
           <div class="row"><span>Work mode</span><span>${(sec.work_mode || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Availability type</span><span>${(sec.availability_type || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Available now</span><span>${sec.available ? 'Yes' : 'No'}</span></div>
+          <div class="row"><span>Availability start date</span><span>${sec.availability_start || '—'}</span></div>
+          <div class="row"><span>Days available</span><span>${(sec.daily_availability || []).join(', ') || '—'}</span></div>
+          <div class="row"><span>Available evenings</span><span>${sec.available_evenings ? 'Yes' : 'No'}</span></div>
+          <div class="row"><span>Available weekends</span><span>${sec.available_weekends ? 'Yes' : 'No'}</span></div>
           <div class="row"><span>Hourly rate</span><span>${sec.hourly_rate_min && sec.hourly_rate_max ? `£${sec.hourly_rate_min}–£${sec.hourly_rate_max}/hour` : '—'}</span></div>
         `;
       }
@@ -186,18 +191,6 @@
 
     loading.style.display = 'none';
     card.style.display = 'block';
-
-    const filterColumn = profile.role === 'consultant' ? 'consultant_id' : 'secretary_id';
-    const { data: unread } = await supabaseClient
-      .from('messages')
-      .select('id')
-      .eq(filterColumn, userId)
-      .neq('sender_id', userId)
-      .is('read_at', null);
-
-    if (unread && unread.length > 0) {
-      document.getElementById('unread-badge').textContent = ` (${unread.length})`;
-    }
   })();
 
   document.getElementById('logout-btn').addEventListener('click', async () => {

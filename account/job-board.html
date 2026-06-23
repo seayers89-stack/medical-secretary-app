@@ -33,6 +33,10 @@
     border-bottom:1px solid rgba(27,36,48,0.08);
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  @media (max-width:760px){ .nav-links{ display:none; } }
   .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
   .btn-login{
@@ -75,7 +79,15 @@
 
 <header>
   <div class="nav">
-    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
     <a href="login.html" class="btn-login" id="header-login-link">Log in</a>
   </div>
 </header>
