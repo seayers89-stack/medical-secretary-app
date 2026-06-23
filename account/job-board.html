@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Job board — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+  }
+
+  .wrap{ max-width:760px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
+
+  .job-card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:16px;
+    padding:24px 26px; margin-bottom:14px;
+  }
+  .job-title{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin-bottom:6px; }
+  .job-meta{ font-size:13px; color:var(--slate); margin-bottom:12px; }
+  .job-desc{ font-size:14px; line-height:1.6; color:var(--ink); margin-bottom:16px; }
+  .job-chips{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+  .job-chip{
+    font-size:12px; padding:5px 12px; border-radius:999px; border:1px solid rgba(27,36,48,0.15); color:var(--slate);
+  }
+  .respond-btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:13.5px; padding:9px 18px;
+    border-radius:7px; cursor:pointer; border:1.5px solid var(--ink); background:none; color:var(--ink);
+  }
+  .respond-btn:disabled{ opacity:0.6; cursor:default; }
+  .responded-note{ font-size:13px; color:var(--green); font-weight:600; }
+
+  .empty-state{ text-align:center; padding:60px 20px; color:var(--slate); font-size:14.5px; }
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+    <a href="login.html" class="btn-login" id="header-login-link">Log in</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Job board</div>
+  <h1>Open roles</h1>
+  <p class="sub">Free to browse and respond to. Responding to a posting opens messaging with that consultant directly.</p>
+
+  <p id="loading">Loading postings…</p>
+  <div id="jobs"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+  let currentUserId = null;
+  let isSecretary = false;
+  let respondedJobIds = new Set();
+
+  async function loadJobs() {
+    const { data: jobs, error } = await supabaseClient
+      .from('job_postings')
+      .select('*, profiles(first_name, last_name)')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false });
+
+    const loading = document.getElementById('loading');
+    const jobsEl = document.getElementById('jobs');
+    loading.style.display = 'none';
+
+    if (error) {
+      jobsEl.innerHTML = `<div class="empty-state">Could not load jobs: ${error.message}</div>`;
+      return;
+    }
+
+    if (!jobs || jobs.length === 0) {
+      jobsEl.innerHTML = `<div class="empty-state">No open roles right now — check back soon.</div>`;
+      return;
+    }
+
+    jobsEl.innerHTML = jobs.map(job => {
+      const consultantName = job.profiles ? `${job.profiles.first_name} ${job.profiles.last_name}` : 'A consultant';
+      const chips = (job.systems || []).map(s => `<span class="job-chip">${s}</span>`).join('');
+      const metaParts = [job.specialty, job.location, job.day_rate].filter(Boolean);
+
+      let action;
+      if (!currentUserId) {
+        action = `<a href="login.html" class="respond-btn" style="text-decoration:none;display:inline-block;">Log in to respond</a>`;
+      } else if (!isSecretary) {
+        action = '';
+      } else if (respondedJobIds.has(job.id)) {
+        action = `<span class="responded-note">You've responded — check your messages</span>`;
+      } else {
+        action = `<button class="respond-btn" data-job-id="${job.id}" data-consultant-id="${job.consultant_id}">Respond</button>`;
+      }
+
+      return `
+        <div class="job-card">
+          <div class="job-title">${job.title}</div>
+          <div class="job-meta">${consultantName}${metaParts.length ? ' · ' + metaParts.join(' · ') : ''}</div>
+          ${chips ? `<div class="job-chips">${chips}</div>` : ''}
+          <div class="job-desc">${job.description || ''}</div>
+          ${action}
+        </div>
+      `;
+    }).join('');
+
+    jobsEl.querySelectorAll('.respond-btn[data-job-id]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        btn.textContent = 'Responding…';
+        const jobId = btn.dataset.jobId;
+        const consultantId = btn.dataset.consultantId;
+
+        const { error: respondError } = await supabaseClient.from('job_responses').insert({
+          job_id: jobId,
+          secretary_id: currentUserId,
+        });
+
+        if (respondError) {
+          alert('Could not respond: ' + respondError.message);
+          btn.disabled = false;
+          btn.textContent = 'Respond';
+          return;
+        }
+
+        await supabaseClient.from('unlocks').insert({
+          consultant_id: consultantId,
+          secretary_id: currentUserId,
+          price_paid: 0,
+        });
+
+        window.location.href = `thread.html?consultant_id=${consultantId}&secretary_id=${currentUserId}`;
+      });
+    });
+  }
+
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (session) {
+      currentUserId = session.user.id;
+      const link = document.getElementById('header-login-link');
+      link.textContent = 'My profile';
+      link.href = 'profile.html';
+
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('role')
+        .eq('id', currentUserId)
+        .single();
+
+      isSecretary = profile && profile.role === 'secretary';
+
+      if (isSecretary) {
+        const { data: responses } = await supabaseClient
+          .from('job_responses')
+          .select('job_id')
+          .eq('secretary_id', currentUserId);
+        respondedJobIds = new Set((responses || []).map(r => r.job_id));
+      }
+    }
+
+    await loadJobs();
+  })();
+</script>
+
+</body>
+</html>

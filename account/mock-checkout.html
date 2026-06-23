@@ -167,6 +167,13 @@
       document.getElementById('summary-price').textContent = `£${plan.price.toFixed(2)}`;
       document.getElementById('summary-total').textContent = `£${plan.price.toFixed(2)}`;
       document.getElementById('pay-btn').textContent = `Pay £${plan.price.toFixed(2)}`;
+    } else if (type === 'job_posting') {
+      document.getElementById('checkout-title').textContent = 'Post a job';
+      document.getElementById('checkout-desc').textContent = 'One posting, with unlimited messaging to anyone who responds.';
+      document.getElementById('summary-label').textContent = 'Job posting bundle';
+      document.getElementById('summary-price').textContent = '£29.00';
+      document.getElementById('summary-total').textContent = '£29.00';
+      document.getElementById('pay-btn').textContent = 'Pay £29.00';
     } else {
       document.getElementById('checkout-desc').textContent = 'Nothing to check out.';
     }
@@ -210,6 +217,41 @@
         return;
       }
       window.location.href = 'profile.html?pass_active=1';
+    } else if (type === 'job_posting') {
+      const draftRaw = sessionStorage.getItem('veyn_job_draft');
+      if (!draftRaw) {
+        errorBox.textContent = 'Could not find your job details — please fill out the form again.';
+        errorBox.style.display = 'block';
+        payBtn.disabled = false;
+        payBtn.textContent = 'Pay £29.00';
+        return;
+      }
+      const draft = JSON.parse(draftRaw);
+      const { data: job, error } = await supabaseClient
+        .from('job_postings')
+        .insert({
+          consultant_id: userId,
+          title: draft.title,
+          specialty: draft.specialty,
+          systems: draft.systems,
+          location: draft.location,
+          day_rate: draft.day_rate,
+          description: draft.description,
+          status: 'open',
+        })
+        .select()
+        .single();
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        payBtn.disabled = false;
+        payBtn.textContent = 'Pay £29.00';
+        return;
+      }
+
+      sessionStorage.removeItem('veyn_job_draft');
+      window.location.href = 'my-postings.html';
     }
   });
 </script>

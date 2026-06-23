@@ -77,6 +77,9 @@
   <div class="nav">
     <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
     <div style="display:flex; gap:10px;">
+      <a href="job-board.html" class="btn-login" id="job-board-link" style="display:none;">Job board</a>
+      <a href="post-job.html" class="btn-login" id="post-job-link" style="display:none;">Post a job</a>
+      <a href="my-postings.html" class="btn-login" id="my-postings-link" style="display:none;">My postings</a>
       <a href="messages.html" class="btn-login">Messages<span id="unread-badge"></span></a>
       <a href="edit-profile.html" class="btn-login">Edit profile</a>
       <button class="btn-login" id="logout-btn">Log out</button>
@@ -122,6 +125,13 @@
 
     document.getElementById('greeting').textContent = `Welcome, ${profile.first_name}`;
 
+    if (profile.role === 'secretary') {
+      document.getElementById('job-board-link').style.display = 'inline-block';
+    } else if (profile.role === 'consultant') {
+      document.getElementById('post-job-link').style.display = 'inline-block';
+      document.getElementById('my-postings-link').style.display = 'inline-block';
+    }
+
     let extraRows = '';
     if (profile.role === 'secretary') {
       const { data: sec } = await supabaseClient
@@ -130,11 +140,26 @@
         .eq('profile_id', userId)
         .single();
       if (sec) {
+        const outcode = (sec.postcode || '').trim().split(' ')[0];
         extraRows = `
+          <div class="row"><span>Region</span><span>${sec.region || '—'}</span></div>
+          <div class="row"><span>Postcode area</span><span>${outcode || '—'}</span></div>
+          <div class="row"><span>Willingness to travel</span><span>${sec.travel_willingness || '—'}</span></div>
           <div class="row"><span>Experience</span><span>${sec.years_experience || '—'}</span></div>
+          <div class="row"><span>Private practice experience</span><span>${sec.years_private_practice || '—'}</span></div>
+          <div class="row"><span>Employment status</span><span>${(sec.employment_status || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Systems</span><span>${(sec.systems || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Specialties</span><span>${(sec.specialties || []).join(', ') || '—'}</span></div>
+          <div class="row"><span>Core skills</span><span>${(sec.core_skills || []).join(', ') || '—'}</span></div>
+          <div class="row"><span>Typing speed</span><span>${sec.typing_speed || '—'}</span></div>
+          <div class="row"><span>English fluency</span><span>${sec.english_fluency || '—'}</span></div>
+          <div class="row"><span>Right to work in UK</span><span>${sec.right_to_work ? 'Yes' : '—'}</span></div>
+          <div class="row"><span>CV available</span><span>${sec.has_cv ? 'Yes' : 'No'}</span></div>
+          <div class="row"><span>DBS certificate</span><span>${sec.has_dbs ? (sec.dbs_level || 'Yes') : 'No'}</span></div>
+          <div class="row"><span>Work mode</span><span>${(sec.work_mode || []).join(', ') || '—'}</span></div>
+          <div class="row"><span>Availability type</span><span>${(sec.availability_type || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Available now</span><span>${sec.available ? 'Yes' : 'No'}</span></div>
+          <div class="row"><span>Hourly rate</span><span>${sec.hourly_rate_min && sec.hourly_rate_max ? `£${sec.hourly_rate_min}–£${sec.hourly_rate_max}/hour` : '—'}</span></div>
         `;
       }
     } else if (profile.role === 'consultant') {

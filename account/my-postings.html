@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My postings — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+  }
+
+  .wrap{ max-width:760px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
+
+  .job-card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:16px;
+    padding:24px 26px; margin-bottom:14px;
+  }
+  .job-title{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin-bottom:4px; }
+  .job-meta{ font-size:13px; color:var(--slate); margin-bottom:16px; }
+  .respondents-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--slate); margin-bottom:8px; display:block;
+  }
+  .respondent-row{
+    display:flex; justify-content:space-between; align-items:center; padding:10px 0;
+    border-top:1px solid rgba(27,36,48,0.06); font-size:14px;
+  }
+  .respondent-row:first-of-type{ border-top:none; }
+  .open-thread{ font-size:13px; font-weight:600; color:var(--gold); }
+
+  .empty-state{ text-align:center; padding:60px 20px; color:var(--slate); font-size:14.5px; }
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+    <a href="post-job.html" class="btn-login">Post a job</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Job board</div>
+  <h1>My postings</h1>
+  <p class="sub">Every respondent below is already unlocked for messaging — no extra per-contact fee.</p>
+
+  <p id="loading">Loading your postings…</p>
+  <div id="jobs"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+    const userId = session.user.id;
+
+    const { data: jobs, error } = await supabaseClient
+      .from('job_postings')
+      .select('*')
+      .eq('consultant_id', userId)
+      .order('created_at', { ascending: false });
+
+    const loading = document.getElementById('loading');
+    const jobsEl = document.getElementById('jobs');
+    loading.style.display = 'none';
+
+    if (error) {
+      jobsEl.innerHTML = `<div class="empty-state">Could not load postings: ${error.message}</div>`;
+      return;
+    }
+
+    if (!jobs || jobs.length === 0) {
+      jobsEl.innerHTML = `<div class="empty-state">You haven't posted a role yet. <a href="post-job.html" style="text-decoration:underline;">Post one for £29</a>.</div>`;
+      return;
+    }
+
+    for (const job of jobs) {
+      const card = document.createElement('div');
+      card.className = 'job-card';
+      const metaParts = [job.specialty, job.location, job.day_rate].filter(Boolean);
+      card.innerHTML = `
+        <div class="job-title">${job.title}</div>
+        <div class="job-meta">${metaParts.join(' · ')}</div>
+        <span class="respondents-label">Respondents</span>
+        <div class="respondents-list">Loading…</div>
+      `;
+      jobsEl.appendChild(card);
+
+      const { data: responses } = await supabaseClient
+        .from('job_responses')
+        .select('secretary_id, created_at')
+        .eq('job_id', job.id)
+        .order('created_at', { ascending: false });
+
+      const listEl = card.querySelector('.respondents-list');
+
+      if (!responses || responses.length === 0) {
+        listEl.innerHTML = `<div style="color:var(--slate); font-size:13.5px;">No respondents yet.</div>`;
+        continue;
+      }
+
+      const secretaryIds = responses.map(r => r.secretary_id);
+      const { data: secretaries } = await supabaseClient
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', secretaryIds);
+
+      const nameById = {};
+      (secretaries || []).forEach(s => { nameById[s.id] = `${s.first_name} ${s.last_name}`; });
+
+      listEl.innerHTML = responses.map(r => `
+        <div class="respondent-row">
+          <span>${nameById[r.secretary_id] || 'Unknown'}</span>
+          <a class="open-thread" href="thread.html?consultant_id=${userId}&secretary_id=${r.secretary_id}">Message →</a>
+        </div>
+      `).join('');
+    }
+  })();
+</script>
+
+</body>
+</html>
