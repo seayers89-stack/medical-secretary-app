@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Conversation — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+  }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14px; line-height:1.6; margin-bottom:28px; }
+
+  .thread-card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:20px 24px; margin-bottom:20px; min-height:280px; display:flex; flex-direction:column; gap:12px;
+  }
+  .bubble{
+    max-width:80%; padding:11px 16px; border-radius:14px; font-size:14px; line-height:1.5;
+  }
+  .bubble.me{ align-self:flex-end; background:var(--ink); color:var(--paper); }
+  .bubble.them{ align-self:flex-start; background:var(--paper); border:1px solid rgba(27,36,48,0.08); }
+  .bubble-meta{ font-size:11px; opacity:0.6; margin-top:4px; }
+
+  .empty-thread{ color:var(--slate); font-size:14px; text-align:center; margin:auto; }
+
+  .compose{ display:flex; gap:10px; }
+  .compose textarea{
+    flex:1; resize:none; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:10px; background:var(--white); color:var(--ink); height:48px;
+  }
+  .compose textarea:focus{ outline:none; border-color:var(--gold); }
+  .send-btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:14px; padding:0 22px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--ink); color:var(--paper);
+  }
+  .send-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+  .blocked-note{
+    background:rgba(184,146,74,0.08); border:1px solid rgba(184,146,74,0.3); color:#8F6F36;
+    padding:16px 18px; border-radius:10px; font-size:14px; line-height:1.6;
+  }
+  .blocked-note a{ font-weight:600; text-decoration:underline; }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+    <a href="messages.html" class="btn-login">All messages</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Conversation</div>
+  <h1 id="thread-title">Loading…</h1>
+  <p class="sub">Messages stay inside Veyn. It's up to you whether to share phone numbers, email, or other contact details once you're talking.</p>
+
+  <p id="loading">Loading conversation…</p>
+  <div id="content" style="display:none;">
+    <div class="thread-card" id="thread-card"></div>
+    <form class="compose" id="compose-form">
+      <textarea id="message-body" placeholder="Write a message…" required></textarea>
+      <button type="submit" class="send-btn" id="send-btn">Send</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const consultantId = params.get('consultant_id');
+  const secretaryId = params.get('secretary_id');
+
+  let currentUserId = null;
+  let otherName = 'them';
+
+  async function loadMessages() {
+    const { data, error } = await supabaseClient
+      .from('messages')
+      .select('*')
+      .eq('consultant_id', consultantId)
+      .eq('secretary_id', secretaryId)
+      .order('created_at', { ascending: true });
+
+    const card = document.getElementById('thread-card');
+    if (error) {
+      card.innerHTML = `<div class="empty-thread">Could not load messages: ${error.message}</div>`;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      card.innerHTML = `<div class="empty-thread">No messages yet — say hello.</div>`;
+      return;
+    }
+
+    card.innerHTML = data.map(m => {
+      const mine = m.sender_id === currentUserId;
+      const time = new Date(m.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+      return `
+        <div class="bubble ${mine ? 'me' : 'them'}">
+          ${escapeHtml(m.body)}
+          <div class="bubble-meta">${time}</div>
+        </div>
+      `;
+    }).join('');
+    card.scrollTop = card.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUserId = session.user.id;
+
+    if (!consultantId || !secretaryId) {
+      document.getElementById('loading').textContent = 'Missing conversation details.';
+      return;
+    }
+    if (currentUserId !== consultantId && currentUserId !== secretaryId) {
+      document.getElementById('loading').textContent = 'You are not part of this conversation.';
+      return;
+    }
+
+    const otherId = currentUserId === consultantId ? secretaryId : consultantId;
+    const { data: otherProfile } = await supabaseClient
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', otherId)
+      .single();
+    otherName = otherProfile ? `${otherProfile.first_name} ${otherProfile.last_name}` : 'them';
+    document.getElementById('thread-title').textContent = `Conversation with ${otherName}`;
+
+    // Check whether this thread is unlocked. If the current user is the
+    // consultant and holds an active pass but hasn't explicitly unlocked
+    // this secretary yet, create the unlock now (pass-covered, no charge).
+    const { data: existingUnlock } = await supabaseClient
+      .from('unlocks')
+      .select('id')
+      .eq('consultant_id', consultantId)
+      .eq('secretary_id', secretaryId)
+      .maybeSingle();
+
+    let unlocked = !!existingUnlock;
+
+    if (!unlocked && currentUserId === consultantId) {
+      const { data: con } = await supabaseClient
+        .from('consultant_profiles')
+        .select('pass_expires_at')
+        .eq('profile_id', consultantId)
+        .single();
+
+      if (con && con.pass_expires_at && new Date(con.pass_expires_at) > new Date()) {
+        const { error: unlockError } = await supabaseClient.from('unlocks').insert({
+          consultant_id: consultantId,
+          secretary_id: secretaryId,
+          price_paid: 0,
+        });
+        unlocked = !unlockError;
+      }
+    }
+
+    const loading = document.getElementById('loading');
+    const content = document.getElementById('content');
+
+    if (!unlocked) {
+      loading.style.display = 'none';
+      content.style.display = 'block';
+      document.getElementById('thread-card').outerHTML = `
+        <p class="blocked-note">This conversation isn't unlocked yet. <a href="mock-checkout.html?type=contact&secretary_id=${secretaryId}&secretary_name=${encodeURIComponent(otherName)}">Unlock for £12</a> to start messaging.</p>
+      `;
+      document.getElementById('compose-form').style.display = 'none';
+      return;
+    }
+
+    loading.style.display = 'none';
+    content.style.display = 'block';
+    await loadMessages();
+
+    await supabaseClient
+      .from('messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('consultant_id', consultantId)
+      .eq('secretary_id', secretaryId)
+      .neq('sender_id', currentUserId)
+      .is('read_at', null);
+  })();
+
+  document.getElementById('compose-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const textarea = document.getElementById('message-body');
+    const sendBtn = document.getElementById('send-btn');
+    const body = textarea.value.trim();
+    if (!body) return;
+
+    sendBtn.disabled = true;
+    const { error } = await supabaseClient.from('messages').insert({
+      consultant_id: consultantId,
+      secretary_id: secretaryId,
+      sender_id: currentUserId,
+      body: body,
+    });
+    sendBtn.disabled = false;
+
+    if (error) {
+      alert('Could not send message: ' + error.message);
+      return;
+    }
+
+    textarea.value = '';
+    await loadMessages();
+  });
+</script>
+
+</body>
+</html>

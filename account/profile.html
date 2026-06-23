@@ -76,14 +76,18 @@
 <header>
   <div class="nav">
     <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
-    <button class="btn-login" id="logout-btn">Log out</button>
+    <div style="display:flex; gap:10px;">
+      <a href="messages.html" class="btn-login">Messages<span id="unread-badge"></span></a>
+      <a href="edit-profile.html" class="btn-login">Edit profile</a>
+      <button class="btn-login" id="logout-btn">Log out</button>
+    </div>
   </div>
 </header>
 
 <div class="wrap">
   <div class="eyebrow">Your account</div>
   <h1 id="greeting">Welcome</h1>
-  <p class="sub">This is your profile snapshot. Editing tools (skills tests, systems, day rate) come next.</p>
+  <p class="sub">This is your profile snapshot. Consultants search against this information — keep it current.</p>
 
   <p id="loading">Loading your profile…</p>
   <div class="card" id="profile-card" style="display:none;"></div>
@@ -104,7 +108,7 @@
 
     const { data: profile, error } = await supabaseClient
       .from('profiles')
-      .select('*')
+      .select('id, role, first_name, last_name, created_at')
       .eq('id', userId)
       .single();
 
@@ -126,7 +130,12 @@
         .eq('profile_id', userId)
         .single();
       if (sec) {
-        extraRows = `<div class="row"><span>Experience</span><span>${sec.years_experience || '—'}</span></div>`;
+        extraRows = `
+          <div class="row"><span>Experience</span><span>${sec.years_experience || '—'}</span></div>
+          <div class="row"><span>Systems</span><span>${(sec.systems || []).join(', ') || '—'}</span></div>
+          <div class="row"><span>Specialties</span><span>${(sec.specialties || []).join(', ') || '—'}</span></div>
+          <div class="row"><span>Available now</span><span>${sec.available ? 'Yes' : 'No'}</span></div>
+        `;
       }
     } else if (profile.role === 'consultant') {
       const { data: con } = await supabaseClient
@@ -152,6 +161,18 @@
 
     loading.style.display = 'none';
     card.style.display = 'block';
+
+    const filterColumn = profile.role === 'consultant' ? 'consultant_id' : 'secretary_id';
+    const { data: unread } = await supabaseClient
+      .from('messages')
+      .select('id')
+      .eq(filterColumn, userId)
+      .neq('sender_id', userId)
+      .is('read_at', null);
+
+    if (unread && unread.length > 0) {
+      document.getElementById('unread-badge').textContent = ` (${unread.length})`;
+    }
   })();
 
   document.getElementById('logout-btn').addEventListener('click', async () => {
