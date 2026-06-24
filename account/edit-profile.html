@@ -325,6 +325,8 @@
               <option>80–99 WPM</option>
               <option>100+ WPM</option>
             </select>
+            <p style="font-size:12px;color:var(--slate);margin-top:6px;" id="verified-wpm-note"></p>
+            <p style="font-size:12px;color:var(--slate);margin-top:6px;">Don't know your speed? <a href="typing-test.html" style="text-decoration:underline; font-weight:600;">Take our free 60-second typing test →</a></p>
           </div>
           <div class="field">
             <label for="english-fluency">English fluency</label>
@@ -531,6 +533,9 @@
           if (el) el.checked = true;
         });
         if (sec.typing_speed) document.getElementById('typing-speed').value = sec.typing_speed;
+        if (sec.typing_wpm_verified != null) {
+          document.getElementById('verified-wpm-note').innerHTML = `<strong style="color:var(--green);">✓ Verified: ${sec.typing_wpm_verified} WPM, ${sec.typing_accuracy_verified}% accuracy</strong> — this verified figure is shown to consultants instead of the dropdown above.`;
+        }
         if (sec.english_fluency) document.getElementById('english-fluency').value = sec.english_fluency;
         document.getElementById('right-to-work').checked = !!sec.right_to_work;
         document.getElementById('has-cv').checked = !!sec.has_cv;

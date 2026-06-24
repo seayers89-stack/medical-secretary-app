@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Typing test — Veyn Academy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
+
+  .card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:32px 36px;
+  }
+
+  .stat-row{ display:flex; gap:24px; margin-bottom:24px; }
+  .stat{ flex:1; text-align:center; background:var(--paper); border-radius:12px; padding:16px; }
+  .stat .num{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; color:var(--green); }
+  .stat .label{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate); margin-top:4px; }
+
+  .passage{
+    background:var(--paper); border:1px solid rgba(27,36,48,0.1); border-radius:12px;
+    padding:20px 22px; font-size:15.5px; line-height:1.8; color:var(--slate); margin-bottom:20px;
+  }
+  .passage .correct{ color:var(--green); }
+  .passage .incorrect{ color:#a33; text-decoration:underline; }
+  .passage .pending{ color:var(--slate); }
+
+  textarea{
+    width:100%; padding:14px 16px; font-family:'Inter', sans-serif; font-size:15px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:10px; background:var(--white); color:var(--ink);
+    height:110px; resize:none;
+  }
+  textarea:focus{ outline:none; border-color:var(--gold); }
+  textarea:disabled{ background:var(--paper); }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; width:100%; text-align:center; margin-top:18px;
+    background:var(--gold); color:var(--ink);
+  }
+  .btn:disabled{ opacity:0.6; cursor:not-allowed; }
+  .btn-secondary{ background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink); }
+
+  .result-card{ text-align:center; }
+  .result-card .badge{
+    display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:11.5px;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--green); background:rgba(63,107,79,0.1);
+    border:1px solid rgba(63,107,79,0.3); padding:7px 16px; border-radius:999px; margin-bottom:18px;
+  }
+
+  #save-status{ display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-top:14px; }
+  #save-status.error{ display:block; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
+  #save-status.success{ display:block; background:rgba(63,107,79,0.08); border:1px solid rgba(63,107,79,0.3); color:var(--green); }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <a href="../veyn-academy.html" class="btn-login">Back to Academy</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Academy · Skills test</div>
+  <h1>Typing test</h1>
+  <p class="sub">60 seconds. Type the passage below as accurately as you can — this replaces the self-reported figure on your profile with a verified one.</p>
+
+  <p id="loading">Loading…</p>
+
+  <div class="card" id="intro-card" style="display:none;">
+    <div class="stat-row">
+      <div class="stat"><div class="num">60s</div><div class="label">Time limit</div></div>
+      <div class="stat"><div class="num">1</div><div class="label">Passage</div></div>
+      <div class="stat"><div class="num">Free</div><div class="label">Always</div></div>
+    </div>
+    <p style="color:var(--slate); font-size:14px; line-height:1.6; margin-bottom:8px;">
+      The timer starts the moment you click below. Type as much of the passage as you can before time runs out — both speed and accuracy count toward your score.
+    </p>
+    <button class="btn" id="start-btn">Start test</button>
+  </div>
+
+  <div class="card" id="test-card" style="display:none;">
+    <div class="stat-row">
+      <div class="stat"><div class="num" id="timer-display">60</div><div class="label">Seconds left</div></div>
+      <div class="stat"><div class="num" id="wpm-live">0</div><div class="label">WPM (live)</div></div>
+    </div>
+    <div class="passage" id="passage-display"></div>
+    <textarea id="typing-input" placeholder="Start typing here…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+    <button class="btn btn-secondary" id="finish-btn">Finish early</button>
+  </div>
+
+  <div class="card result-card" id="result-card" style="display:none;">
+    <div class="badge">✓ Skills-tested</div>
+    <div class="stat-row">
+      <div class="stat"><div class="num" id="result-wpm">0</div><div class="label">Words per minute</div></div>
+      <div class="stat"><div class="num" id="result-accuracy">0%</div><div class="label">Accuracy</div></div>
+    </div>
+    <button class="btn" id="save-btn">Save to my profile</button>
+    <button class="btn btn-secondary" id="retake-btn">Retake test</button>
+    <p id="save-status"></p>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Skills-tested, every time.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script>
+  const PASSAGE = "Please find enclosed the clinic letter following today's consultation. The patient was reviewed for ongoing symptoms and a referral has been arranged for further investigation. Please contact the secretary directly to confirm the next available appointment, and ensure all relevant correspondence is filed before the end of the week. A copy of this letter will also be sent to the patient's general practitioner for their records.";
+
+  const DURATION_SECONDS = 60;
+  let userId = null;
+  let timerInterval = null;
+  let startTime = null;
+  let secondsLeft = DURATION_SECONDS;
+
+  function renderPassage(typed) {
+    const display = document.getElementById('passage-display');
+    let html = '';
+    for (let i = 0; i < PASSAGE.length; i++) {
+      const char = PASSAGE[i];
+      if (i < typed.length) {
+        html += `<span class="${typed[i] === char ? 'correct' : 'incorrect'}">${char === ' ' ? '&nbsp;' : char}</span>`;
+      } else {
+        html += `<span class="pending">${char}</span>`;
+      }
+    }
+    display.innerHTML = html;
+  }
+
+  function computeResult(typed, elapsedMinutes) {
+    let correctChars = 0;
+    const compareLength = Math.min(typed.length, PASSAGE.length);
+    for (let i = 0; i < compareLength; i++) {
+      if (typed[i] === PASSAGE[i]) correctChars++;
+    }
+    const accuracy = typed.length > 0 ? Math.round((correctChars / typed.length) * 100) : 0;
+    const wpm = elapsedMinutes > 0 ? Math.round((correctChars / 5) / elapsedMinutes) : 0;
+    return { wpm, accuracy };
+  }
+
+  function startTest() {
+    document.getElementById('intro-card').style.display = 'none';
+    document.getElementById('test-card').style.display = 'block';
+    renderPassage('');
+
+    const input = document.getElementById('typing-input');
+    input.value = '';
+    input.disabled = false;
+    input.focus();
+
+    secondsLeft = DURATION_SECONDS;
+    document.getElementById('timer-display').textContent = secondsLeft;
+    startTime = Date.now();
+
+    timerInterval = setInterval(() => {
+      secondsLeft--;
+      document.getElementById('timer-display').textContent = secondsLeft;
+      if (secondsLeft <= 0) finishTest();
+    }, 1000);
+
+    input.addEventListener('input', () => {
+      renderPassage(input.value);
+      const elapsedMinutes = (Date.now() - startTime) / 60000;
+      const { wpm } = computeResult(input.value, elapsedMinutes);
+      document.getElementById('wpm-live').textContent = wpm;
+    });
+  }
+
+  function finishTest() {
+    clearInterval(timerInterval);
+    const input = document.getElementById('typing-input');
+    input.disabled = true;
+
+    const elapsedMinutes = Math.min((Date.now() - startTime) / 60000, DURATION_SECONDS / 60);
+    const { wpm, accuracy } = computeResult(input.value, elapsedMinutes);
+
+    document.getElementById('test-card').style.display = 'none';
+    document.getElementById('result-card').style.display = 'block';
+    document.getElementById('result-wpm').textContent = wpm;
+    document.getElementById('result-accuracy').textContent = `${accuracy}%`;
+
+    document.getElementById('save-btn').dataset.wpm = wpm;
+    document.getElementById('save-btn').dataset.accuracy = accuracy;
+  }
+
+  (async () => {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, null);
+    const loading = document.getElementById('loading');
+
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (navResult.profile.role !== 'secretary') {
+      loading.textContent = 'Only secretary accounts can take the typing test.';
+      return;
+    }
+
+    userId = navResult.session.user.id;
+    loading.style.display = 'none';
+    document.getElementById('intro-card').style.display = 'block';
+  })();
+
+  document.getElementById('start-btn').addEventListener('click', startTest);
+  document.getElementById('finish-btn').addEventListener('click', finishTest);
+
+  document.getElementById('retake-btn').addEventListener('click', () => {
+    document.getElementById('result-card').style.display = 'none';
+    document.getElementById('save-status').style.display = 'none';
+    document.getElementById('intro-card').style.display = 'block';
+  });
+
+  document.getElementById('save-btn').addEventListener('click', async (e) => {
+    const btn = e.target;
+    const wpm = Number(btn.dataset.wpm);
+    const accuracy = Number(btn.dataset.accuracy);
+    const statusEl = document.getElementById('save-status');
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    const { error } = await supabaseClient
+      .from('secretary_profiles')
+      .update({
+        typing_wpm_verified: wpm,
+        typing_accuracy_verified: accuracy,
+        typing_test_taken_at: new Date().toISOString(),
+      })
+      .eq('profile_id', userId);
+
+    btn.disabled = false;
+    btn.textContent = 'Save to my profile';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'error';
+      return;
+    }
+
+    statusEl.textContent = 'Saved — your verified typing speed now shows on your profile.';
+    statusEl.className = 'success';
+  });
+</script>
+
+</body>
+</html>
