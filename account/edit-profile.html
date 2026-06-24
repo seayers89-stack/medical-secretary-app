@@ -45,6 +45,7 @@
   .nav-left{ display:flex; align-items:center; gap:48px; }
   .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
   .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
   @media (max-width:760px){ .nav-links{ display:none; } }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
@@ -125,7 +126,7 @@
   <div class="nav">
     <div class="nav-left">
       <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
-      <nav class="nav-links">
+      <nav class="nav-links" id="account-nav">
         <a href="../index.html">Home</a>
         <a href="../veyn-for-secretaries.html">For Secretaries</a>
         <a href="../veyn-for-consultants.html">For Consultants</a>
@@ -454,16 +455,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
 <script>
   let userId = null;
   let role = null;
 
   (async () => {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'edit-profile');
+    if (!navResult) {
       window.location.href = 'login.html';
       return;
     }
+    const { session } = navResult;
     userId = session.user.id;
 
     const { data: profile, error } = await supabaseClient

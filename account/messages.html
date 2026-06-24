@@ -38,6 +38,7 @@
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
   .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
   .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
   @media (max-width:760px){ .nav-links{ display:none; } }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
@@ -75,14 +76,14 @@
   <div class="nav">
     <div class="nav-left">
       <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
-      <nav class="nav-links">
+      <nav class="nav-links" id="account-nav">
         <a href="../index.html">Home</a>
         <a href="../veyn-for-secretaries.html">For Secretaries</a>
         <a href="../veyn-for-consultants.html">For Consultants</a>
         <a href="../veyn-about.html">About</a>
       </nav>
     </div>
-    <a href="profile.html" class="btn-login">My profile</a>
+    <button class="btn-login" id="logout-btn">Log out</button>
   </div>
 </header>
 
@@ -97,28 +98,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
 <script>
   (async () => {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'messages');
+    if (!navResult) {
       window.location.href = 'login.html';
       return;
     }
+    const { session, profile } = navResult;
     const userId = session.user.id;
-
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
 
     const loading = document.getElementById('loading');
     const threadsEl = document.getElementById('threads');
-
-    if (!profile) {
-      loading.textContent = 'Could not load your account.';
-      return;
-    }
 
     const isConsultant = profile.role === 'consultant';
     const filterColumn = isConsultant ? 'consultant_id' : 'secretary_id';
@@ -177,6 +169,11 @@
       `;
     }).join('');
   })();
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+  });
 </script>
 
 </body>

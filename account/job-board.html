@@ -36,6 +36,7 @@
   .nav-left{ display:flex; align-items:center; gap:48px; }
   .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
   .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
   @media (max-width:760px){ .nav-links{ display:none; } }
   .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
@@ -81,7 +82,7 @@
   <div class="nav">
     <div class="nav-left">
       <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
-      <nav class="nav-links">
+      <nav class="nav-links" id="account-nav">
         <a href="../index.html">Home</a>
         <a href="../veyn-for-secretaries.html">For Secretaries</a>
         <a href="../veyn-for-consultants.html">For Consultants</a>
@@ -89,6 +90,7 @@
       </nav>
     </div>
     <a href="login.html" class="btn-login" id="header-login-link">Log in</a>
+    <button class="btn-login" id="logout-btn" style="display:none;">Log out</button>
   </div>
 </header>
 
@@ -103,6 +105,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
 <script>
   let currentUserId = null;
   let isSecretary = false;
@@ -187,21 +190,13 @@
   }
 
   (async () => {
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'job-board');
 
-    if (session) {
-      currentUserId = session.user.id;
-      const link = document.getElementById('header-login-link');
-      link.textContent = 'My profile';
-      link.href = 'profile.html';
-
-      const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('role')
-        .eq('id', currentUserId)
-        .single();
-
-      isSecretary = profile && profile.role === 'secretary';
+    if (navResult) {
+      currentUserId = navResult.session.user.id;
+      document.getElementById('header-login-link').style.display = 'none';
+      document.getElementById('logout-btn').style.display = 'inline-block';
+      isSecretary = navResult.profile.role === 'secretary';
 
       if (isSecretary) {
         const { data: responses } = await supabaseClient
@@ -214,6 +209,11 @@
 
     await loadJobs();
   })();
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.reload();
+  });
 </script>
 
 </body>

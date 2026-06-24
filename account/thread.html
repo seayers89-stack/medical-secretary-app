@@ -36,6 +36,7 @@
   .nav-left{ display:flex; align-items:center; gap:48px; }
   .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
   .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
   @media (max-width:760px){ .nav-links{ display:none; } }
   .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
@@ -93,7 +94,7 @@
   <div class="nav">
     <div class="nav-left">
       <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
-      <nav class="nav-links">
+      <nav class="nav-links" id="account-nav">
         <a href="../index.html">Home</a>
         <a href="../veyn-for-secretaries.html">For Secretaries</a>
         <a href="../veyn-for-consultants.html">For Consultants</a>
@@ -121,6 +122,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
 <script>
   const params = new URLSearchParams(window.location.search);
   const consultantId = params.get('consultant_id');
@@ -168,12 +170,12 @@
   }
 
   (async () => {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, null);
+    if (!navResult) {
       window.location.href = 'login.html';
       return;
     }
-    currentUserId = session.user.id;
+    currentUserId = navResult.session.user.id;
 
     if (!consultantId || !secretaryId) {
       document.getElementById('loading').textContent = 'Missing conversation details.';
