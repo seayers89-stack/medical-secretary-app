@@ -130,4 +130,60 @@ const SYSTEM_SKILLS = {
       { term: 'Autotext', meaning: 'Text shortcuts that auto-complete common phrasing in letters' },
     ],
   },
+  semble: {
+    slug: 'semble',
+    name: 'Semble',
+    quiz: [
+      {
+        question: "What does Semble call its electronic health record module?",
+        correctAnswer: "EHR",
+        distractors: ["Compose", "Inbox", "Patient Portal"],
+      },
+      {
+        question: "Which payment processor powers Semble Pay?",
+        correctAnswer: "Stripe",
+        distractors: ["Worldpay", "Healthcode", "Sage"],
+      },
+      {
+        question: "Besides card payments, how else can a patient pay via Semble Pay?",
+        correctAnswer: "Apple Pay, Google Pay, an in-person Semble Pay terminal, or Klarna instalments",
+        distractors: ["Bank transfer only", "Cheque only", "PayPal only"],
+      },
+      {
+        question: "On a Klarna instalment payment taken through Semble Pay, who carries the credit risk?",
+        correctAnswer: "Klarna — not the practice",
+        distractors: ["The practice", "The patient's GP", "Semble itself"],
+      },
+      {
+        question: "Which button generates an invoice directly from a completed booking in Semble?",
+        correctAnswer: "The Invoice button",
+        distractors: ["The Bill button", "The Charge button", "The Checkout button"],
+      },
+      {
+        question: "How is a no-show recorded in Semble?",
+        correctAnswer: "A one-click action applies a coloured 'No-show' tag against the patient's name, visible throughout the system",
+        distractors: ["It must be typed manually into a notes field", "The appointment is deleted with no record", "It can only be set by an admin user"],
+      },
+      {
+        question: "Per Semble's own published FAQ, what happens if a new booking conflicts with an existing one?",
+        correctAnswer: "The system shows an on-screen warning immediately, so it can be corrected straight away",
+        distractors: ["The booking is blocked completely with no way to proceed", "The clash is allowed through silently, with no warning", "An email alert is sent to the practice manager"],
+      },
+      {
+        question: "Which AI tool does Semble integrate with for medical scribing (transcribing consultations into structured notes)?",
+        correctAnswer: "Heidi AI",
+        distractors: ["Cari", "Dragon", "Otter"],
+      },
+      {
+        question: "What was Semble previously known as?",
+        correctAnswer: "Heydoc",
+        distractors: ["Carebit", "MidexPRO", "ePractice"],
+      },
+      {
+        question: "Which Semble module covers workflow automation and integrations with other software?",
+        correctAnswer: "Semble Connect",
+        distractors: ["Semble Data", "Telehealth", "Patient Experience"],
+      },
+    ],
+  },
 };
