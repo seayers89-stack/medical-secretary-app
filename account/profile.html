@@ -154,6 +154,7 @@
           <div class="row"><span>Core skills</span><span>${(sec.core_skills || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Typing speed</span><span>${sec.typing_wpm_verified != null ? `${sec.typing_wpm_verified} WPM ✓ Verified` : (sec.typing_speed || '—')}</span></div>
           <div class="row"><span>Terminology quiz</span><span>${sec.terminology_quiz_passed ? `Passed (${sec.terminology_quiz_score}%) ✓ Verified` : '—'}</span></div>
+          <div class="row"><span>Training modules completed</span><span id="training-modules-row">—</span></div>
           <div class="row"><span>English fluency</span><span>${sec.english_fluency || '—'}</span></div>
           <div class="row"><span>Right to work in UK</span><span>${sec.right_to_work ? 'Yes' : '—'}</span></div>
           <div class="row"><span>CV available</span><span>${sec.has_cv ? 'Yes' : 'No'}</span></div>
@@ -192,6 +193,16 @@
 
     loading.style.display = 'none';
     card.style.display = 'block';
+
+    if (profile.role === 'secretary') {
+      const { data: results } = await supabaseClient
+        .from('training_module_results')
+        .select('id')
+        .eq('profile_id', userId)
+        .eq('quiz_passed', true);
+      const row = document.getElementById('training-modules-row');
+      if (row) row.textContent = `${(results || []).length} / 11`;
+    }
   })();
 
   document.getElementById('logout-btn').addEventListener('click', async () => {

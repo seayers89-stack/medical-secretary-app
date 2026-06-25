@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Module quiz — Veyn Academy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
+
+  .card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:32px 36px;
+  }
+
+  .stat-row{ display:flex; gap:24px; margin-bottom:24px; }
+  .stat{ flex:1; text-align:center; background:var(--paper); border-radius:12px; padding:16px; }
+  .stat .num{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; color:var(--green); }
+  .stat .label{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate); margin-top:4px; }
+
+  .progress-bar{ height:6px; background:rgba(27,36,48,0.08); border-radius:999px; margin-bottom:24px; overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--gold); border-radius:999px; transition:width .2s ease; }
+
+  .question-text{ font-family:'Fraunces', serif; font-weight:600; font-size:19px; margin-bottom:22px; line-height:1.4; }
+
+  .choice{
+    display:block; width:100%; text-align:left; padding:14px 18px; margin-bottom:10px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:10px; background:var(--white); color:var(--ink);
+    font-family:'Inter', sans-serif; font-size:15px; cursor:pointer; transition:all .15s ease;
+  }
+  .choice:hover{ border-color:var(--gold); }
+  .choice.correct{ border-color:var(--green); background:rgba(63,107,79,0.1); }
+  .choice.incorrect{ border-color:#a33; background:rgba(193,68,68,0.08); }
+  .choice:disabled{ cursor:default; }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; width:100%; text-align:center; margin-top:18px;
+    background:var(--gold); color:var(--ink);
+  }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  .btn-secondary{ background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink); }
+
+  .result-card{ text-align:center; }
+  .result-card .badge{
+    display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:11.5px;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--green); background:rgba(63,107,79,0.1);
+    border:1px solid rgba(63,107,79,0.3); padding:7px 16px; border-radius:999px; margin-bottom:18px;
+  }
+  .result-card .badge.fail{ color:#a33; background:rgba(193,68,68,0.08); border-color:rgba(193,68,68,0.3); }
+
+  #save-status{ display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-top:14px; }
+  #save-status.error{ display:block; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
+  #save-status.success{ display:block; background:rgba(63,107,79,0.08); border:1px solid rgba(63,107,79,0.3); color:var(--green); }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <a href="../veyn-academy.html" class="btn-login">Back to Academy</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Academy · Module quiz</div>
+  <p id="loading">Loading…</p>
+
+  <div id="page-content" style="display:none;">
+    <h1 id="page-title"></h1>
+    <p class="sub" id="page-sub"></p>
+
+    <div class="card" id="intro-card" style="display:none;">
+      <div class="stat-row">
+        <div class="stat"><div class="num" id="intro-qcount">10</div><div class="label">Questions</div></div>
+        <div class="stat"><div class="num">80%</div><div class="label">Pass mark</div></div>
+        <div class="stat"><div class="num">Free</div><div class="label">Always</div></div>
+      </div>
+      <button class="btn" id="start-btn">Start quiz</button>
+    </div>
+
+    <div class="card" id="quiz-card" style="display:none;">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%;"></div></div>
+      <div class="question-text" id="question-text"></div>
+      <div id="choices-list"></div>
+    </div>
+
+    <div class="card result-card" id="result-card" style="display:none;">
+      <div class="badge" id="result-badge">✓ Module passed</div>
+      <div class="stat-row">
+        <div class="stat"><div class="num" id="result-score">0/10</div><div class="label">Correct</div></div>
+        <div class="stat"><div class="num" id="result-percent">0%</div><div class="label">Score</div></div>
+      </div>
+      <button class="btn" id="save-btn">Save to my profile</button>
+      <button class="btn btn-secondary" id="retake-btn">Retake quiz</button>
+      <p id="save-status"></p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Skills-tested, every time.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script src="training-modules-data.js"></script>
+<script>
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  const mod = TRAINING_MODULES[slug];
+  const PASS_PERCENT = 80;
+
+  let userId = null;
+  let questions = [];
+  let currentIndex = 0;
+  let correctCount = 0;
+  let answered = false;
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function buildQuestions() {
+    return shuffle(mod.quiz).map(q => ({
+      ...q,
+      choices: shuffle([q.correctAnswer, ...q.distractors]),
+    }));
+  }
+
+  function showQuestion() {
+    answered = false;
+    const q = questions[currentIndex];
+    document.getElementById('progress-fill').style.width = `${(currentIndex / questions.length) * 100}%`;
+    document.getElementById('question-text').textContent = q.question;
+
+    const list = document.getElementById('choices-list');
+    list.innerHTML = '';
+    q.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.textContent = choice;
+      btn.addEventListener('click', () => selectAnswer(btn, choice, q.correctAnswer));
+      list.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(btn, choice, correctAnswer) {
+    if (answered) return;
+    answered = true;
+
+    document.querySelectorAll('.choice').forEach(c => c.disabled = true);
+
+    if (choice === correctAnswer) {
+      btn.classList.add('correct');
+      correctCount++;
+    } else {
+      btn.classList.add('incorrect');
+      document.querySelectorAll('.choice').forEach(c => {
+        if (c.textContent === correctAnswer) c.classList.add('correct');
+      });
+    }
+
+    setTimeout(() => {
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        showQuestion();
+      } else {
+        finishQuiz();
+      }
+    }, 900);
+  }
+
+  function finishQuiz() {
+    document.getElementById('quiz-card').style.display = 'none';
+    document.getElementById('result-card').style.display = 'block';
+
+    const percent = Math.round((correctCount / questions.length) * 100);
+    const passed = percent >= PASS_PERCENT;
+
+    document.getElementById('result-score').textContent = `${correctCount}/${questions.length}`;
+    document.getElementById('result-percent').textContent = `${percent}%`;
+
+    const badge = document.getElementById('result-badge');
+    if (passed) {
+      badge.textContent = '✓ Module passed';
+      badge.classList.remove('fail');
+    } else {
+      badge.textContent = 'Below pass mark — retake any time';
+      badge.classList.add('fail');
+    }
+
+    document.getElementById('save-btn').dataset.score = percent;
+    document.getElementById('save-btn').dataset.passed = passed;
+    document.getElementById('save-btn').style.display = passed ? 'block' : 'none';
+  }
+
+  function startQuiz() {
+    document.getElementById('intro-card').style.display = 'none';
+    document.getElementById('quiz-card').style.display = 'block';
+    document.getElementById('save-status').style.display = 'none';
+    questions = buildQuestions();
+    currentIndex = 0;
+    correctCount = 0;
+    showQuestion();
+  }
+
+  (async () => {
+    if (!mod) {
+      document.getElementById('loading').textContent = 'Module not found.';
+      return;
+    }
+
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, null);
+    const loading = document.getElementById('loading');
+
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (navResult.profile.role !== 'secretary') {
+      loading.textContent = 'Only secretary accounts can take training module quizzes.';
+      return;
+    }
+
+    userId = navResult.session.user.id;
+
+    document.getElementById('page-title').textContent = `${mod.title} — Quiz`;
+    document.getElementById('page-sub').textContent = `${mod.quiz.length} questions covering this module. Score 80% or more to mark it as completed on your profile.`;
+    document.getElementById('intro-qcount').textContent = mod.quiz.length;
+
+    loading.style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+    document.getElementById('intro-card').style.display = 'block';
+  })();
+
+  document.getElementById('start-btn').addEventListener('click', startQuiz);
+
+  document.getElementById('retake-btn').addEventListener('click', () => {
+    document.getElementById('result-card').style.display = 'none';
+    document.getElementById('intro-card').style.display = 'block';
+  });
+
+  document.getElementById('save-btn').addEventListener('click', async (e) => {
+    const btn = e.target;
+    const score = Number(btn.dataset.score);
+    const passed = btn.dataset.passed === 'true';
+    const statusEl = document.getElementById('save-status');
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    const { error } = await supabaseClient
+      .from('training_module_results')
+      .upsert({
+        profile_id: userId,
+        module_slug: slug,
+        quiz_score: score,
+        quiz_passed: passed,
+        completed_at: new Date().toISOString(),
+      }, { onConflict: 'profile_id,module_slug' });
+
+    btn.disabled = false;
+    btn.textContent = 'Save to my profile';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'error';
+      return;
+    }
+
+    statusEl.textContent = 'Saved — this module now shows as completed.';
+    statusEl.className = 'success';
+  });
+</script>
+
+</body>
+</html>
