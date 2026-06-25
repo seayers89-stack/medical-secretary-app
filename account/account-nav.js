@@ -17,7 +17,7 @@ const SECRETARY_NAV_LINKS = [
   { label: 'My profile', href: 'profile.html', key: 'profile' },
   { label: 'Messages', href: 'messages.html', key: 'messages' },
   { label: 'Job board', href: 'job-board.html', key: 'job-board' },
-  { label: 'Academy', href: '../veyn-academy.html', key: 'academy' },
+  { label: 'Academy', href: 'academy.html', key: 'academy' },
   { label: 'Edit profile', href: 'edit-profile.html', key: 'edit-profile' },
 ];
 
