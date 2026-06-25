@@ -158,6 +158,12 @@
         <p>10 questions on Semble's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
         <a href="system-quiz.html?slug=semble">Take the quiz →</a>
       </div>
+      <div class="skill-card">
+        <h3>Pabau proficiency quiz</h3>
+        <span class="status" id="pabau-status" style="display:none;"></span>
+        <p>10 questions on Pabau's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
+        <a href="system-quiz.html?slug=pabau">Take the quiz →</a>
+      </div>
     </div>
 
     <h2 class="section-title">Training modules</h2>
@@ -236,6 +242,19 @@
     if (sembleResult && sembleResult.quiz_passed) {
       const el = document.getElementById('semble-status');
       el.textContent = `✓ Verified: ${sembleResult.quiz_score}%`;
+      el.style.display = 'block';
+    }
+
+    const { data: pabauResult } = await supabaseClient
+      .from('system_skills_results')
+      .select('quiz_passed, quiz_score')
+      .eq('profile_id', userId)
+      .eq('system_slug', 'pabau')
+      .maybeSingle();
+
+    if (pabauResult && pabauResult.quiz_passed) {
+      const el = document.getElementById('pabau-status');
+      el.textContent = `✓ Verified: ${pabauResult.quiz_score}%`;
       el.style.display = 'block';
     }
 

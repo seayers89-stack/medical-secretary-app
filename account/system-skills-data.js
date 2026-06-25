@@ -186,4 +186,60 @@ const SYSTEM_SKILLS = {
       },
     ],
   },
+  pabau: {
+    slug: 'pabau',
+    name: 'Pabau',
+    quiz: [
+      {
+        question: "What is Pabau's AI medical scribe feature called?",
+        correctAnswer: "Pabau Echo (also known as EchoAI)",
+        distractors: ["Cari", "Heidi AI", "Dictation Assistant"],
+      },
+      {
+        question: "Which payment processor does Pabau use to process payments?",
+        correctAnswer: "Stripe",
+        distractors: ["Worldpay", "Healthcode", "Sage"],
+      },
+      {
+        question: "If a booking has both a deposit and a payment policy enabled, what does Pabau's own FAQ say happens?",
+        correctAnswer: "The payment policy overrides the deposit — the client is charged the payment-policy amount, not both added together",
+        distractors: ["Whichever amount is higher is charged", "The two amounts are added together", "The deposit always takes priority over the payment policy"],
+      },
+      {
+        question: "Where would you find a patient's lab results in Pabau?",
+        correctAnswer: "Under the Labs sub-tab within the Clients section",
+        distractors: ["Under Reporting & Analytics", "In the Pabau Wallet", "Under Team settings"],
+      },
+      {
+        question: "What replaced the old 'voice notes' feature when practices migrated from Pabau Classic to Pabau 2?",
+        correctAnswer: "A new feature called Dictation",
+        distractors: ["Pabau Connect", "Pabau Wallet", "Staff Management"],
+      },
+      {
+        question: "Where would you manage staff permission levels (Roles) in Pabau?",
+        correctAnswer: "Under Team settings",
+        distractors: ["Under Clients > Labs", "Under Reporting & Analytics", "In the Pabau Wallet"],
+      },
+      {
+        question: "What does the Pabau Referral Network do?",
+        correctAnswer: "Connects a patient directly to another specialist from the patient record, with an AI-assisted referral letter",
+        distractors: ["Processes patient payments", "Manages staff rotas", "Tracks lab results"],
+      },
+      {
+        question: "Pabau's online booking portal, redesigned in the move to Pabau 2, is called what?",
+        correctAnswer: "Pabau Connect",
+        distractors: ["Pabau Echo", "Pabau Wallet", "Pabau GO"],
+      },
+      {
+        question: "According to at least one third-party review, what is Pabau's calendar system specifically designed to do?",
+        correctAnswer: "Prevent double bookings",
+        distractors: ["Auto-cancel no-shows", "Auto-generate invoices", "Send marketing emails"],
+      },
+      {
+        question: "What does the Pabau Wallet track?",
+        correctAnswer: "Payment activity",
+        distractors: ["Staff rotas", "Lab results", "Referral letters"],
+      },
+    ],
+  },
 };
