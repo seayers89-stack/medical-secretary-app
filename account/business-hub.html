@@ -54,21 +54,6 @@
   h1{ font-family:'Fraunces', serif; font-weight:600; font-size:32px; margin-bottom:10px; }
   .sub{ color:var(--slate); font-size:15px; line-height:1.6; margin-bottom:32px; }
 
-  .card{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
-    padding:36px 40px; text-align:center;
-  }
-  .coming-soon-badge{
-    display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:11px;
-    letter-spacing:0.06em; text-transform:uppercase; color:#8F6F36; background:rgba(184,146,74,0.12);
-    border:1px solid rgba(184,146,74,0.35); padding:6px 14px; border-radius:999px; margin-bottom:18px;
-  }
-  .card h2{ font-family:'Fraunces', serif; font-weight:600; font-size:20px; margin-bottom:12px; }
-  .card p{ color:var(--slate); font-size:14.5px; line-height:1.65; margin-bottom:0; }
-
-  .preview-list{ text-align:left; max-width:420px; margin:28px auto 0; }
-  .preview-list li{ color:var(--ink); font-size:14px; line-height:1.8; list-style:none; padding-left:22px; position:relative; }
-  .preview-list li::before{ content:"—"; position:absolute; left:0; color:var(--gold); }
 
   .jump-nav{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:32px; }
   .jump-chip{
@@ -127,6 +112,20 @@
     background:rgba(184,146,74,0.08); border:1px solid rgba(184,146,74,0.25); border-radius:10px;
     padding:16px 18px; font-size:13px; color:var(--slate); line-height:1.6; margin-bottom:24px;
   }
+
+  .template-box{
+    width:100%; font-family:'IBM Plex Mono', monospace; font-size:12.5px; line-height:1.6;
+    color:var(--ink); background:var(--paper); border:1.5px solid rgba(27,36,48,0.12); border-radius:10px;
+    padding:16px 18px; resize:vertical; margin-top:6px;
+  }
+  .template-box:focus{ outline:none; border-color:var(--gold); }
+  .template-actions{ display:flex; gap:10px; margin-top:12px; }
+  .template-btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:13px; padding:9px 16px;
+    border-radius:7px; cursor:pointer; border:1.5px solid rgba(27,36,48,0.2); background:none; color:var(--ink);
+  }
+  .template-btn:hover{ border-color:var(--gold); color:#8F6F36; }
+  .template-btn.copied{ border-color:var(--green); color:var(--green); }
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
@@ -297,10 +296,26 @@
       <p>You only need to register for VAT once your taxable turnover goes over the current VAT registration threshold in any rolling 12-month period (check the current figure on gov.uk, as it's reviewed periodically). Below that threshold, registration is optional. Most secretaries starting out won't need to think about this immediately, but it's worth keeping an eye on your turnover as your client list grows.</p>
     </div>
 
-    <div class="card" id="templates">
-      <div class="coming-soon-badge">Coming soon</div>
-      <h2>Templates on the way</h2>
-      <p>We're working on bringing contract and invoice templates into your account.</p>
+    <div class="guide-card" id="templates">
+      <span class="guide-label">Ready to use</span>
+      <h2>Invoice template</h2>
+      <p>A starting point covering what most consultants and practices expect to see. Edit the placeholders in [brackets], then copy or download.</p>
+      <textarea class="template-box" id="invoice-template" readonly rows="20"></textarea>
+      <div class="template-actions">
+        <button class="template-btn" data-copy-target="invoice-template">Copy to clipboard</button>
+        <button class="template-btn" data-download-target="invoice-template" data-download-name="invoice-template.txt">Download .txt</button>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <span class="guide-label">Ready to use</span>
+      <h2>Engagement letter / service agreement</h2>
+      <p>A short letter you can send before starting work with a new consultant or practice, setting out the basics in writing. This is a plain-English starting point, not a substitute for legal advice on anything unusual or high-value.</p>
+      <textarea class="template-box" id="contract-template" readonly rows="26"></textarea>
+      <div class="template-actions">
+        <button class="template-btn" data-copy-target="contract-template">Copy to clipboard</button>
+        <button class="template-btn" data-download-target="contract-template" data-download-name="engagement-letter-template.txt">Download .txt</button>
+      </div>
     </div>
   </div>
 </div>
@@ -361,6 +376,112 @@
 
   ['calc-income', 'calc-expenses', 'calc-days', 'calc-consultants', 'calc-hours'].forEach(id => {
     document.getElementById(id).addEventListener('input', updateCalculator);
+  });
+
+  const INVOICE_TEMPLATE = `INVOICE
+
+From: [Your name / business name]
+Address: [Your address]
+Email: [Your email]
+
+Invoice number: [INV-001]
+Invoice date: [DD/MM/YYYY]
+Payment due: [DD/MM/YYYY]
+
+Bill to:
+[Consultant or practice name]
+[Their address]
+
+Description                              Qty     Rate        Total
+------------------------------------------------------------------
+[Secretarial support — DD/MM to DD/MM]    [X]    £[rate]    £[total]
+
+                                          Subtotal:           £[subtotal]
+                                          VAT (if registered): £[vat]
+                                          ------------------------------
+                                          Total due:           £[total]
+
+Payment details:
+Account name: [Your name]
+Sort code: [XX-XX-XX]
+Account number: [XXXXXXXX]
+
+Payment terms: Payment due within [14/30] days of invoice date.
+Thank you for your business.`;
+
+  const CONTRACT_TEMPLATE = `ENGAGEMENT LETTER
+
+Date: [DD/MM/YYYY]
+
+Between:
+[Your name / business name] ("the Secretary")
+and
+[Consultant or practice name] ("the Client")
+
+1. Services
+The Secretary will provide medical secretarial support to the Client, including [typing, correspondence, diary management, billing — list as relevant], on a self-employed basis.
+
+2. Status
+The Secretary is engaged as a self-employed contractor, not an employee. The Secretary is responsible for their own tax and National Insurance contributions, and is free to provide services to other clients.
+
+3. Hours and rate
+Day rate: £[rate] per day ([hours] hours), or £[hourly rate] per hour for partial days.
+Expected hours/days per week: [X]
+Rate review: [e.g. annually, or on renewal]
+
+4. Invoicing and payment
+Invoices will be submitted [weekly/monthly] and are due for payment within [14/30] days.
+
+5. Equipment and working location
+[State who provides equipment, and whether work is remote, in-practice, or hybrid.]
+
+6. Confidentiality
+The Secretary will keep all patient and practice information confidential, in line with GDPR and relevant medical confidentiality standards, both during and after this engagement.
+
+7. Notice period
+Either party may end this engagement by giving [2/4] weeks' written notice.
+
+8. Holiday and sick pay
+As a self-employed contractor, the Secretary is not entitled to holiday pay, sick pay, or other employee benefits from the Client.
+
+Signed:
+
+_____________________                  _____________________
+[Your name], Secretary                  [Consultant name], Client
+
+This is a plain-English starting template, not a substitute for legal advice — review and adapt it for your own circumstances, particularly for any higher-value or unusual engagement.`;
+
+  document.getElementById('invoice-template').value = INVOICE_TEMPLATE;
+  document.getElementById('contract-template').value = CONTRACT_TEMPLATE;
+
+  document.querySelectorAll('.template-btn[data-copy-target]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const target = document.getElementById(btn.dataset.copyTarget);
+      const original = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(target.value);
+        btn.textContent = 'Copied ✓';
+        btn.classList.add('copied');
+      } catch {
+        target.focus();
+        target.select();
+        btn.textContent = 'Selected — press Ctrl+C';
+      }
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1800);
+    });
+  });
+
+  document.querySelectorAll('.template-btn[data-download-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.downloadTarget);
+      const blob = new Blob([target.value], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = btn.dataset.downloadName;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   });
 </script>
 
