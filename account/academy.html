@@ -74,6 +74,12 @@
   .skill-card .status{ font-size:12.5px; font-weight:600; color:var(--green); margin-bottom:10px; display:block; }
   .skill-card a{ font-size:13px; font-weight:600; color:var(--gold); text-decoration:underline; }
 
+  .coming-soon-badge{
+    display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    letter-spacing:0.06em; text-transform:uppercase; color:#8F6F36; background:rgba(184,146,74,0.12);
+    border:1px solid rgba(184,146,74,0.35); padding:6px 14px; border-radius:999px; margin-bottom:14px;
+  }
+
   .module-list{ display:flex; flex-direction:column; gap:10px; }
   .module-row{
     display:flex; justify-content:space-between; align-items:center; gap:16px;
@@ -88,6 +94,17 @@
     border:1.5px solid rgba(27,36,48,0.15); color:var(--ink); white-space:nowrap;
   }
   .module-actions a.quiz-link{ border-color:var(--gold); color:#8F6F36; }
+
+  .tab-row{ display:flex; gap:8px; margin-bottom:28px; border-bottom:1px solid rgba(27,36,48,0.08); }
+  .tab-btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:14.5px; color:var(--slate);
+    background:none; border:none; cursor:pointer; padding:10px 4px; margin-bottom:-1px;
+    border-bottom:2px solid transparent;
+  }
+  .tab-btn.active{ color:var(--ink); border-bottom-color:var(--gold); }
+  .tab-btn:hover{ color:var(--ink); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
@@ -125,55 +142,72 @@
       <div class="progress-stat"><div class="num" id="stat-modules">0 / 11</div><div class="label">Modules completed</div></div>
       <div class="progress-stat"><div class="num" id="stat-typing">—</div><div class="label">Typing test</div></div>
       <div class="progress-stat"><div class="num" id="stat-terminology">—</div><div class="label">Terminology quiz</div></div>
+      <div class="progress-stat"><div class="num" id="stat-specialty">0 / 4</div><div class="label">Systems verified</div></div>
     </div>
 
-    <h2 class="section-title">Skills tests</h2>
-    <div class="skills-grid">
-      <div class="skill-card">
-        <h3>Typing test</h3>
-        <span class="status" id="typing-status" style="display:none;"></span>
-        <p>60 seconds. Replaces the self-reported figure on your profile with a verified WPM and accuracy score.</p>
-        <a href="typing-test.html">Take the typing test →</a>
-      </div>
-      <div class="skill-card">
-        <h3>Terminology quiz</h3>
-        <span class="status" id="terminology-status" style="display:none;"></span>
-        <p>10 questions on the abbreviations and shorthand used daily in private practice. Score 80%+ for the badge.</p>
-        <a href="terminology-quiz.html">Take the quiz →</a>
-      </div>
-      <div class="skill-card">
-        <h3>Terminology flashcards</h3>
-        <p>Self-paced practice before the real quiz — private revision, never scored or saved.</p>
-        <a href="flashcards.html">Revise with flashcards →</a>
-      </div>
-      <div class="skill-card">
-        <h3>Carebit proficiency quiz</h3>
-        <span class="status" id="carebit-status" style="display:none;"></span>
-        <p>10 questions on real working knowledge of Carebit — not vendor copy. Score 80%+ to mark it as verified on your profile.</p>
-        <a href="system-quiz.html?slug=carebit">Take the quiz →</a>
-      </div>
-      <div class="skill-card">
-        <h3>Semble proficiency quiz</h3>
-        <span class="status" id="semble-status" style="display:none;"></span>
-        <p>10 questions on Semble's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
-        <a href="system-quiz.html?slug=semble">Take the quiz →</a>
-      </div>
-      <div class="skill-card">
-        <h3>Pabau proficiency quiz</h3>
-        <span class="status" id="pabau-status" style="display:none;"></span>
-        <p>10 questions on Pabau's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
-        <a href="system-quiz.html?slug=pabau">Take the quiz →</a>
-      </div>
-      <div class="skill-card">
-        <h3>DGL Practice Manager proficiency quiz</h3>
-        <span class="status" id="dgl-status" style="display:none;"></span>
-        <p>10 questions on DGL Practice Manager's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
-        <a href="system-quiz.html?slug=dgl">Take the quiz →</a>
+    <div class="tab-row">
+      <button class="tab-btn active" data-tab="skills">Skills tests</button>
+      <button class="tab-btn" data-tab="modules">Training modules</button>
+      <button class="tab-btn" data-tab="packs">Specialty packs</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-skills">
+      <div class="skills-grid">
+        <div class="skill-card">
+          <h3>Typing test</h3>
+          <span class="status" id="typing-status" style="display:none;"></span>
+          <p>60 seconds. Replaces the self-reported figure on your profile with a verified WPM and accuracy score.</p>
+          <a href="typing-test.html">Take the typing test →</a>
+        </div>
+        <div class="skill-card">
+          <h3>Terminology quiz</h3>
+          <span class="status" id="terminology-status" style="display:none;"></span>
+          <p>10 questions on the abbreviations and shorthand used daily in private practice. Score 80%+ for the badge.</p>
+          <a href="terminology-quiz.html">Take the quiz →</a>
+        </div>
+        <div class="skill-card">
+          <h3>Terminology flashcards</h3>
+          <p>Self-paced practice before the real quiz — private revision, never scored or saved.</p>
+          <a href="flashcards.html">Revise with flashcards →</a>
+        </div>
+        <div class="skill-card">
+          <h3>Carebit proficiency quiz</h3>
+          <span class="status" id="carebit-status" style="display:none;"></span>
+          <p>10 questions on real working knowledge of Carebit — not vendor copy. Score 80%+ to mark it as verified on your profile.</p>
+          <a href="system-quiz.html?slug=carebit">Take the quiz →</a>
+        </div>
+        <div class="skill-card">
+          <h3>Semble proficiency quiz</h3>
+          <span class="status" id="semble-status" style="display:none;"></span>
+          <p>10 questions on Semble's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
+          <a href="system-quiz.html?slug=semble">Take the quiz →</a>
+        </div>
+        <div class="skill-card">
+          <h3>Pabau proficiency quiz</h3>
+          <span class="status" id="pabau-status" style="display:none;"></span>
+          <p>10 questions on Pabau's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
+          <a href="system-quiz.html?slug=pabau">Take the quiz →</a>
+        </div>
+        <div class="skill-card">
+          <h3>DGL Practice Manager proficiency quiz</h3>
+          <span class="status" id="dgl-status" style="display:none;"></span>
+          <p>10 questions on DGL Practice Manager's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
+          <a href="system-quiz.html?slug=dgl">Take the quiz →</a>
+        </div>
       </div>
     </div>
 
-    <h2 class="section-title">Training modules</h2>
-    <div class="module-list" id="module-list"></div>
+    <div class="tab-panel" id="tab-modules">
+      <div class="module-list" id="module-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-packs">
+      <div class="skill-card" style="text-align:center; padding:36px 24px;">
+        <div class="coming-soon-badge">Coming soon</div>
+        <h3 style="font-size:18px; margin-bottom:10px;">Specialty packs</h3>
+        <p style="max-width:440px; margin:0 auto;">Paid, in-depth courses on specific specialties — the terminology, paperwork, and day-to-day detail of working with a particular type of consultant. £15 each, one-off.</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -225,57 +259,23 @@
       }
     }
 
-    const { data: carebitResult } = await supabaseClient
+    const { data: systemResults } = await supabaseClient
       .from('system_skills_results')
-      .select('quiz_passed, quiz_score')
-      .eq('profile_id', userId)
-      .eq('system_slug', 'carebit')
-      .maybeSingle();
+      .select('system_slug, quiz_passed, quiz_score')
+      .eq('profile_id', userId);
 
-    if (carebitResult && carebitResult.quiz_passed) {
-      const el = document.getElementById('carebit-status');
-      el.textContent = `✓ Verified: ${carebitResult.quiz_score}%`;
-      el.style.display = 'block';
-    }
-
-    const { data: sembleResult } = await supabaseClient
-      .from('system_skills_results')
-      .select('quiz_passed, quiz_score')
-      .eq('profile_id', userId)
-      .eq('system_slug', 'semble')
-      .maybeSingle();
-
-    if (sembleResult && sembleResult.quiz_passed) {
-      const el = document.getElementById('semble-status');
-      el.textContent = `✓ Verified: ${sembleResult.quiz_score}%`;
-      el.style.display = 'block';
-    }
-
-    const { data: pabauResult } = await supabaseClient
-      .from('system_skills_results')
-      .select('quiz_passed, quiz_score')
-      .eq('profile_id', userId)
-      .eq('system_slug', 'pabau')
-      .maybeSingle();
-
-    if (pabauResult && pabauResult.quiz_passed) {
-      const el = document.getElementById('pabau-status');
-      el.textContent = `✓ Verified: ${pabauResult.quiz_score}%`;
-      el.style.display = 'block';
-    }
-
-    const { data: dglResult } = await supabaseClient
-      .from('system_skills_results')
-      .select('quiz_passed, quiz_score')
-      .eq('profile_id', userId)
-      .eq('system_slug', 'dgl')
-      .maybeSingle();
-
-    if (dglResult && dglResult.quiz_passed) {
-      const el = document.getElementById('dgl-status');
-      el.textContent = `✓ Verified: ${dglResult.quiz_score}%`;
-      el.style.display = 'block';
-    }
+    const SPECIALTY_SLUGS = ['carebit', 'semble', 'pabau', 'dgl'];
+    let specialtyVerifiedCount = 0;
+    SPECIALTY_SLUGS.forEach(slug => {
+      const result = (systemResults || []).find(r => r.system_slug === slug);
+      if (result && result.quiz_passed) {
+        specialtyVerifiedCount++;
+        const el = document.getElementById(`${slug}-status`);
+        el.textContent = `✓ Verified: ${result.quiz_score}%`;
+        el.style.display = 'block';
+      }
+    });
+    document.getElementById('stat-specialty').textContent = `${specialtyVerifiedCount} / ${SPECIALTY_SLUGS.length}`;
 
     const { data: results } = await supabaseClient
       .from('training_module_results')
@@ -311,6 +311,15 @@
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
   })();
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+    });
+  });
 </script>
 
 <script src="../mobile-nav.js"></script>
