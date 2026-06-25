@@ -45,7 +45,7 @@
     border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
   }
 
-  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .wrap{ max-width:720px; margin:0 auto; padding:48px 32px 100px; }
   .eyebrow{
     font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
     color:var(--gold); margin-bottom:14px;
@@ -55,19 +55,62 @@
 
   .card{
     background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
-    padding:36px 40px; text-align:center;
+    padding:28px 32px; margin-bottom:16px;
   }
-  .coming-soon-badge{
-    display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:11px;
-    letter-spacing:0.06em; text-transform:uppercase; color:#8F6F36; background:rgba(184,146,74,0.12);
-    border:1px solid rgba(184,146,74,0.35); padding:6px 14px; border-radius:999px; margin-bottom:18px;
-  }
-  .card h2{ font-family:'Fraunces', serif; font-weight:600; font-size:20px; margin-bottom:12px; }
-  .card p{ color:var(--slate); font-size:14.5px; line-height:1.65; margin-bottom:0; }
 
-  .preview-list{ text-align:left; max-width:420px; margin:28px auto 0; }
-  .preview-list li{ color:var(--ink); font-size:14px; line-height:1.8; list-style:none; padding-left:22px; position:relative; }
-  .preview-list li::before{ content:"—"; position:absolute; left:0; color:var(--gold); }
+  .disclaimer-note{
+    background:rgba(193,68,68,0.06); border:1px solid rgba(193,68,68,0.25); border-radius:10px;
+    padding:16px 18px; font-size:13px; color:var(--ink); line-height:1.6; margin-bottom:24px;
+  }
+
+  .new-post-toggle{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:14.5px; padding:12px 22px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--ink); color:var(--paper);
+    margin-bottom:24px;
+  }
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--ink); }
+  .field input, .field select, .field textarea{
+    width:100%; padding:11px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .field textarea{ resize:vertical; min-height:100px; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--gold); }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:14.5px; padding:11px 22px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--gold); color:var(--ink);
+  }
+  .btn:disabled{ opacity:0.6; cursor:not-allowed; }
+  .btn-secondary{ background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink); margin-left:8px; }
+
+  .filter-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+  .filter-chip{
+    font-size:13px; font-weight:600; padding:7px 14px; border-radius:999px;
+    border:1.5px solid rgba(27,36,48,0.15); background:var(--white); color:var(--ink); cursor:pointer;
+  }
+  .filter-chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+  .post-card{ cursor:pointer; transition:border-color .15s ease; }
+  .post-card:hover{ border-color:var(--gold); }
+  .post-category{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.05em;
+    text-transform:uppercase; color:#8F6F36; background:rgba(184,146,74,0.12); padding:4px 10px;
+    border-radius:999px; margin-bottom:10px;
+  }
+  .post-title{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin-bottom:6px; }
+  .post-body{ color:var(--slate); font-size:14px; line-height:1.6; margin-bottom:12px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .post-meta{ font-size:12.5px; color:var(--slate); display:flex; gap:12px; align-items:center; }
+  .report-link{ color:var(--slate); font-weight:600; cursor:pointer; margin-left:auto; }
+  .report-link:hover{ color:#a33; }
+
+  #form-status{ display:none; font-size:13.5px; padding:11px 14px; border-radius:8px; margin-top:12px; }
+  #form-status.error{ display:block; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
+  #form-status.success{ display:block; background:rgba(63,107,79,0.08); border:1px solid rgba(63,107,79,0.3); color:var(--green); }
+
+  .empty-state{ text-align:center; color:var(--slate); font-size:14.5px; padding:40px 0; }
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
@@ -96,19 +139,49 @@
 <div class="wrap">
   <div class="eyebrow">Community</div>
   <h1>You're not figuring this out alone</h1>
-  <p class="sub">A place to ask other secretaries questions and compare notes — separate from finding work.</p>
+  <p class="sub">Ask other secretaries questions and compare notes — separate from finding work.</p>
 
   <p id="loading">Loading…</p>
 
-  <div class="card" id="page-content" style="display:none;">
-    <div class="coming-soon-badge">Coming soon</div>
-    <h2>This is being built</h2>
-    <p>We're working on bringing a real discussion forum into your account — somewhere to post questions, reply, and learn from secretaries who've handled the same systems and situations. For now, here's what's planned:</p>
-    <ul class="preview-list">
-      <li>Post questions and get replies from other secretaries</li>
-      <li>Discussion threads on systems, software, and specialties</li>
-      <li>Peer Q&amp;A on day rates, IR35, and self-employment</li>
-    </ul>
+  <div id="page-content" style="display:none;">
+    <div class="disclaimer-note">
+      <strong>Do not share personal or patient-identifiable information</strong> in posts or replies — no patient names, dates of birth, addresses, NHS numbers, or any other identifying detail. Keep questions general (systems, processes, rates) rather than about a specific case.
+    </div>
+
+    <button class="new-post-toggle" id="new-post-toggle">+ New post</button>
+
+    <div class="card" id="new-post-card" style="display:none;">
+      <form id="new-post-form">
+        <div class="field">
+          <label for="post-category">Category</label>
+          <select id="post-category">
+            <option value="Systems &amp; software">Systems &amp; software</option>
+            <option value="Day rates &amp; business">Day rates &amp; business</option>
+            <option value="General" selected>General</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="post-title">Title</label>
+          <input type="text" id="post-title" maxlength="140" required>
+        </div>
+        <div class="field">
+          <label for="post-body">Your post</label>
+          <textarea id="post-body" required></textarea>
+        </div>
+        <button type="submit" class="btn" id="post-submit-btn">Post</button>
+        <button type="button" class="btn btn-secondary" id="post-cancel-btn">Cancel</button>
+        <p id="form-status"></p>
+      </form>
+    </div>
+
+    <div class="filter-row" id="filter-row">
+      <button class="filter-chip active" data-category="all">All</button>
+      <button class="filter-chip" data-category="Systems &amp; software">Systems &amp; software</button>
+      <button class="filter-chip" data-category="Day rates &amp; business">Day rates &amp; business</button>
+      <button class="filter-chip" data-category="General">General</button>
+    </div>
+
+    <div id="posts-list"></div>
   </div>
 </div>
 
@@ -123,6 +196,10 @@
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
 <script>
+  let currentUserId = null;
+  let allPosts = [];
+  let activeCategory = 'all';
+
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'community');
     const loading = document.getElementById('loading');
@@ -132,9 +209,146 @@
       return;
     }
 
+    currentUserId = navResult.session.user.id;
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
+
+    await loadPosts();
   })();
+
+  async function loadPosts() {
+    const { data: posts, error } = await supabaseClient
+      .from('community_posts')
+      .select('id, profile_id, category, title, body, is_veyn, created_at, profiles(first_name, last_name)')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      document.getElementById('posts-list').innerHTML = `<div class="empty-state">Could not load posts.</div>`;
+      return;
+    }
+
+    const postIds = (posts || []).map(p => p.id);
+    let replyCounts = {};
+    if (postIds.length > 0) {
+      const { data: replies } = await supabaseClient
+        .from('community_replies')
+        .select('post_id')
+        .in('post_id', postIds);
+      (replies || []).forEach(r => {
+        replyCounts[r.post_id] = (replyCounts[r.post_id] || 0) + 1;
+      });
+    }
+
+    allPosts = (posts || []).map(p => ({ ...p, replyCount: replyCounts[p.id] || 0 }));
+    renderPosts();
+  }
+
+  function renderPosts() {
+    const list = document.getElementById('posts-list');
+    const filtered = activeCategory === 'all' ? allPosts : allPosts.filter(p => p.category === activeCategory);
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state">No posts yet — be the first to ask something.</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(p => {
+      const authorName = p.is_veyn ? 'Veyn Team ✓' : (p.profiles ? `${p.profiles.first_name} ${p.profiles.last_name}` : 'A secretary');
+      const date = new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      const escapedTitle = escapeHtml(p.title);
+      const escapedBody = escapeHtml(p.body);
+      return `
+        <div class="card post-card" data-post-id="${p.id}">
+          <span class="post-category">${escapeHtml(p.category)}</span>
+          <div class="post-title">${escapedTitle}</div>
+          <div class="post-body">${escapedBody}</div>
+          <div class="post-meta">
+            <span>${authorName}</span>
+            <span>${date}</span>
+            <span>${p.replyCount} ${p.replyCount === 1 ? 'reply' : 'replies'}</span>
+            <span class="report-link" data-report-post="${p.id}">Report</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('.post-card').forEach(card => {
+      card.addEventListener('click', () => {
+        window.location.href = `community-post.html?id=${card.dataset.postId}`;
+      });
+    });
+
+    list.querySelectorAll('[data-report-post]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        reportContent({ post_id: el.dataset.reportPost });
+      });
+    });
+  }
+
+  async function reportContent({ post_id, reply_id }) {
+    const reason = window.prompt('What\'s the issue with this post? (optional)') || '';
+    if (reason === null) return;
+    const { error } = await supabaseClient
+      .from('community_reports')
+      .insert({ post_id: post_id || null, reply_id: reply_id || null, reporter_id: currentUserId, reason });
+    alert(error ? `Could not submit report: ${error.message}` : 'Thanks — this has been reported for review.');
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  document.getElementById('filter-row').addEventListener('click', (e) => {
+    const chip = e.target.closest('.filter-chip');
+    if (!chip) return;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeCategory = chip.dataset.category;
+    renderPosts();
+  });
+
+  const newPostToggle = document.getElementById('new-post-toggle');
+  const newPostCard = document.getElementById('new-post-card');
+  newPostToggle.addEventListener('click', () => {
+    newPostCard.style.display = newPostCard.style.display === 'none' ? 'block' : 'none';
+  });
+  document.getElementById('post-cancel-btn').addEventListener('click', () => {
+    newPostCard.style.display = 'none';
+    document.getElementById('new-post-form').reset();
+  });
+
+  document.getElementById('new-post-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('form-status');
+    const submitBtn = document.getElementById('post-submit-btn');
+    statusEl.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Posting…';
+
+    const category = document.getElementById('post-category').value;
+    const title = document.getElementById('post-title').value.trim();
+    const body = document.getElementById('post-body').value.trim();
+
+    const { error } = await supabaseClient
+      .from('community_posts')
+      .insert({ profile_id: currentUserId, category, title, body });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Post';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'error';
+      return;
+    }
+
+    document.getElementById('new-post-form').reset();
+    newPostCard.style.display = 'none';
+    await loadPosts();
+  });
 </script>
 
 </body>

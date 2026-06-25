@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Community — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:720px; margin:0 auto; padding:48px 32px 100px; }
+  .back-link{ font-size:13.5px; color:var(--slate); font-weight:600; margin-bottom:20px; display:inline-block; }
+  .back-link:hover{ color:var(--ink); }
+
+  .card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:28px 32px; margin-bottom:16px;
+  }
+
+  .disclaimer-note{
+    background:rgba(193,68,68,0.06); border:1px solid rgba(193,68,68,0.25); border-radius:10px;
+    padding:16px 18px; font-size:13px; color:var(--ink); line-height:1.6; margin-bottom:24px;
+  }
+
+  .report-link{ color:var(--slate); font-weight:600; cursor:pointer; margin-left:auto; }
+  .report-link:hover{ color:#a33; }
+
+  .post-category{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.05em;
+    text-transform:uppercase; color:#8F6F36; background:rgba(184,146,74,0.12); padding:4px 10px;
+    border-radius:999px; margin-bottom:14px;
+  }
+  .post-title{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; margin-bottom:10px; }
+  .post-body{ color:var(--ink); font-size:15px; line-height:1.7; margin-bottom:16px; white-space:pre-wrap; }
+  .post-meta{ font-size:12.5px; color:var(--slate); display:flex; gap:12px; align-items:center; }
+  .delete-link{ color:#a33; font-weight:600; cursor:pointer; }
+
+  .replies-heading{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin:28px 0 14px; }
+  .reply-card{ padding:18px 22px; }
+  .reply-body{ color:var(--ink); font-size:14.5px; line-height:1.65; margin-bottom:10px; white-space:pre-wrap; }
+  .reply-meta{ font-size:12px; color:var(--slate); display:flex; gap:12px; align-items:center; }
+
+  .field{ margin-bottom:14px; }
+  .field textarea{
+    width:100%; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    resize:vertical; min-height:90px;
+  }
+  .field textarea:focus{ outline:none; border-color:var(--gold); }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:14px; padding:10px 20px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--gold); color:var(--ink);
+  }
+  .btn:disabled{ opacity:0.6; cursor:not-allowed; }
+
+  #form-status{ display:none; font-size:13px; padding:10px 14px; border-radius:8px; margin-top:10px; }
+  #form-status.error{ display:block; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
+
+  .empty-state{ text-align:center; color:var(--slate); font-size:14px; padding:20px 0; }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <a href="profile.html" class="btn-login">My profile</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <a href="community.html" class="back-link">← Back to Community</a>
+
+  <p id="loading">Loading…</p>
+
+  <div id="page-content" style="display:none;">
+    <div class="disclaimer-note">
+      <strong>Do not share personal or patient-identifiable information</strong> in posts or replies — no patient names, dates of birth, addresses, NHS numbers, or any other identifying detail.
+    </div>
+
+    <div class="card" id="post-card"></div>
+
+    <div class="replies-heading" id="replies-heading">Replies</div>
+    <div id="replies-list"></div>
+
+    <div class="card">
+      <form id="reply-form">
+        <div class="field">
+          <label for="reply-body" style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Add a reply</label>
+          <textarea id="reply-body" required></textarea>
+        </div>
+        <button type="submit" class="btn" id="reply-submit-btn">Post reply</button>
+        <p id="form-status"></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Founded by a medical secretary, not a market gap.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const postId = params.get('id');
+  let currentUserId = null;
+
+  (async () => {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, null);
+    const loading = document.getElementById('loading');
+
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (!postId) {
+      window.location.href = 'community.html';
+      return;
+    }
+
+    currentUserId = navResult.session.user.id;
+    loading.style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+
+    await loadPost();
+    await loadReplies();
+  })();
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function loadPost() {
+    const { data: post, error } = await supabaseClient
+      .from('community_posts')
+      .select('id, profile_id, category, title, body, is_veyn, created_at, profiles(first_name, last_name)')
+      .eq('id', postId)
+      .single();
+
+    if (error || !post) {
+      document.getElementById('post-card').innerHTML = `<div class="empty-state">This post couldn't be found.</div>`;
+      return;
+    }
+
+    const authorName = post.is_veyn ? 'Veyn Team ✓' : (post.profiles ? `${post.profiles.first_name} ${post.profiles.last_name}` : 'A secretary');
+    const date = new Date(post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const isOwner = post.profile_id === currentUserId;
+
+    document.getElementById('post-card').innerHTML = `
+      <span class="post-category">${escapeHtml(post.category)}</span>
+      <div class="post-title">${escapeHtml(post.title)}</div>
+      <div class="post-body">${escapeHtml(post.body)}</div>
+      <div class="post-meta">
+        <span>${authorName}</span>
+        <span>${date}</span>
+        ${!isOwner ? '<span class="report-link" id="report-post-link">Report</span>' : ''}
+        ${isOwner ? '<span class="delete-link" id="delete-post-link" style="margin-left:auto;">Delete post</span>' : ''}
+      </div>
+    `;
+
+    if (isOwner) {
+      document.getElementById('delete-post-link').addEventListener('click', async () => {
+        if (!confirm('Delete this post and all its replies?')) return;
+        await supabaseClient.from('community_posts').delete().eq('id', postId);
+        window.location.href = 'community.html';
+      });
+    } else {
+      document.getElementById('report-post-link').addEventListener('click', () => {
+        reportContent({ post_id: postId });
+      });
+    }
+  }
+
+  async function loadReplies() {
+    const { data: replies, error } = await supabaseClient
+      .from('community_replies')
+      .select('id, profile_id, body, created_at, profiles(first_name, last_name)')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true });
+
+    const list = document.getElementById('replies-list');
+    document.getElementById('replies-heading').textContent = `Replies (${(replies || []).length})`;
+
+    if (error || !replies || replies.length === 0) {
+      list.innerHTML = `<div class="empty-state">No replies yet — be the first.</div>`;
+      return;
+    }
+
+    list.innerHTML = replies.map(r => {
+      const authorName = r.profiles ? `${r.profiles.first_name} ${r.profiles.last_name}` : 'A secretary';
+      const date = new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      const isOwner = r.profile_id === currentUserId;
+      return `
+        <div class="card reply-card" data-reply-id="${r.id}">
+          <div class="reply-body">${escapeHtml(r.body)}</div>
+          <div class="reply-meta">
+            <span>${authorName}</span>
+            <span>${date}</span>
+            ${!isOwner ? '<span class="report-link" data-report-reply="' + r.id + '">Report</span>' : ''}
+            ${isOwner ? '<span class="delete-link" data-delete-reply="' + r.id + '" style="margin-left:auto;">Delete</span>' : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('[data-delete-reply]').forEach(el => {
+      el.addEventListener('click', async () => {
+        if (!confirm('Delete this reply?')) return;
+        await supabaseClient.from('community_replies').delete().eq('id', el.dataset.deleteReply);
+        await loadReplies();
+      });
+    });
+
+    list.querySelectorAll('[data-report-reply]').forEach(el => {
+      el.addEventListener('click', () => {
+        reportContent({ reply_id: el.dataset.reportReply });
+      });
+    });
+  }
+
+  async function reportContent({ post_id, reply_id }) {
+    const reason = window.prompt('What\'s the issue with this content? (optional)') || '';
+    if (reason === null) return;
+    const { error } = await supabaseClient
+      .from('community_reports')
+      .insert({ post_id: post_id || null, reply_id: reply_id || null, reporter_id: currentUserId, reason });
+    alert(error ? `Could not submit report: ${error.message}` : 'Thanks — this has been reported for review.');
+  }
+
+  document.getElementById('reply-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('form-status');
+    const submitBtn = document.getElementById('reply-submit-btn');
+    statusEl.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Posting…';
+
+    const body = document.getElementById('reply-body').value.trim();
+
+    const { error } = await supabaseClient
+      .from('community_replies')
+      .insert({ post_id: postId, profile_id: currentUserId, body });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Post reply';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'error';
+      return;
+    }
+
+    document.getElementById('reply-form').reset();
+    await loadReplies();
+  });
+</script>
+
+</body>
+</html>
