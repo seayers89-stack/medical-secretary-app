@@ -18,6 +18,7 @@
   }
 
   *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
   body{
     background:var(--paper);
     color:var(--ink);
@@ -69,6 +70,16 @@
   .preview-list li{ color:var(--ink); font-size:14px; line-height:1.8; list-style:none; padding-left:22px; position:relative; }
   .preview-list li::before{ content:"—"; position:absolute; left:0; color:var(--gold); }
 
+  .jump-nav{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:32px; }
+  .jump-chip{
+    font-size:13px; font-weight:600; padding:8px 16px; border-radius:999px;
+    border:1.5px solid rgba(27,36,48,0.15); background:var(--white); color:var(--ink);
+    transition:all .15s ease;
+  }
+  .jump-chip:hover{ border-color:var(--gold); color:#8F6F36; }
+
+  .calc-card, .guide-card, #templates{ scroll-margin-top:90px; }
+
   .calc-card{
     background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
     padding:32px 36px; margin-bottom:20px; text-align:left;
@@ -95,6 +106,27 @@
     color:rgba(247,244,237,0.6); margin-top:6px;
   }
   .calc-note{ font-size:12.5px; color:var(--slate); line-height:1.6; margin-top:16px; }
+
+  .calc-split{ display:flex; gap:14px; margin-top:14px; }
+  .calc-split-stat{ flex:1; text-align:center; background:var(--paper); border:1px solid rgba(27,36,48,0.08); border-radius:12px; padding:16px; }
+  .calc-split-figure{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; color:var(--ink); }
+  .calc-split-label{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate); margin-top:4px; }
+
+  .guide-card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:32px 36px; margin-bottom:14px; text-align:left;
+  }
+  .guide-card h2{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin-bottom:10px; }
+  .guide-card p{ color:var(--ink); font-size:14.5px; line-height:1.7; margin-bottom:10px; }
+  .guide-card ul{ color:var(--ink); font-size:14.5px; line-height:1.7; padding-left:20px; margin-bottom:10px; }
+  .guide-card .guide-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:12px; display:block;
+  }
+  .disclaimer-note{
+    background:rgba(184,146,74,0.08); border:1px solid rgba(184,146,74,0.25); border-radius:10px;
+    padding:16px 18px; font-size:13px; color:var(--slate); line-height:1.6; margin-bottom:24px;
+  }
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
@@ -128,7 +160,21 @@
   <p id="loading">Loading…</p>
 
   <div id="page-content" style="display:none;">
-    <div class="calc-card">
+    <div class="disclaimer-note">
+      <strong>This is general information, not financial, legal, or tax advice.</strong> Rules change, and your situation may differ from the typical case described here. Always check current guidance on <a href="https://www.gov.uk" target="_blank" rel="noopener" style="text-decoration:underline; color:var(--ink);">gov.uk</a> or speak to an accountant before making decisions about your tax or employment status.
+    </div>
+
+    <nav class="jump-nav">
+      <a class="jump-chip" href="#calculator">Day-rate calculator</a>
+      <a class="jump-chip" href="#self-employed">Self-employed or employed?</a>
+      <a class="jump-chip" href="#registering">Registering as self-employed</a>
+      <a class="jump-chip" href="#record-keeping">Record-keeping &amp; deadlines</a>
+      <a class="jump-chip" href="#ir35">IR35</a>
+      <a class="jump-chip" href="#vat">VAT</a>
+      <a class="jump-chip" href="#templates">Templates</a>
+    </nav>
+
+    <div class="calc-card" id="calculator">
       <h2>Price your day rate properly</h2>
       <p class="calc-sub">Adjusts live as you type. This is a starting point, not financial advice — review against your own circumstances.</p>
 
@@ -155,17 +201,106 @@
         </div>
       </div>
 
+      <div class="calc-row">
+        <label class="calc-label" for="calc-consultants">Number of consultants you work with</label>
+        <div class="calc-input-wrap no-prefix">
+          <input type="number" id="calc-consultants" value="1" min="1" max="20" step="1">
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <label class="calc-label" for="calc-hours">Hours worked per day</label>
+        <div class="calc-input-wrap no-prefix">
+          <input type="number" id="calc-hours" value="8" min="1" max="24" step="0.5">
+        </div>
+      </div>
+
       <div class="calc-result">
         <div class="calc-figure" id="calc-result-figure">£0/day</div>
         <div class="calc-caption">Suggested minimum day rate</div>
       </div>
       <p class="calc-note">Suggested minimum day rate = (target annual income + annual business expenses) ÷ billable days per year. It covers your target income and costs — it doesn't include profit margin, pension contributions, or time off above what you've already excluded from billable days.</p>
+
+      <div class="calc-split" id="calc-hourly-row">
+        <div class="calc-split-stat">
+          <div class="calc-split-figure" id="calc-hourly-rate">£0/hour</div>
+          <div class="calc-split-label">Equivalent hourly rate</div>
+        </div>
+      </div>
+
+      <div class="calc-split" id="calc-split-row" style="display:none;">
+        <div class="calc-split-stat">
+          <div class="calc-split-figure" id="calc-rate-per-consultant">£0/day</div>
+          <div class="calc-split-label">Day rate split per consultant</div>
+        </div>
+        <div class="calc-split-stat">
+          <div class="calc-split-figure" id="calc-hourly-rate-per-consultant">£0/hour</div>
+          <div class="calc-split-label">≈ Hourly rate, per consultant</div>
+        </div>
+      </div>
+      <p class="calc-note" id="calc-split-note" style="display:none;">If you're splitting a single day's work evenly across consultants — for example, charging each one for their share of a shared day — this is what each would pay.</p>
     </div>
 
-    <div class="card" id="coming-soon-card">
+    <div class="guide-card" id="self-employed">
+      <span class="guide-label">Self-employment basics</span>
+      <h2>Are you self-employed or employed?</h2>
+      <p>Most secretaries working across several consultants on a freelance basis are self-employed (a "sole trader") rather than employed by any one practice. HMRC looks at the reality of how you work, not just what your contract says. You're more likely to be genuinely self-employed if:</p>
+      <ul>
+        <li>You can choose which jobs to take on, and turn work down</li>
+        <li>You decide how and when the work gets done, within reason</li>
+        <li>You can send someone else to do the work in your place (substitution)</li>
+        <li>You're not entitled to holiday or sick pay from the consultant or practice</li>
+        <li>You take on the financial risk of the work — for example, you'd have to fix mistakes in your own time</li>
+      </ul>
+      <p>If a practice controls your hours, tools, and exactly how the work is done in the way an employer would, you may actually be an employee for tax purposes regardless of what either side calls the arrangement.</p>
+    </div>
+
+    <div class="guide-card" id="registering">
+      <span class="guide-label">Getting set up</span>
+      <h2>Registering as self-employed</h2>
+      <p>If you're working for yourself, you need to register for Self Assessment with HMRC — this is how you tell them you're self-employed and need to pay tax through a tax return rather than PAYE.</p>
+      <ul>
+        <li>Register online at gov.uk as soon as you start trading, and by 5 October following the end of the tax year in which you started, at the latest</li>
+        <li>You'll be given a Unique Taxpayer Reference (UTR) — keep this safe, you'll need it every year</li>
+        <li>Most secretaries operate as sole traders rather than setting up a limited company — simpler admin, though it's worth discussing with an accountant once your income grows</li>
+      </ul>
+    </div>
+
+    <div class="guide-card" id="record-keeping">
+      <span class="guide-label">Staying on top of it</span>
+      <h2>Record-keeping &amp; Self Assessment deadlines</h2>
+      <p>Keep records of everything you earn and spend on the business — most secretaries find a simple spreadsheet is enough at this stage.</p>
+      <ul>
+        <li>Every invoice you raise, and proof of when you were paid</li>
+        <li>Business expenses: equipment, software subscriptions, training, mileage, a proportion of home-working costs</li>
+        <li>HMRC generally expects records kept for at least 5 years after the 31 January submission deadline</li>
+      </ul>
+      <p>Key Self Assessment dates for most self-employed secretaries:</p>
+      <ul>
+        <li><strong>5 October</strong> — register for Self Assessment if this is your first year trading</li>
+        <li><strong>31 January</strong> — file your online tax return and pay any tax owed for the previous tax year</li>
+        <li><strong>31 July</strong> — second "payment on account" towards the current year's tax, if applicable</li>
+      </ul>
+    </div>
+
+    <div class="guide-card" id="ir35">
+      <span class="guide-label">The question everyone asks</span>
+      <h2>Does IR35 apply to me?</h2>
+      <p>IR35 is tax legislation aimed at people who supply their services through their own limited company (sometimes called a "personal service company") but who'd otherwise look like an employee of the end client. If you're working as a sole trader — not through a limited company — IR35 generally doesn't apply to you at all.</p>
+      <p>IR35 becomes relevant if you set up a limited company to invoice consultants or practices through. In that case, whoever you're contracted with may need to assess your employment status for each engagement, and if it falls "inside IR35," tax and National Insurance get deducted similarly to employment, even though you're working through a company.</p>
+      <p>If you're considering a limited company structure, this is exactly the kind of decision worth a conversation with an accountant first — the right structure depends on your income level, how many practices you work with, and how each engagement is actually set up.</p>
+    </div>
+
+    <div class="guide-card" id="vat">
+      <span class="guide-label">One more threshold to know</span>
+      <h2>Do you need to register for VAT?</h2>
+      <p>You only need to register for VAT once your taxable turnover goes over the current VAT registration threshold in any rolling 12-month period (check the current figure on gov.uk, as it's reviewed periodically). Below that threshold, registration is optional. Most secretaries starting out won't need to think about this immediately, but it's worth keeping an eye on your turnover as your client list grows.</p>
+    </div>
+
+    <div class="card" id="templates">
       <div class="coming-soon-badge">Coming soon</div>
-      <h2>More tools on the way</h2>
-      <p>We're working on bringing contract and invoice templates, and IR35/self-employment guidance into your account.</p>
+      <h2>Templates on the way</h2>
+      <p>We're working on bringing contract and invoice templates into your account.</p>
     </div>
   </div>
 </div>
@@ -199,12 +334,32 @@
     const income = Number(document.getElementById('calc-income').value) || 0;
     const expenses = Number(document.getElementById('calc-expenses').value) || 0;
     const days = Number(document.getElementById('calc-days').value) || 0;
+    const consultants = Math.max(1, Number(document.getElementById('calc-consultants').value) || 1);
+    const hours = Number(document.getElementById('calc-hours').value) || 0;
 
     const rate = days > 0 ? Math.round((income + expenses) / days) : 0;
     document.getElementById('calc-result-figure').textContent = `£${rate.toLocaleString()}/day`;
+
+    const hourlyRate = hours > 0 ? rate / hours : 0;
+    document.getElementById('calc-hourly-rate').textContent = `£${hourlyRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}/hour`;
+
+    const splitRow = document.getElementById('calc-split-row');
+    const splitNote = document.getElementById('calc-split-note');
+
+    if (consultants > 1) {
+      const ratePerConsultant = rate / consultants;
+      const hourlyRatePerConsultant = hours > 0 ? ratePerConsultant / hours : 0;
+      document.getElementById('calc-rate-per-consultant').textContent = `£${ratePerConsultant.toLocaleString(undefined, { maximumFractionDigits: 2 })}/day`;
+      document.getElementById('calc-hourly-rate-per-consultant').textContent = `£${hourlyRatePerConsultant.toLocaleString(undefined, { maximumFractionDigits: 2 })}/hour`;
+      splitRow.style.display = 'flex';
+      splitNote.style.display = 'block';
+    } else {
+      splitRow.style.display = 'none';
+      splitNote.style.display = 'none';
+    }
   }
 
-  ['calc-income', 'calc-expenses', 'calc-days'].forEach(id => {
+  ['calc-income', 'calc-expenses', 'calc-days', 'calc-consultants', 'calc-hours'].forEach(id => {
     document.getElementById(id).addEventListener('input', updateCalculator);
   });
 </script>

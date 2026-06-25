@@ -72,6 +72,16 @@
   .row span:first-child{ color:var(--slate); }
   .row span:last-child{ font-weight:600; }
 
+  .boost-badge{
+    display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    letter-spacing:0.06em; text-transform:uppercase; color:#8F6F36; background:rgba(184,146,74,0.12);
+    border:1px solid rgba(184,146,74,0.35); padding:5px 12px; border-radius:999px; margin-bottom:12px;
+  }
+  .boost-cta{
+    display:inline-block; margin-top:14px; font-size:13.5px; font-weight:600; color:var(--ink);
+    border:1.5px solid var(--gold); padding:9px 18px; border-radius:7px;
+  }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
 </style>
@@ -99,6 +109,7 @@
   <p class="sub">This is your profile snapshot. Consultants search against this information — keep it current.</p>
 
   <p id="loading">Loading your profile…</p>
+  <div class="card" id="premium-boost-card" style="display:none;"></div>
   <div class="card" id="profile-card" style="display:none;"></div>
 </div>
 
@@ -141,6 +152,24 @@
         .eq('profile_id', userId)
         .single();
       if (sec) {
+        const boostCard = document.getElementById('premium-boost-card');
+        const boostActive = sec.premium_active && sec.premium_expires_at && new Date(sec.premium_expires_at) > new Date();
+        if (boostActive) {
+          const expiresLabel = new Date(sec.premium_expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+          boostCard.innerHTML = `
+            <span class="boost-badge">✓ Premium boost active</span>
+            <h3>Featured until ${expiresLabel}</h3>
+            <p style="color:var(--slate); font-size:14px; line-height:1.6;">Your profile is featured and ranked first in consultant search results.</p>
+          `;
+        } else {
+          boostCard.innerHTML = `
+            <h3>Premium boost</h3>
+            <p style="color:var(--slate); font-size:14px; line-height:1.6;">£8/month for featured placement and priority ranking in consultant search results. Never gates access or your data — visibility only.</p>
+            <a class="boost-cta" href="mock-checkout.html?type=premium_boost">Activate for £8/month →</a>
+          `;
+        }
+        boostCard.style.display = 'block';
+
         const outcode = (sec.postcode || '').trim().split(' ')[0];
         extraRows = `
           <div class="row"><span>Region</span><span>${sec.region || '—'}</span></div>

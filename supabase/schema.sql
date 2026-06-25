@@ -44,7 +44,9 @@ create table secretary_profiles (
   available_evenings boolean,
   available_weekends boolean,
   hourly_rate_min numeric,
-  hourly_rate_max numeric
+  hourly_rate_max numeric,
+  premium_active boolean not null default false,
+  premium_expires_at timestamptz
 );
 
 create table consultant_profiles (
