@@ -242,4 +242,60 @@ const SYSTEM_SKILLS = {
       },
     ],
   },
+  dgl: {
+    slug: 'dgl',
+    name: 'DGL Practice Manager',
+    quiz: [
+      {
+        question: "Who owns DGL Practice Manager?",
+        correctAnswer: "Clanwilliam Health",
+        distractors: ["Stripe", "EMIS Group", "Capterra"],
+      },
+      {
+        question: "Which third-party speech-recognition product do many DGL users dictate letters with?",
+        correctAnswer: "Dragon Professional Individual",
+        distractors: ["Cari", "Pabau Echo", "Heidi AI"],
+      },
+      {
+        question: "What does DGL require before a user can log in at all?",
+        correctAnswer: "Multi-factor authentication via RSA key fobs",
+        distractors: ["A one-time SMS code", "A fingerprint scan", "An email verification link"],
+      },
+      {
+        question: "Roughly how long has DGL Practice Manager been in continuous use?",
+        correctAnswer: "Over 25 years (since 1991)",
+        distractors: ["About 5 years", "Since 2015", "Since 2020"],
+      },
+      {
+        question: "Which method does DGL use to transmit insurer billing electronically?",
+        correctAnswer: "EDI (Electronic Data Interchange)",
+        distractors: ["Healthcode", "Stripe", "Xero"],
+      },
+      {
+        question: "Which DGL module covers scanning and uploading patient notes, letters and documents into a patient's record?",
+        correctAnswer: "Electronic Patient Record (EPR)",
+        distractors: ["Workflow Management", "GDPR Sentinel", "Reporting"],
+      },
+      {
+        question: "Which DGL integration handles electronic prescribing and delivery?",
+        correctAnswer: "Pharmacierge",
+        distractors: ["Egress", "EDI", "Dragon"],
+      },
+      {
+        question: "Which DGL integration provides encrypted email and file sharing?",
+        correctAnswer: "Egress",
+        distractors: ["Pharmacierge", "EDI", "GDPR Sentinel"],
+      },
+      {
+        question: "Where can DGL appointments be exported to?",
+        correctAnswer: "Google Calendar",
+        distractors: ["Outlook only", "iCloud", "There's no export option"],
+      },
+      {
+        question: "What is iMedDoc?",
+        correctAnswer: "A separate, more modern product also made by Clanwilliam Health — not the same product as DGL",
+        distractors: ["DGL's mobile app", "An older version of DGL", "A DGL add-on module"],
+      },
+    ],
+  },
 };

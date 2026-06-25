@@ -194,7 +194,7 @@
     for (let i = 0; i < PASSAGE.length; i++) {
       const char = PASSAGE[i];
       if (i < typed.length) {
-        html += `<span class="${typed[i] === char ? 'correct' : 'incorrect'}">${char === ' ' ? '&nbsp;' : char}</span>`;
+        html += `<span class="${typed[i] === char ? 'correct' : 'incorrect'}">${char}</span>`;
       } else {
         html += `<span class="pending">${char}</span>`;
       }

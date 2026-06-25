@@ -164,6 +164,12 @@
         <p>10 questions on Pabau's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
         <a href="system-quiz.html?slug=pabau">Take the quiz →</a>
       </div>
+      <div class="skill-card">
+        <h3>DGL Practice Manager proficiency quiz</h3>
+        <span class="status" id="dgl-status" style="display:none;"></span>
+        <p>10 questions on DGL Practice Manager's documented features and modules. Score 80%+ to mark it as verified on your profile.</p>
+        <a href="system-quiz.html?slug=dgl">Take the quiz →</a>
+      </div>
     </div>
 
     <h2 class="section-title">Training modules</h2>
@@ -255,6 +261,19 @@
     if (pabauResult && pabauResult.quiz_passed) {
       const el = document.getElementById('pabau-status');
       el.textContent = `✓ Verified: ${pabauResult.quiz_score}%`;
+      el.style.display = 'block';
+    }
+
+    const { data: dglResult } = await supabaseClient
+      .from('system_skills_results')
+      .select('quiz_passed, quiz_score')
+      .eq('profile_id', userId)
+      .eq('system_slug', 'dgl')
+      .maybeSingle();
+
+    if (dglResult && dglResult.quiz_passed) {
+      const el = document.getElementById('dgl-status');
+      el.textContent = `✓ Verified: ${dglResult.quiz_score}%`;
       el.style.display = 'block';
     }
 
