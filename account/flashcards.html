@@ -137,7 +137,7 @@
 <header>
   <div class="nav">
     <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
-    <a href="../veyn-academy.html" class="btn-login">Back to Academy</a>
+    <a href="../veyn-academy.html" class="btn-login" id="back-to-academy-link">Back to Academy</a>
   </div>
 </header>
 
@@ -204,7 +204,16 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script>
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      document.getElementById('back-to-academy-link').href = 'academy.html';
+    }
+  })();
+
   const CARD_DATA = {
     'A-Z Terms': [
       { term: 'Acute', meaning: 'Sudden onset / short term', notes: 'Common clinical wording' },
