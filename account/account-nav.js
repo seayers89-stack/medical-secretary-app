@@ -1,8 +1,9 @@
 // Veyn: renders the role-aware account nav (My profile / Messages / Search /
 // Post a job / My postings / Edit profile for consultants; My profile /
-// Messages / Job board / Academy / Edit profile for secretaries) in place of
-// the public marketing nav, once a session is found. Pages with no session
-// keep the marketing nav-links already in their markup — this script does nothing.
+// Messages / Job board / Academy / Business Hub / Community / Edit profile
+// for secretaries) in place of the public marketing nav, once a session is
+// found. Pages with no session keep the marketing nav-links already in their
+// markup — this script does nothing.
 
 const CONSULTANT_NAV_LINKS = [
   { label: 'My profile', href: 'profile.html', key: 'profile' },
@@ -18,6 +19,8 @@ const SECRETARY_NAV_LINKS = [
   { label: 'Messages', href: 'messages.html', key: 'messages' },
   { label: 'Job board', href: 'job-board.html', key: 'job-board' },
   { label: 'Academy', href: 'academy.html', key: 'academy' },
+  { label: 'Business Hub', href: 'business-hub.html', key: 'business-hub' },
+  { label: 'Community', href: 'community.html', key: 'community' },
   { label: 'Edit profile', href: 'edit-profile.html', key: 'edit-profile' },
 ];
 
