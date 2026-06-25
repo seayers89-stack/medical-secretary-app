@@ -174,7 +174,13 @@
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
 <script>
-  const PASSAGE = "Please find enclosed the clinic letter following today's consultation. The patient was reviewed for ongoing symptoms and a referral has been arranged for further investigation. Please contact the secretary directly to confirm the next available appointment, and ensure all relevant correspondence is filed before the end of the week. A copy of this letter will also be sent to the patient's general practitioner for their records.";
+  const PASSAGES = [
+    "Please find enclosed the clinic letter following today's consultation. The patient was reviewed for ongoing symptoms and a referral has been arranged for further investigation. Please contact the secretary directly to confirm the next available appointment, and ensure all relevant correspondence is filed before the end of the week. A copy of this letter will also be sent to the patient's general practitioner for their records.",
+    "Thank you for referring this patient for a specialist opinion. Following clinical assessment, a course of conservative management has been recommended in the first instance, with a follow-up review scheduled in six weeks' time. Should symptoms fail to improve or worsen before then, please advise the patient to contact the clinic directly. A discharge summary will be issued once treatment has concluded.",
+    "I am writing to confirm the outcome of the multidisciplinary team meeting held earlier this week. The case was discussed in detail, and the consensus was to proceed with further imaging before any decision is made regarding surgical intervention. The patient has been informed of this plan and will be contacted shortly to arrange a convenient appointment for the scan.",
+    "Further to our telephone conversation, I can confirm that authorisation has now been received from the insurer for the proposed treatment. Please liaise with the billing team to ensure the guarantee of payment is correctly recorded against the patient's file before the procedure date. Should any shortfall arise, the patient should be informed in writing at the earliest opportunity.",
+  ];
+  let PASSAGE = PASSAGES[0];
 
   const DURATION_SECONDS = 60;
   let userId = null;
@@ -208,6 +214,8 @@
   }
 
   function startTest() {
+    PASSAGE = PASSAGES[Math.floor(Math.random() * PASSAGES.length)];
+
     document.getElementById('intro-card').style.display = 'none';
     document.getElementById('test-card').style.display = 'block';
     renderPassage('');
