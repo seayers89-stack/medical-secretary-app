@@ -69,6 +69,33 @@
   .preview-list li{ color:var(--ink); font-size:14px; line-height:1.8; list-style:none; padding-left:22px; position:relative; }
   .preview-list li::before{ content:"—"; position:absolute; left:0; color:var(--gold); }
 
+  .calc-card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:32px 36px; margin-bottom:20px; text-align:left;
+  }
+  .calc-card h2{ font-family:'Fraunces', serif; font-weight:600; font-size:19px; margin-bottom:6px; }
+  .calc-card .calc-sub{ color:var(--slate); font-size:13.5px; line-height:1.5; margin-bottom:26px; }
+  .calc-row{ margin-bottom:18px; }
+  .calc-label{ font-size:13px; font-weight:600; color:var(--ink); margin-bottom:7px; display:block; }
+  .calc-input-wrap{ position:relative; }
+  .calc-prefix{ position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--slate); font-size:14.5px; }
+  .calc-input-wrap input{
+    width:100%; padding:12px 14px 12px 30px; font-family:'Inter', sans-serif; font-size:14.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .calc-input-wrap.no-prefix input{ padding-left:14px; }
+  .calc-input-wrap input:focus{ outline:none; border-color:var(--gold); }
+
+  .calc-result{
+    background:var(--ink); border-radius:14px; padding:28px; text-align:center; margin-top:24px;
+  }
+  .calc-figure{ font-family:'Fraunces', serif; font-weight:600; font-size:38px; color:var(--paper); }
+  .calc-caption{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    color:rgba(247,244,237,0.6); margin-top:6px;
+  }
+  .calc-note{ font-size:12.5px; color:var(--slate); line-height:1.6; margin-top:16px; }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
@@ -100,15 +127,46 @@
 
   <p id="loading">Loading…</p>
 
-  <div class="card" id="page-content" style="display:none;">
-    <div class="coming-soon-badge">Coming soon</div>
-    <h2>This is being built</h2>
-    <p>We're working on bringing the day-rate calculator, contract and invoice templates, and IR35/self-employment guidance into your account. For now, here's what's planned:</p>
-    <ul class="preview-list">
-      <li>Day-rate calculator — price your work properly against income, expenses and billable days</li>
-      <li>Invoice and contract templates</li>
-      <li>IR35 and self-employment guidance</li>
-    </ul>
+  <div id="page-content" style="display:none;">
+    <div class="calc-card">
+      <h2>Price your day rate properly</h2>
+      <p class="calc-sub">Adjusts live as you type. This is a starting point, not financial advice — review against your own circumstances.</p>
+
+      <div class="calc-row">
+        <label class="calc-label" for="calc-income">Target annual income</label>
+        <div class="calc-input-wrap">
+          <span class="calc-prefix">£</span>
+          <input type="number" id="calc-income" value="38000" min="0" step="500">
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <label class="calc-label" for="calc-expenses">Annual business expenses</label>
+        <div class="calc-input-wrap">
+          <span class="calc-prefix">£</span>
+          <input type="number" id="calc-expenses" value="3200" min="0" step="100">
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <label class="calc-label" for="calc-days">Realistic billable days per year</label>
+        <div class="calc-input-wrap no-prefix">
+          <input type="number" id="calc-days" value="180" min="1" max="365" step="5">
+        </div>
+      </div>
+
+      <div class="calc-result">
+        <div class="calc-figure" id="calc-result-figure">£0/day</div>
+        <div class="calc-caption">Suggested minimum day rate</div>
+      </div>
+      <p class="calc-note">Suggested minimum day rate = (target annual income + annual business expenses) ÷ billable days per year. It covers your target income and costs — it doesn't include profit margin, pension contributions, or time off above what you've already excluded from billable days.</p>
+    </div>
+
+    <div class="card" id="coming-soon-card">
+      <div class="coming-soon-badge">Coming soon</div>
+      <h2>More tools on the way</h2>
+      <p>We're working on bringing contract and invoice templates, and IR35/self-employment guidance into your account.</p>
+    </div>
   </div>
 </div>
 
@@ -134,7 +192,21 @@
 
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
+    updateCalculator();
   })();
+
+  function updateCalculator() {
+    const income = Number(document.getElementById('calc-income').value) || 0;
+    const expenses = Number(document.getElementById('calc-expenses').value) || 0;
+    const days = Number(document.getElementById('calc-days').value) || 0;
+
+    const rate = days > 0 ? Math.round((income + expenses) / days) : 0;
+    document.getElementById('calc-result-figure').textContent = `£${rate.toLocaleString()}/day`;
+  }
+
+  ['calc-income', 'calc-expenses', 'calc-days'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateCalculator);
+  });
 </script>
 
 </body>
