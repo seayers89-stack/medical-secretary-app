@@ -146,6 +146,12 @@
         <p>Self-paced practice before the real quiz — private revision, never scored or saved.</p>
         <a href="flashcards.html">Revise with flashcards →</a>
       </div>
+      <div class="skill-card">
+        <h3>Carebit proficiency quiz</h3>
+        <span class="status" id="carebit-status" style="display:none;"></span>
+        <p>10 questions on real working knowledge of Carebit — not vendor copy. Score 80%+ to mark it as verified on your profile.</p>
+        <a href="system-quiz.html?slug=carebit">Take the quiz →</a>
+      </div>
     </div>
 
     <h2 class="section-title">Training modules</h2>
@@ -199,6 +205,19 @@
         el.textContent = `✓ Passed: ${sec.terminology_quiz_score}%`;
         el.style.display = 'block';
       }
+    }
+
+    const { data: carebitResult } = await supabaseClient
+      .from('system_skills_results')
+      .select('quiz_passed, quiz_score')
+      .eq('profile_id', userId)
+      .eq('system_slug', 'carebit')
+      .maybeSingle();
+
+    if (carebitResult && carebitResult.quiz_passed) {
+      const el = document.getElementById('carebit-status');
+      el.textContent = `✓ Verified: ${carebitResult.quiz_score}%`;
+      el.style.display = 'block';
     }
 
     const { data: results } = await supabaseClient
