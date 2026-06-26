@@ -9,6 +9,7 @@ create table profiles (
   first_name text not null,
   last_name text not null,
   email text,
+  is_admin boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -317,3 +318,35 @@ create policy "Users can read their own submissions"
 
 create policy "Users can create their own submissions"
   on system_knowledge_submissions for insert with check (auth.uid() = profile_id);
+
+alter table community_reports add column resolved boolean not null default false;
+
+create or replace function is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce((select p.is_admin from profiles p where p.id = auth.uid()), false);
+$$;
+
+grant execute on function is_admin() to authenticated;
+
+create policy "Admins can read all reports"
+  on community_reports for select using (is_admin());
+
+create policy "Admins can mark reports resolved"
+  on community_reports for update using (is_admin());
+
+create policy "Admins can delete any post"
+  on community_posts for delete using (is_admin());
+
+create policy "Admins can delete any reply"
+  on community_replies for delete using (is_admin());
+
+create policy "Admins can read all knowledge submissions"
+  on system_knowledge_submissions for select using (is_admin());
+
+revoke insert, update on profiles from anon, authenticated;
+grant insert (id, role, first_name, last_name, email) on profiles to authenticated;
+grant update (first_name, last_name) on profiles to authenticated;
