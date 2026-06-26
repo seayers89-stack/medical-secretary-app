@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Share your knowledge — Veyn Academy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
+
+  .card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:32px 36px; margin-bottom:16px;
+  }
+
+  .field{ margin-bottom:18px; }
+  .field-row2{ display:flex; gap:16px; }
+  .field-row2 .field{ flex:1; }
+  .field label{ display:block; font-size:13px; font-weight:600; margin-bottom:7px; color:var(--ink); }
+  .field .hint{ font-size:12.5px; color:var(--slate); margin-top:5px; line-height:1.5; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .field textarea{ resize:vertical; min-height:90px; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--gold); }
+
+  .section-label{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--gold); margin:28px 0 14px; display:block; border-top:1px solid rgba(27,36,48,0.08); padding-top:22px;
+  }
+  .field:first-of-type .section-label, .section-label:first-child{ border-top:none; padding-top:0; margin-top:0; }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; width:100%; text-align:center; margin-top:8px;
+    background:var(--gold); color:var(--ink);
+  }
+  .btn:disabled{ opacity:0.6; cursor:not-allowed; }
+
+  #submit-status{ display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-top:14px; }
+  #submit-status.error{ display:block; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
+  #submit-status.success{ display:block; background:rgba(63,107,79,0.08); border:1px solid rgba(63,107,79,0.3); color:var(--green); }
+
+  .past-heading{ font-family:'Fraunces', serif; font-weight:600; font-size:17px; margin:32px 0 14px; }
+  .past-item{ padding:16px 20px; }
+  .past-item .past-meta{ font-size:12px; color:var(--slate); margin-bottom:6px; }
+  .past-item .past-system{ font-weight:600; font-size:14.5px; }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <a href="academy.html" class="btn-login">Back to Academy</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Academy · Share your knowledge</div>
+  <h1>Help us improve the proficiency quizzes</h1>
+  <p class="sub">The questions in our system quizzes are written from real, working knowledge — not vendor marketing copy. If you use one of these systems day to day, a few honest answers here directly improve the quiz for everyone, and will eventually become the basis for free Academy guides on each system.</p>
+
+  <p id="loading">Loading…</p>
+
+  <div id="page-content" style="display:none;">
+    <div class="card">
+      <form id="knowledge-form">
+        <div class="field">
+          <label for="system-select">Which system is this about?</label>
+          <select id="system-select" required>
+            <option value="">Select a system</option>
+            <option value="carebit">Carebit</option>
+            <option value="semble">Semble</option>
+            <option value="pabau">Pabau</option>
+            <option value="dgl">DGL Practice Manager</option>
+            <option value="other">Other (not listed)</option>
+          </select>
+        </div>
+        <div class="field" id="other-system-field" style="display:none;">
+          <label for="system-other">System name</label>
+          <input type="text" id="system-other" placeholder="e.g. WriteUpp, Healthcode/ePractice, Ultragenda">
+        </div>
+
+        <div class="field-row2">
+          <div class="field">
+            <label for="years-experience">Years of experience with this system</label>
+            <input type="text" id="years-experience" placeholder="e.g. 3 years">
+          </div>
+          <div class="field">
+            <label for="specialty">Practice type/specialty you used it in</label>
+            <input type="text" id="specialty" placeholder="e.g. Orthopaedics, general surgery">
+          </div>
+        </div>
+
+        <span class="section-label">The detail that matters most</span>
+
+        <div class="field">
+          <label for="failure-points">What goes wrong? Failure points, edge cases, things that catch people out</label>
+          <textarea id="failure-points" placeholder="e.g. what actually happens if two appointments are booked into the same slot — a warning, a hard block, or nothing at all?"></textarea>
+          <p class="hint">This is the single most useful section — it's almost impossible to find anywhere except from someone who's actually used the system.</p>
+        </div>
+
+        <div class="field">
+          <label for="common-mistakes">What's a mistake you made, or saw a colleague make, when new to this system?</label>
+          <textarea id="common-mistakes" placeholder="e.g. a field that auto-fills with a default value that's easy to miss and leave wrong"></textarea>
+        </div>
+
+        <span class="section-label">How it actually works</span>
+
+        <div class="field">
+          <label for="sequence-notes">How do you do something routine — e.g. create a booking, send a letter, raise an invoice? (the actual click-path)</label>
+          <textarea id="sequence-notes"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="location-notes">Where do key things live on screen? (menu names, tabs, button labels)</label>
+          <textarea id="location-notes"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="terminology-notes">Any system-specific terminology or screen names worth knowing?</label>
+          <textarea id="terminology-notes"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="version-notes">Anything version-specific, or recently changed?</label>
+          <textarea id="version-notes"></textarea>
+        </div>
+
+        <button type="submit" class="btn" id="submit-btn">Submit</button>
+        <p id="submit-status"></p>
+      </form>
+    </div>
+
+    <div id="past-submissions"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Skills-tested, every time.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script>
+  const SYSTEM_NAMES = { carebit: 'Carebit', semble: 'Semble', pabau: 'Pabau', dgl: 'DGL Practice Manager' };
+  let userId = null;
+
+  document.getElementById('system-select').addEventListener('change', (e) => {
+    document.getElementById('other-system-field').style.display = e.target.value === 'other' ? 'block' : 'none';
+  });
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function loadPastSubmissions() {
+    const { data } = await supabaseClient
+      .from('system_knowledge_submissions')
+      .select('system_slug, system_name_other, created_at')
+      .eq('profile_id', userId)
+      .order('created_at', { ascending: false });
+
+    const container = document.getElementById('past-submissions');
+    if (!data || data.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="past-heading">Your past submissions</div>
+      ${data.map(s => {
+        const name = s.system_slug === 'other' ? (s.system_name_other || 'Other system') : (SYSTEM_NAMES[s.system_slug] || s.system_slug);
+        const date = new Date(s.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        return `
+          <div class="card past-item">
+            <div class="past-meta">${date}</div>
+            <div class="past-system">${escapeHtml(name)}</div>
+          </div>
+        `;
+      }).join('')}
+    `;
+  }
+
+  (async () => {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, null);
+    const loading = document.getElementById('loading');
+
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (navResult.profile.role !== 'secretary') {
+      loading.textContent = 'This is for secretary accounts.';
+      return;
+    }
+
+    userId = navResult.session.user.id;
+
+    loading.style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+
+    await loadPastSubmissions();
+  })();
+
+  document.getElementById('knowledge-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('submit-status');
+    const submitBtn = document.getElementById('submit-btn');
+    statusEl.style.display = 'none';
+
+    const systemSlug = document.getElementById('system-select').value;
+    if (!systemSlug) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+
+    const { error } = await supabaseClient.from('system_knowledge_submissions').insert({
+      profile_id: userId,
+      system_slug: systemSlug,
+      system_name_other: systemSlug === 'other' ? document.getElementById('system-other').value.trim() : null,
+      years_experience: document.getElementById('years-experience').value.trim(),
+      specialty: document.getElementById('specialty').value.trim(),
+      sequence_notes: document.getElementById('sequence-notes').value.trim(),
+      location_notes: document.getElementById('location-notes').value.trim(),
+      failure_points: document.getElementById('failure-points').value.trim(),
+      common_mistakes: document.getElementById('common-mistakes').value.trim(),
+      terminology_notes: document.getElementById('terminology-notes').value.trim(),
+      version_notes: document.getElementById('version-notes').value.trim(),
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'error';
+      return;
+    }
+
+    statusEl.textContent = 'Thank you — this has been recorded and will help improve the quiz and future guides.';
+    statusEl.className = 'success';
+    document.getElementById('knowledge-form').reset();
+    document.getElementById('other-system-field').style.display = 'none';
+    await loadPastSubmissions();
+  });
+</script>
+
+<script src="../mobile-nav.js"></script>
+</body>
+</html>
