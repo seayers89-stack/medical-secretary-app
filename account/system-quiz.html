@@ -175,6 +175,7 @@
   const PASS_PERCENT = 80;
 
   let userId = null;
+  let allQuestions = [];
   let questions = [];
   let currentIndex = 0;
   let correctCount = 0;
@@ -190,7 +191,7 @@
   }
 
   function buildQuestions() {
-    return shuffle(sys.quiz).map(q => ({
+    return shuffle(allQuestions).map(q => ({
       ...q,
       choices: shuffle([q.correctAnswer, ...q.distractors]),
     }));
@@ -293,9 +294,19 @@
 
     userId = navResult.session.user.id;
 
+    const { data: dbQuestions } = await supabaseClient
+      .from('system_quiz_questions')
+      .select('question, correct_answer, distractors')
+      .eq('system_slug', slug);
+
+    allQuestions = [
+      ...sys.quiz,
+      ...(dbQuestions || []).map(q => ({ question: q.question, correctAnswer: q.correct_answer, distractors: q.distractors })),
+    ];
+
     document.getElementById('page-title').textContent = `${sys.name} — Proficiency quiz`;
-    document.getElementById('page-sub').textContent = `${sys.quiz.length} questions on real working knowledge of ${sys.name} — not vendor copy. Score 80% or more to mark it as verified on your profile.`;
-    document.getElementById('intro-qcount').textContent = sys.quiz.length;
+    document.getElementById('page-sub').textContent = `${allQuestions.length} questions on real working knowledge of ${sys.name} — not vendor copy. Score 80% or more to mark it as verified on your profile.`;
+    document.getElementById('intro-qcount').textContent = allQuestions.length;
 
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';

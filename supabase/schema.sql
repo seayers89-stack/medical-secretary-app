@@ -422,3 +422,41 @@ grant execute on function staff_profile_ids() to anon, authenticated;
 
 create policy "Admins can delete reports"
   on community_reports for delete using (is_admin());
+
+alter table system_knowledge_submissions
+  add column status text not null default 'pending';
+
+alter table system_knowledge_submissions
+  add constraint system_knowledge_submissions_status_check
+  check (status in ('pending', 'discarded', 'incorporated'));
+
+create policy "Admins can update knowledge submissions"
+  on system_knowledge_submissions for update using (is_admin());
+
+create policy "Admins can delete knowledge submissions"
+  on system_knowledge_submissions for delete using (is_admin());
+
+create table system_quiz_questions (
+  id uuid primary key default gen_random_uuid(),
+  system_slug text not null,
+  question text not null,
+  correct_answer text not null,
+  distractors text[] not null,
+  source_submission_id uuid references system_knowledge_submissions(id) on delete set null,
+  created_by uuid references profiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+alter table system_quiz_questions enable row level security;
+
+create policy "Quiz questions are publicly readable"
+  on system_quiz_questions for select using (true);
+
+create policy "Admins can add quiz questions"
+  on system_quiz_questions for insert with check (is_admin());
+
+create policy "Admins can update quiz questions"
+  on system_quiz_questions for update using (is_admin());
+
+create policy "Admins can delete quiz questions"
+  on system_quiz_questions for delete using (is_admin());

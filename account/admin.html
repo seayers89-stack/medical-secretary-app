@@ -101,6 +101,22 @@
   .submission-field .field-value{ font-size:14px; line-height:1.6; white-space:pre-wrap; }
   .submission-field .field-value.empty{ color:var(--slate); font-style:italic; }
 
+  .question-editor{
+    margin-top:14px; padding:18px 20px; background:var(--paper); border-radius:10px;
+    border:1px solid rgba(27,36,48,0.08);
+  }
+  .question-editor .field{ margin-bottom:12px; }
+  .question-editor label{
+    display:block; font-size:12px; font-weight:600; margin-bottom:5px; color:var(--ink);
+  }
+  .question-editor input, .question-editor textarea{
+    width:100%; padding:9px 12px; font-family:'Inter', sans-serif; font-size:13.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:7px; background:var(--white); color:var(--ink);
+  }
+  .question-editor textarea{ resize:vertical; min-height:60px; }
+  .question-editor input:focus, .question-editor textarea:focus{ outline:none; border-color:var(--gold); }
+  .question-editor .distractor-row{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+
   .empty-state{ text-align:center; color:var(--slate); font-size:14px; padding:30px 0; }
   .denied-state{ text-align:center; color:var(--slate); font-size:15px; padding:60px 0; }
 
@@ -344,13 +360,15 @@
       const systemName = s.system_slug === 'other' ? (s.system_name_other || 'Other system') : (SYSTEM_NAMES[s.system_slug] || s.system_slug);
 
       return `
-        <div class="card">
+        <div class="card ${s.status === 'discarded' ? 'resolved' : ''}" data-submission-id="${s.id}">
           <div class="item-meta">
             <span class="tag">${escapeHtml(systemName)}</span>
             <span>${escapeHtml(name)}</span>
             <span>${formatDate(s.created_at)}</span>
             ${s.years_experience ? `<span>${escapeHtml(s.years_experience)} experience</span>` : ''}
             ${s.specialty ? `<span>${escapeHtml(s.specialty)}</span>` : ''}
+            ${s.status === 'incorporated' ? '<span>· Added to quiz</span>' : ''}
+            ${s.status === 'discarded' ? '<span>· Discarded</span>' : ''}
           </div>
           <div class="submission-fields">
             ${fieldHtml('Failure points', s.failure_points)}
@@ -360,9 +378,106 @@
             ${fieldHtml('Terminology', s.terminology_notes)}
             ${fieldHtml('Version-specific notes', s.version_notes)}
           </div>
+          ${s.status === 'pending' ? `
+            <div class="row-actions" style="margin-top:14px;">
+              <button type="button" class="success" data-convert="${s.id}">Convert to quiz question</button>
+              <button type="button" class="danger" data-discard="${s.id}">Discard</button>
+            </div>
+            <div class="question-editor" id="editor-${s.id}" style="display:none;"></div>
+          ` : ''}
         </div>
       `;
     }).join('');
+
+    list.querySelectorAll('[data-convert]').forEach(btn => {
+      btn.addEventListener('click', () => openQuestionEditor(btn.dataset.convert, submissions));
+    });
+    list.querySelectorAll('[data-discard]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Discard this submission? This deletes it permanently.')) return;
+        await supabaseClient.from('system_knowledge_submissions').delete().eq('id', btn.dataset.discard);
+        await loadKnowledgeSubmissions();
+      });
+    });
+  }
+
+  function openQuestionEditor(submissionId, submissions) {
+    const s = submissions.find(x => x.id === submissionId);
+    const editor = document.getElementById(`editor-${submissionId}`);
+    if (editor.style.display === 'block') { editor.style.display = 'none'; return; }
+
+    const draftAnswer = (s.failure_points || s.common_mistakes || '').trim();
+
+    editor.innerHTML = `
+      <div class="field">
+        <label>Question</label>
+        <textarea id="qe-question-${s.id}" placeholder="Write the question this submission suggests…"></textarea>
+      </div>
+      <div class="field">
+        <label>Correct answer</label>
+        <textarea id="qe-correct-${s.id}">${escapeHtml(draftAnswer)}</textarea>
+      </div>
+      <div class="field">
+        <label>Wrong answers (3 distractors)</label>
+        <div class="distractor-row">
+          <input type="text" id="qe-d1-${s.id}" placeholder="Distractor 1">
+          <input type="text" id="qe-d2-${s.id}" placeholder="Distractor 2">
+          <input type="text" id="qe-d3-${s.id}" placeholder="Distractor 3">
+        </div>
+      </div>
+      <div class="row-actions">
+        <button type="button" class="success" id="qe-save-${s.id}">Save question</button>
+        <button type="button" id="qe-cancel-${s.id}">Cancel</button>
+      </div>
+      <p id="qe-status-${s.id}" style="font-size:13px; margin-top:8px; display:none;"></p>
+    `;
+    editor.style.display = 'block';
+
+    document.getElementById(`qe-cancel-${s.id}`).addEventListener('click', () => {
+      editor.style.display = 'none';
+    });
+
+    document.getElementById(`qe-save-${s.id}`).addEventListener('click', async () => {
+      const question = document.getElementById(`qe-question-${s.id}`).value.trim();
+      const correctAnswer = document.getElementById(`qe-correct-${s.id}`).value.trim();
+      const distractors = [
+        document.getElementById(`qe-d1-${s.id}`).value.trim(),
+        document.getElementById(`qe-d2-${s.id}`).value.trim(),
+        document.getElementById(`qe-d3-${s.id}`).value.trim(),
+      ].filter(Boolean);
+
+      const statusEl = document.getElementById(`qe-status-${s.id}`);
+      if (!question || !correctAnswer || distractors.length !== 3) {
+        statusEl.textContent = 'Fill in the question, correct answer, and all three distractors.';
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#a33';
+        return;
+      }
+
+      const saveBtn = document.getElementById(`qe-save-${s.id}`);
+      saveBtn.disabled = true;
+
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      const { error } = await supabaseClient.from('system_quiz_questions').insert({
+        system_slug: s.system_slug,
+        question,
+        correct_answer: correctAnswer,
+        distractors,
+        source_submission_id: s.id,
+        created_by: user.id,
+      });
+
+      if (error) {
+        statusEl.textContent = error.message;
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#a33';
+        saveBtn.disabled = false;
+        return;
+      }
+
+      await supabaseClient.from('system_knowledge_submissions').update({ status: 'incorporated' }).eq('id', s.id);
+      await loadKnowledgeSubmissions();
+    });
   }
 
   let allStaff = [];
