@@ -419,3 +419,6 @@ as $$
 $$;
 
 grant execute on function staff_profile_ids() to anon, authenticated;
+
+create policy "Admins can delete reports"
+  on community_reports for delete using (is_admin());

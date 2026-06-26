@@ -272,6 +272,7 @@
             ${!r.resolved ? `<button type="button" class="success" data-resolve="${r.id}">Mark resolved</button>` : ''}
             ${post ? `<button type="button" class="danger" data-delete-post="${post.id}">Delete post</button>` : ''}
             ${reply ? `<button type="button" class="danger" data-delete-reply="${reply.id}">Delete reply</button>` : ''}
+            <button type="button" class="danger" data-remove-report="${r.id}">Remove report</button>
           </div>
         </div>
       `;
@@ -295,6 +296,13 @@
       btn.addEventListener('click', async () => {
         if (!confirm('Delete this reply?')) return;
         await supabaseClient.from('community_replies').delete().eq('id', btn.dataset.deleteReply);
+        await loadReports();
+      });
+    });
+    list.querySelectorAll('[data-remove-report]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remove this report? The underlying post/reply will not be affected.')) return;
+        await supabaseClient.from('community_reports').delete().eq('id', btn.dataset.removeReport);
         await loadReports();
       });
     });
