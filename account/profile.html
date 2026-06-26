@@ -220,6 +220,7 @@
           <div class="row"><span>Right to work in UK</span><span>${sec.right_to_work ? 'Yes' : '—'}</span></div>
           <div class="row"><span>CV available</span><span>${sec.has_cv ? 'Yes' : 'No'}</span></div>
           <div class="row"><span>DBS certificate</span><span>${sec.has_dbs ? (sec.dbs_level || 'Yes') : 'No'}</span></div>
+          <div class="row"><span>Can provide references</span><span>${sec.can_provide_references ? 'Yes' : 'No'}</span></div>
           <div class="row"><span>Work mode</span><span>${(sec.work_mode || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Availability type</span><span>${(sec.availability_type || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Available now</span><span>${sec.available ? 'Yes' : 'No'}</span></div>
@@ -227,7 +228,7 @@
           <div class="row"><span>Days available</span><span>${(sec.daily_availability || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Available evenings</span><span>${sec.available_evenings ? 'Yes' : 'No'}</span></div>
           <div class="row"><span>Available weekends</span><span>${sec.available_weekends ? 'Yes' : 'No'}</span></div>
-          <div class="row"><span>Hourly rate</span><span>${sec.hourly_rate_min && sec.hourly_rate_max ? `£${sec.hourly_rate_min}–£${sec.hourly_rate_max}/hour` : '—'}</span></div>
+          <div class="row"><span>Rate</span><span>${sec.rate_type === 'percentage' ? (sec.percentage_rate ? `${sec.percentage_rate}% of consultant's income` : '—') : (sec.hourly_rate_min && sec.hourly_rate_max ? `£${sec.hourly_rate_min}–£${sec.hourly_rate_max}/hour` : '—')}</span></div>
         `;
       }
     } else if (profile.role === 'consultant') {

@@ -39,6 +39,7 @@ create table secretary_profiles (
   has_cv boolean,
   has_dbs boolean,
   dbs_level text,
+  can_provide_references boolean,
   work_mode text[],
   availability_type text[],
   availability_start text,
@@ -47,6 +48,8 @@ create table secretary_profiles (
   available_weekends boolean,
   hourly_rate_min numeric,
   hourly_rate_max numeric,
+  rate_type text not null default 'hourly',
+  percentage_rate numeric,
   premium_active boolean not null default false,
   premium_expires_at timestamptz
 );

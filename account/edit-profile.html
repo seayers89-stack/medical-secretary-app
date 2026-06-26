@@ -368,6 +368,10 @@
           </select>
           <p style="font-size:12px;color:var(--slate);margin-top:8px;">Veyn doesn't store these documents — you can supply your CV or DBS certificate directly to a consultant if they ask.</p>
         </div>
+        <div class="field toggle-row">
+          <input type="checkbox" id="can-provide-references">
+          <label for="can-provide-references" style="margin:0;">I can provide references</label>
+        </div>
 
         <span class="section-label">Availability</span>
         <div class="field">
@@ -424,7 +428,14 @@
         </div>
 
         <span class="section-label">Rate</span>
-        <div class="field-row2">
+        <div class="field">
+          <label>How do you charge?</label>
+          <div class="chip-row" id="rate-type-row">
+            <label class="chip-toggle"><input type="radio" name="rate-type" value="hourly"><span>Hourly rate</span></label>
+            <label class="chip-toggle"><input type="radio" name="rate-type" value="percentage"><span>% of consultant's income</span></label>
+          </div>
+        </div>
+        <div class="field-row2" id="hourly-rate-fields">
           <div class="field">
             <label for="hourly-rate-min">Hourly rate — min (£)</label>
             <input type="number" id="hourly-rate-min" min="10" max="60" step="2.5">
@@ -433,6 +444,10 @@
             <label for="hourly-rate-max">Hourly rate — max (£)</label>
             <input type="number" id="hourly-rate-max" min="10" max="60" step="2.5">
           </div>
+        </div>
+        <div class="field" id="percentage-rate-field" style="display:none;">
+          <label for="percentage-rate">Percentage of consultant's income (%)</label>
+          <input type="number" id="percentage-rate" min="1" max="100" step="0.5">
         </div>
       </div>
 
@@ -549,6 +564,7 @@
         document.getElementById('right-to-work').checked = !!sec.right_to_work;
         document.getElementById('has-cv').checked = !!sec.has_cv;
         document.getElementById('has-dbs').checked = !!sec.has_dbs;
+        document.getElementById('can-provide-references').checked = !!sec.can_provide_references;
         if (sec.dbs_level) document.getElementById('dbs-level').value = sec.dbs_level;
         (sec.work_mode || []).forEach(v => {
           const el = document.querySelector(`#work-mode-row input[value="${v}"]`);
@@ -560,6 +576,12 @@
         });
         if (sec.hourly_rate_min != null) document.getElementById('hourly-rate-min').value = sec.hourly_rate_min;
         if (sec.hourly_rate_max != null) document.getElementById('hourly-rate-max').value = sec.hourly_rate_max;
+        if (sec.percentage_rate != null) document.getElementById('percentage-rate').value = sec.percentage_rate;
+        const rateType = sec.rate_type || 'hourly';
+        const rateTypeInput = document.querySelector(`input[name="rate-type"][value="${rateType}"]`);
+        if (rateTypeInput) rateTypeInput.checked = true;
+        document.getElementById('hourly-rate-fields').style.display = rateType === 'percentage' ? 'none' : 'flex';
+        document.getElementById('percentage-rate-field').style.display = rateType === 'percentage' ? 'block' : 'none';
       }
     } else if (role === 'consultant') {
       document.getElementById('consultant-fields').style.display = 'block';
@@ -580,6 +602,14 @@
     loading.style.display = 'none';
     formCard.style.display = 'block';
   })();
+
+  document.querySelectorAll('input[name="rate-type"]').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const isPercentage = e.target.value === 'percentage';
+      document.getElementById('hourly-rate-fields').style.display = isPercentage ? 'none' : 'flex';
+      document.getElementById('percentage-rate-field').style.display = isPercentage ? 'block' : 'none';
+    });
+  });
 
   document.getElementById('edit-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -618,14 +648,17 @@
       const hasCv = document.getElementById('has-cv').checked;
       const hasDbs = document.getElementById('has-dbs').checked;
       const dbsLevel = document.getElementById('dbs-level').value;
+      const canProvideReferences = document.getElementById('can-provide-references').checked;
       const workMode = Array.from(document.querySelectorAll('#work-mode-row input:checked')).map(el => el.value);
       const availabilityType = Array.from(document.querySelectorAll('#availability-type-row input:checked')).map(el => el.value);
       const availabilityStart = document.getElementById('availability-start').value;
       const dailyAvailability = Array.from(document.querySelectorAll('#daily-availability-row input:checked')).map(el => el.value);
       const availableEvenings = document.getElementById('available-evenings').checked;
       const availableWeekends = document.getElementById('available-weekends').checked;
-      const hourlyRateMin = document.getElementById('hourly-rate-min').value || null;
-      const hourlyRateMax = document.getElementById('hourly-rate-max').value || null;
+      const rateType = document.querySelector('input[name="rate-type"]:checked').value;
+      const hourlyRateMin = rateType === 'hourly' ? (document.getElementById('hourly-rate-min').value || null) : null;
+      const hourlyRateMax = rateType === 'hourly' ? (document.getElementById('hourly-rate-max').value || null) : null;
+      const percentageRate = rateType === 'percentage' ? (document.getElementById('percentage-rate').value || null) : null;
 
       const { error } = await supabaseClient
         .from('secretary_profiles')
@@ -642,6 +675,7 @@
           has_cv: hasCv,
           has_dbs: hasDbs,
           dbs_level: dbsLevel || null,
+          can_provide_references: canProvideReferences,
           work_mode: workMode,
           availability_type: availabilityType,
           availability_start: availabilityStart,
@@ -650,6 +684,8 @@
           available_weekends: availableWeekends,
           hourly_rate_min: hourlyRateMin,
           hourly_rate_max: hourlyRateMax,
+          rate_type: rateType,
+          percentage_rate: percentageRate,
         })
         .eq('profile_id', userId);
       roleError = error;
