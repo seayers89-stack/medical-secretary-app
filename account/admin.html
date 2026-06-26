@@ -378,13 +378,11 @@
             ${fieldHtml('Terminology', s.terminology_notes)}
             ${fieldHtml('Version-specific notes', s.version_notes)}
           </div>
-          ${s.status === 'pending' ? `
-            <div class="row-actions" style="margin-top:14px;">
-              <button type="button" class="success" data-convert="${s.id}">Convert to quiz question</button>
-              <button type="button" class="danger" data-discard="${s.id}">Discard</button>
-            </div>
-            <div class="question-editor" id="editor-${s.id}" style="display:none;"></div>
-          ` : ''}
+          <div class="row-actions" style="margin-top:14px;">
+            ${s.status === 'pending' ? `<button type="button" class="success" data-convert="${s.id}">Convert to quiz question</button>` : ''}
+            <button type="button" class="danger" data-discard="${s.id}">Remove</button>
+          </div>
+          ${s.status === 'pending' ? `<div class="question-editor" id="editor-${s.id}" style="display:none;"></div>` : ''}
         </div>
       `;
     }).join('');

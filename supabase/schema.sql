@@ -10,6 +10,7 @@ create table profiles (
   last_name text not null,
   email text,
   is_admin boolean not null default false,
+  last_active_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -460,3 +461,6 @@ create policy "Admins can update quiz questions"
 
 create policy "Admins can delete quiz questions"
   on system_quiz_questions for delete using (is_admin());
+
+grant update (last_active_at) on profiles to authenticated;
+grant select (last_active_at) on profiles to anon, authenticated;

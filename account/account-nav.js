@@ -66,5 +66,23 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
     if (badge) badge.textContent = ` (${unread.length})`;
   }
 
+  await supabaseClient.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', session.user.id);
+
   return { session, profile };
+}
+
+// Shared "last active" formatter for search results / profile views.
+function formatLastActive(iso) {
+  if (!iso) return null;
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 5) return 'Active now';
+  if (mins < 60) return `Active ${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `Active ${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `Active ${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 8) return `Active ${weeks}w ago`;
+  return 'Active over 2 months ago';
 }
