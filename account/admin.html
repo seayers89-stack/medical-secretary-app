@@ -104,6 +104,23 @@
   .empty-state{ text-align:center; color:var(--slate); font-size:14px; padding:30px 0; }
   .denied-state{ text-align:center; color:var(--slate); font-size:15px; padding:60px 0; }
 
+  .staff-row{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    padding:14px 18px;
+  }
+  .staff-row .staff-name{ font-weight:600; font-size:14.5px; }
+  .staff-row .staff-meta{ font-size:12px; color:var(--slate); margin-top:2px; }
+  .staff-row .super-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.04em; text-transform:uppercase;
+    color:#8F6F36; background:rgba(184,146,74,0.12); padding:3px 9px; border-radius:999px; margin-left:8px;
+  }
+  #staff-search{
+    width:100%; padding:11px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--white); color:var(--ink);
+    margin-bottom:16px;
+  }
+  #staff-search:focus{ outline:none; border-color:var(--gold); }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
@@ -117,11 +134,7 @@
   <div class="nav">
     <div class="nav-left">
       <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
-      <nav class="nav-links">
-        <a href="profile.html">My profile</a>
-        <a href="community.html">Community</a>
-        <a href="academy.html">Academy</a>
-      </nav>
+      <nav class="nav-links" id="account-nav"></nav>
     </div>
     <button class="btn-login" id="logout-btn">Log out</button>
   </div>
@@ -136,9 +149,10 @@
   <div id="denied" class="denied-state" style="display:none;">You don't have access to this area.</div>
 
   <div id="page-content" style="display:none;">
-    <div class="tab-row">
+    <div class="tab-row" id="tab-row">
       <button class="tab-btn active" data-tab="reports">Reported content</button>
       <button class="tab-btn" data-tab="knowledge">Share your knowledge</button>
+      <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">Manage admins</button>
     </div>
 
     <div class="tab-panel active" id="tab-reports">
@@ -147,6 +161,12 @@
 
     <div class="tab-panel" id="tab-knowledge">
       <div id="knowledge-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-staff">
+      <p class="sub" style="margin-bottom:20px;">Only super admins can grant or remove admin access.</p>
+      <input type="text" id="staff-search" placeholder="Search by name…">
+      <div id="staff-list"></div>
     </div>
   </div>
 </div>
@@ -160,6 +180,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
 <script>
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -336,11 +357,72 @@
     }).join('');
   }
 
+  let allStaff = [];
+
+  async function loadStaffList() {
+    const { data, error } = await supabaseClient.rpc('list_profiles_for_admin');
+    const list = document.getElementById('staff-list');
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load staff list: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+
+    allStaff = data || [];
+    renderStaffList();
+  }
+
+  function renderStaffList() {
+    const list = document.getElementById('staff-list');
+    const query = document.getElementById('staff-search').value.trim().toLowerCase();
+
+    const filtered = allStaff.filter(p => `${p.first_name} ${p.last_name}`.toLowerCase().includes(query));
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state">No matching accounts.</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(p => `
+      <div class="card staff-row">
+        <div>
+          <div class="staff-name">${escapeHtml(p.first_name)} ${escapeHtml(p.last_name)} ${p.is_super_admin ? '<span class="super-tag">Super admin</span>' : ''}</div>
+          <div class="staff-meta">${escapeHtml(p.role)}</div>
+        </div>
+        ${p.is_super_admin
+          ? ''
+          : p.is_admin
+            ? `<button type="button" class="danger" data-revoke="${p.id}">Remove admin</button>`
+            : `<button type="button" class="success" data-grant="${p.id}">Make admin</button>`
+        }
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-grant]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        const { error } = await supabaseClient.rpc('set_admin_status', { target_user_id: btn.dataset.grant, new_is_admin: true });
+        if (error) { alert(error.message); btn.disabled = false; return; }
+        await loadStaffList();
+      });
+    });
+    list.querySelectorAll('[data-revoke]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        const { error } = await supabaseClient.rpc('set_admin_status', { target_user_id: btn.dataset.revoke, new_is_admin: false });
+        if (error) { alert(error.message); btn.disabled = false; return; }
+        await loadStaffList();
+      });
+    });
+  }
+
+  document.getElementById('staff-search').addEventListener('input', renderStaffList);
+
   (async () => {
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'admin');
     const loading = document.getElementById('loading');
 
-    if (!session) {
+    if (!navResult) {
       window.location.href = 'login.html';
       return;
     }
@@ -358,6 +440,12 @@
 
     await loadReports();
     await loadKnowledgeSubmissions();
+
+    const { data: isSuperAdmin } = await supabaseClient.rpc('is_super_admin');
+    if (isSuperAdmin) {
+      document.getElementById('staff-tab-btn').style.display = 'inline-block';
+      await loadStaffList();
+    }
   })();
 
   document.querySelectorAll('.tab-btn').forEach(btn => {

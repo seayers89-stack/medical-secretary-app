@@ -114,6 +114,7 @@
   <div class="eyebrow">Your account</div>
   <h1 id="greeting">Welcome</h1>
   <p class="sub">This is your profile snapshot. Consultants search against this information — keep it current.</p>
+  <div id="staff-badge-row" style="margin-bottom:8px;"></div>
   <div id="skills-tested-badge-row" style="margin-bottom:20px;"></div>
 
   <p id="loading">Loading your profile…</p>
@@ -153,6 +154,12 @@
     }
 
     document.getElementById('greeting').textContent = `Welcome, ${profile.first_name}`;
+
+    const { data: staffIds } = await supabaseClient.rpc('staff_profile_ids');
+    if (staffIds && staffIds.includes(userId)) {
+      document.getElementById('staff-badge-row').innerHTML =
+        `<span class="result-badge" style="display:inline-flex; align-items:center; gap:5px;">${staffBadgeIconSVG(14)} Veyn Staff</span>`;
+    }
 
     let extraRows = '';
     if (profile.role === 'secretary') {

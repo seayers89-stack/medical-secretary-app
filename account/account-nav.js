@@ -24,9 +24,10 @@ const SECRETARY_NAV_LINKS = [
   { label: 'Edit profile', href: 'edit-profile.html', key: 'edit-profile' },
 ];
 
-function buildAccountNavHtml(role, activeKey) {
+function buildAccountNavHtml(role, activeKey, isAdmin) {
   const links = role === 'consultant' ? CONSULTANT_NAV_LINKS : SECRETARY_NAV_LINKS;
-  return links.map(l => {
+  const allLinks = isAdmin ? [...links, { label: 'Admin', href: 'admin.html', key: 'admin' }] : links;
+  return allLinks.map(l => {
     const active = l.key === activeKey ? ' class="active"' : '';
     const badge = l.key === 'messages' ? '<span id="account-nav-unread"></span>' : '';
     return `<a href="${l.href}"${active}>${l.label}${badge}</a>`;
@@ -49,7 +50,8 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
     .single();
   if (!profile) return null;
 
-  navEl.innerHTML = buildAccountNavHtml(profile.role, activeKey);
+  const { data: isAdmin } = await supabaseClient.rpc('is_admin');
+  navEl.innerHTML = buildAccountNavHtml(profile.role, activeKey, isAdmin);
 
   const filterColumn = profile.role === 'consultant' ? 'consultant_id' : 'secretary_id';
   const { data: unread } = await supabaseClient

@@ -350,3 +350,72 @@ create policy "Admins can read all knowledge submissions"
 revoke insert, update on profiles from anon, authenticated;
 grant insert (id, role, first_name, last_name, email) on profiles to authenticated;
 grant update (first_name, last_name) on profiles to authenticated;
+
+alter table profiles add column is_super_admin boolean not null default false;
+
+create or replace function is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce((select (p.is_admin or p.is_super_admin) from profiles p where p.id = auth.uid()), false);
+$$;
+
+create or replace function is_super_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce((select p.is_super_admin from profiles p where p.id = auth.uid()), false);
+$$;
+
+grant execute on function is_super_admin() to authenticated;
+
+create or replace function set_admin_status(target_user_id uuid, new_is_admin boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not is_super_admin() then
+    raise exception 'Only super admins can change admin status';
+  end if;
+  update profiles set is_admin = new_is_admin where id = target_user_id;
+end;
+$$;
+
+grant execute on function set_admin_status(uuid, boolean) to authenticated;
+
+create or replace function list_profiles_for_admin()
+returns table(id uuid, first_name text, last_name text, role user_role, is_admin boolean, is_super_admin boolean)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not is_super_admin() then
+    raise exception 'Only super admins can list staff status';
+  end if;
+  return query
+    select p.id, p.first_name, p.last_name, p.role, p.is_admin, p.is_super_admin
+    from profiles p
+    order by p.created_at desc;
+end;
+$$;
+
+grant execute on function list_profiles_for_admin() to authenticated;
+
+create or replace function staff_profile_ids()
+returns setof uuid
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select id from profiles where is_admin or is_super_admin;
+$$;
+
+grant execute on function staff_profile_ids() to anon, authenticated;
