@@ -127,6 +127,28 @@
   .template-btn:hover{ border-color:var(--gold); color:#8F6F36; }
   .template-btn.copied{ border-color:var(--green); color:var(--green); }
 
+  #insurer-search{
+    width:100%; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    margin-bottom:18px;
+  }
+  #insurer-search:focus{ outline:none; border-color:var(--gold); }
+  .insurer-card{
+    background:var(--paper); border:1px solid rgba(27,36,48,0.08); border-radius:12px;
+    padding:18px 20px; margin-bottom:12px;
+  }
+  .insurer-card h3{ font-family:'Fraunces', serif; font-weight:600; font-size:16px; margin-bottom:2px; }
+  .insurer-type{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase;
+    color:#8F6F36; margin-bottom:10px; display:block;
+  }
+  .insurer-row{ display:flex; justify-content:space-between; gap:12px; font-size:13.5px; padding:5px 0; border-top:1px solid rgba(27,36,48,0.06); }
+  .insurer-row:first-of-type{ border-top:none; }
+  .insurer-row span:first-child{ color:var(--slate); flex-shrink:0; }
+  .insurer-row span:last-child{ text-align:right; font-weight:500; }
+  .insurer-notes{ font-size:12.5px; color:var(--slate); margin-top:8px; font-style:italic; }
+  .insurer-empty{ text-align:center; color:var(--slate); font-size:14px; padding:20px 0; }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
@@ -171,6 +193,7 @@
       <a class="jump-chip" href="#ir35">IR35</a>
       <a class="jump-chip" href="#vat">VAT</a>
       <a class="jump-chip" href="#templates">Templates</a>
+      <a class="jump-chip" href="#insurers">Insurer contacts</a>
     </nav>
 
     <div class="calc-card" id="calculator">
@@ -316,6 +339,14 @@
         <button class="template-btn" data-copy-target="contract-template">Copy to clipboard</button>
         <button class="template-btn" data-download-target="contract-template" data-download-name="engagement-letter-template.txt">Download .txt</button>
       </div>
+    </div>
+
+    <div class="guide-card" id="insurers">
+      <span class="guide-label">Who to call</span>
+      <h2>UK private health insurer contacts</h2>
+      <p>Authorisation, billing, and invoice-query contacts for the insurers and healthcare administrators you're most likely to deal with. Search by insurer name or type.</p>
+      <input type="text" id="insurer-search" placeholder="Search insurer, type, or what you need (e.g. authorisation, billing)…">
+      <div id="insurer-results"></div>
     </div>
   </div>
 </div>
@@ -483,6 +514,58 @@ This is a plain-English starting template, not a substitute for legal advice —
       URL.revokeObjectURL(url);
     });
   });
+
+  const INSURERS = [
+    { name: 'Bupa UK', type: 'Private Medical Insurance', contact: '0345 609 0111', authorisation: 'Bupa authorisation team / provider portal', billing: 'Bupa provider billing team', website: 'bupa.co.uk/provider', usefulFor: 'Authorisations, claims, invoices, fee schedules, patient eligibility', notes: 'Major UK PMI provider' },
+    { name: 'AXA Health', type: 'Private Medical Insurance', contact: '0800 454 080', authorisation: 'AXA Health provider services / authorisations', billing: 'AXA provider billing support', website: 'axahealth.co.uk/provider', usefulFor: 'Pre-authorisation, invoices, consultant recognition, claims', notes: 'Formerly AXA PPP Healthcare' },
+    { name: 'Aviva Health', type: 'Private Medical Insurance', contact: '0800 068 3827', authorisation: 'Aviva Health claims authorisation', billing: 'Aviva provider billing enquiries', website: 'aviva.co.uk/health', usefulFor: 'Treatment approval, billing queries, claims', notes: 'Large PMI insurer' },
+    { name: 'Vitality Health', type: 'Private Medical Insurance', contact: '0345 602 3523', authorisation: 'Vitality provider authorisation services', billing: 'Vitality provider accounts team', website: 'vitality.co.uk/provider', usefulFor: 'Authorisation numbers, claims, invoices', notes: 'PMI and corporate health' },
+    { name: 'WPA (Western Provident Association)', type: 'Private Medical Insurance', contact: '0345 122 3100', authorisation: 'WPA authorisation team', billing: 'WPA provider accounts', website: 'wpa.org.uk', usefulFor: 'Open referrals, authorisations, invoices', notes: 'Popular with consultants' },
+    { name: 'The Exeter', type: 'Private Medical Insurance', contact: '0300 123 3201', authorisation: 'Claims/pre-authorisation team', billing: 'Provider payment queries', website: 'the-exeter.com', usefulFor: 'Treatment approval and billing', notes: 'Individual health insurance' },
+    { name: 'Freedom Health Insurance', type: 'Private Medical Insurance', contact: '01202 756350', authorisation: 'Claims authorisation', billing: 'Accounts/payment queries', website: 'freedomhealthinsurance.co.uk', usefulFor: 'Eligibility, authorisation and billing', notes: 'Independent PMI provider' },
+    { name: 'Cigna Healthcare UK', type: 'International / Corporate PMI', contact: '01475 788182', authorisation: 'Cigna authorisation services', billing: 'Cigna provider payments', website: 'cignahealthcare.com', usefulFor: 'International patients, guarantees of payment', notes: 'Common for international patients' },
+    { name: 'Healix Health Services', type: 'Corporate Healthcare Administrator', contact: '020 8481 7720', authorisation: 'Healix authorisation team', billing: 'Provider invoice queries', website: 'healix.com', usefulFor: 'Corporate schemes, authorisations, claims', notes: 'Third-party administrator' },
+    { name: 'WPA Protocol', type: 'Healthcare Administration', contact: '0345 122 3100', authorisation: 'Treatment approval team', billing: 'Provider billing route', website: 'wpa.org.uk', usefulFor: 'Corporate medical schemes', notes: 'Managed through WPA' },
+    { name: 'BHSF', type: 'Health Cash Plan / Insurance', contact: '0121 454 3601', authorisation: 'Claims services', billing: 'Payment queries', website: 'bhsf.co.uk', usefulFor: 'Claims and patient benefits', notes: 'Health benefits provider' },
+    { name: 'Simplyhealth', type: 'Health Cash Plan', contact: '0370 908 3481', authorisation: 'Claims support', billing: 'Payment queries', website: 'simplyhealth.co.uk', usefulFor: 'Patient reimbursement queries', notes: 'Cash plan provider' },
+    { name: 'Benenden Health', type: 'Healthcare Membership', contact: '0800 414 8450', authorisation: 'Treatment request team', billing: 'Accounts enquiries', website: 'benenden.co.uk', usefulFor: 'Authorisation eligibility checks', notes: 'Membership healthcare' },
+    { name: 'Health Shield', type: 'Health Cash Plan', contact: '01270 588555', authorisation: 'Claims department', billing: 'Payment queries', website: 'healthshield.co.uk', usefulFor: 'Cash plan claims', notes: 'Employee benefits' },
+    { name: 'Medicash', type: 'Health Cash Plan', contact: '0151 702 0265', authorisation: 'Claims team', billing: 'Accounts queries', website: 'medicash.org', usefulFor: 'Cash plan claims', notes: 'Employee benefits' },
+    { name: 'CS Healthcare / Bupa Transfer', type: 'PMI Legacy', contact: 'Contact Bupa', authorisation: 'Via Bupa', billing: 'Via Bupa', website: 'bupa.co.uk', usefulFor: 'Legacy policy queries', notes: 'Transferred to Bupa' },
+    { name: 'General & Medical Healthcare', type: 'Private Medical Insurance', contact: '0800 970 9442', authorisation: 'Claims authorisation team', billing: 'Provider accounts', website: 'generalandmedical.com', usefulFor: 'Authorisations and billing', notes: 'PMI provider' },
+    { name: 'April International UK', type: 'International PMI', contact: '020 3418 0470', authorisation: 'Authorisation / GOP team', billing: 'Provider payment enquiries', website: 'april-international.com', usefulFor: 'International billing and guarantees', notes: 'International patients' },
+    { name: 'Allianz Care', type: 'International PMI', contact: '020 8603 9407', authorisation: 'Medical services / GOP', billing: 'Provider claims', website: 'allianzcare.com', usefulFor: 'International authorisations', notes: 'Global insurance' },
+    { name: 'Aetna International', type: 'International PMI', contact: '0203 788 3288', authorisation: 'Precertification team', billing: 'Provider claims', website: 'aetnainternational.com', usefulFor: 'International referrals and billing', notes: 'Global insurer' },
+  ];
+
+  function renderInsurers(filtered) {
+    const list = document.getElementById('insurer-results');
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="insurer-empty">No insurers match that search.</div>`;
+      return;
+    }
+    list.innerHTML = filtered.map(ins => `
+      <div class="insurer-card">
+        <h3>${ins.name}</h3>
+        <span class="insurer-type">${ins.type}</span>
+        <div class="insurer-row"><span>Main contact</span><span>${ins.contact}</span></div>
+        <div class="insurer-row"><span>Authorisation</span><span>${ins.authorisation}</span></div>
+        <div class="insurer-row"><span>Billing queries</span><span>${ins.billing}</span></div>
+        <div class="insurer-row"><span>Provider portal</span><span>${ins.website}</span></div>
+        <div class="insurer-notes">Useful for: ${ins.usefulFor}${ins.notes ? ` — ${ins.notes}` : ''}</div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('insurer-search').addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    const filtered = INSURERS.filter(ins =>
+      !query || Object.values(ins).some(v => String(v).toLowerCase().includes(query))
+    );
+    renderInsurers(filtered);
+  });
+
+  renderInsurers(INSURERS);
 </script>
 
 <script src="../mobile-nav.js"></script>
