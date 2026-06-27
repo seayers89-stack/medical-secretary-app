@@ -55,15 +55,16 @@
   .sub{ color:var(--slate); font-size:15px; line-height:1.6; margin-bottom:32px; }
 
 
-  .jump-nav{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:32px; }
-  .jump-chip{
-    font-size:13px; font-weight:600; padding:8px 16px; border-radius:999px;
-    border:1.5px solid rgba(27,36,48,0.15); background:var(--white); color:var(--ink);
-    transition:all .15s ease;
+  .tab-row{ display:flex; gap:8px; margin-bottom:28px; border-bottom:1px solid rgba(27,36,48,0.08); flex-wrap:wrap; }
+  .tab-btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:14.5px; color:var(--slate);
+    background:none; border:none; cursor:pointer; padding:10px 4px; margin-bottom:-1px;
+    border-bottom:2px solid transparent;
   }
-  .jump-chip:hover{ border-color:var(--gold); color:#8F6F36; }
-
-  .calc-card, .guide-card, #templates{ scroll-margin-top:90px; }
+  .tab-btn.active{ color:var(--ink); border-bottom-color:var(--gold); }
+  .tab-btn:hover{ color:var(--ink); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
 
   .calc-card{
     background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
@@ -185,17 +186,14 @@
       <strong>This is general information, not financial, legal, or tax advice.</strong> Rules change, and your situation may differ from the typical case described here. Always check current guidance on <a href="https://www.gov.uk" target="_blank" rel="noopener" style="text-decoration:underline; color:var(--ink);">gov.uk</a> or speak to an accountant before making decisions about your tax or employment status.
     </div>
 
-    <nav class="jump-nav">
-      <a class="jump-chip" href="#calculator">Day-rate calculator</a>
-      <a class="jump-chip" href="#self-employed">Self-employed or employed?</a>
-      <a class="jump-chip" href="#registering">Registering as self-employed</a>
-      <a class="jump-chip" href="#record-keeping">Record-keeping &amp; deadlines</a>
-      <a class="jump-chip" href="#ir35">IR35</a>
-      <a class="jump-chip" href="#vat">VAT</a>
-      <a class="jump-chip" href="#templates">Templates</a>
-      <a class="jump-chip" href="#insurers">Insurer contacts</a>
-    </nav>
+    <div class="tab-row">
+      <button class="tab-btn active" data-tab="calculator">Day-rate calculator</button>
+      <button class="tab-btn" data-tab="info">Business info</button>
+      <button class="tab-btn" data-tab="templates">Templates</button>
+      <button class="tab-btn" data-tab="contacts">Insurer contacts</button>
+    </div>
 
+    <div class="tab-panel active" id="tab-calculator">
     <div class="calc-card" id="calculator">
       <h2>Price your day rate properly</h2>
       <p class="calc-sub">Adjusts live as you type. This is a starting point, not financial advice — review against your own circumstances.</p>
@@ -262,7 +260,9 @@
       </div>
       <p class="calc-note" id="calc-split-note" style="display:none;">If you're splitting a single day's work evenly across consultants — for example, charging each one for their share of a shared day — this is what each would pay.</p>
     </div>
+    </div>
 
+    <div class="tab-panel" id="tab-info">
     <div class="guide-card" id="self-employed">
       <span class="guide-label">Self-employment basics</span>
       <h2>Are you self-employed or employed?</h2>
@@ -318,7 +318,9 @@
       <h2>Do you need to register for VAT?</h2>
       <p>You only need to register for VAT once your taxable turnover goes over the current VAT registration threshold in any rolling 12-month period (check the current figure on gov.uk, as it's reviewed periodically). Below that threshold, registration is optional. Most secretaries starting out won't need to think about this immediately, but it's worth keeping an eye on your turnover as your client list grows.</p>
     </div>
+    </div>
 
+    <div class="tab-panel" id="tab-templates">
     <div class="guide-card" id="templates">
       <span class="guide-label">Ready to use</span>
       <h2>Invoice template</h2>
@@ -340,13 +342,16 @@
         <button class="template-btn" data-download-target="contract-template" data-download-name="engagement-letter-template.txt">Download .txt</button>
       </div>
     </div>
+    </div>
 
+    <div class="tab-panel" id="tab-contacts">
     <div class="guide-card" id="insurers">
       <span class="guide-label">Who to call</span>
       <h2>UK private health insurer contacts</h2>
       <p>Authorisation, billing, and invoice-query contacts for the insurers and healthcare administrators you're most likely to deal with. Search by insurer name or type.</p>
       <input type="text" id="insurer-search" placeholder="Search insurer, type, or what you need (e.g. authorisation, billing)…">
       <div id="insurer-results"></div>
+    </div>
     </div>
   </div>
 </div>
@@ -566,6 +571,15 @@ This is a plain-English starting template, not a substitute for legal advice —
   });
 
   renderInsurers(INSURERS);
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+    });
+  });
 </script>
 
 <script src="../mobile-nav.js"></script>
