@@ -67,7 +67,7 @@
     background:var(--paper); border:1px solid rgba(27,36,48,0.1); border-radius:12px;
     padding:20px 22px; font-size:15.5px; line-height:1.8; color:var(--slate); margin-bottom:20px;
   }
-  .passage .correct{ color:var(--green); }
+  .passage .correct{ color:#1F8A4C; font-weight:700; }
   .passage .incorrect{ color:#a33; text-decoration:underline; }
   .passage .pending{ color:var(--slate); }
 
@@ -136,9 +136,10 @@
       <div class="stat"><div class="num">Free</div><div class="label">Always</div></div>
     </div>
     <p style="color:var(--slate); font-size:14px; line-height:1.6; margin-bottom:8px;">
-      The timer starts the moment you click below. Type as much of the passage as you can before time runs out — both speed and accuracy count toward your score.
+      The timer starts the moment you begin. Type as much of the passage as you can before time runs out — both speed and accuracy count toward your score.
     </p>
     <button class="btn" id="start-btn">Start test</button>
+    <p style="color:var(--slate); font-size:12.5px; text-align:center; margin-top:10px;">Or just press the space bar</p>
   </div>
 
   <div class="card" id="test-card" style="display:none;">
@@ -280,6 +281,13 @@
 
   document.getElementById('start-btn').addEventListener('click', startTest);
   document.getElementById('finish-btn').addEventListener('click', finishTest);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && document.getElementById('intro-card').style.display !== 'none') {
+      e.preventDefault();
+      startTest();
+    }
+  });
 
   document.getElementById('retake-btn').addEventListener('click', () => {
     document.getElementById('result-card').style.display = 'none';
