@@ -215,9 +215,9 @@
       </div>
 
       <div class="calc-row">
-        <label class="calc-label" for="calc-days">Realistic billable days per year</label>
+        <label class="calc-label" for="calc-days-per-week">Days worked per week</label>
         <div class="calc-input-wrap no-prefix">
-          <input type="number" id="calc-days" value="180" min="1" max="365" step="5">
+          <input type="number" id="calc-days-per-week" value="4" min="0.5" max="7" step="0.5">
         </div>
       </div>
 
@@ -239,7 +239,7 @@
         <div class="calc-figure" id="calc-result-figure">£0/day</div>
         <div class="calc-caption">Suggested minimum day rate</div>
       </div>
-      <p class="calc-note">Suggested minimum day rate = (target annual income + annual business expenses) ÷ billable days per year. It covers your target income and costs — it doesn't include profit margin, pension contributions, or time off above what you've already excluded from billable days.</p>
+      <p class="calc-note">Suggested minimum day rate = (target annual income + annual business expenses) ÷ billable days per year, where billable days per year = days worked per week × 50 (assuming roughly 2 weeks off across the year). It covers your target income and costs — it doesn't include profit margin, pension contributions, or any additional time off.</p>
 
       <div class="calc-split" id="calc-hourly-row">
         <div class="calc-split-stat">
@@ -252,10 +252,6 @@
         <div class="calc-split-stat">
           <div class="calc-split-figure" id="calc-rate-per-consultant">£0/day</div>
           <div class="calc-split-label">Day rate split per consultant</div>
-        </div>
-        <div class="calc-split-stat">
-          <div class="calc-split-figure" id="calc-hourly-rate-per-consultant">£0/hour</div>
-          <div class="calc-split-label">≈ Hourly rate, per consultant</div>
         </div>
       </div>
       <p class="calc-note" id="calc-split-note" style="display:none;">If you're splitting a single day's work evenly across consultants — for example, charging each one for their share of a shared day — this is what each would pay.</p>
@@ -384,7 +380,8 @@
   function updateCalculator() {
     const income = Number(document.getElementById('calc-income').value) || 0;
     const expenses = Number(document.getElementById('calc-expenses').value) || 0;
-    const days = Number(document.getElementById('calc-days').value) || 0;
+    const daysPerWeek = Number(document.getElementById('calc-days-per-week').value) || 0;
+    const days = daysPerWeek * 50;
     const consultants = Math.max(1, Number(document.getElementById('calc-consultants').value) || 1);
     const hours = Number(document.getElementById('calc-hours').value) || 0;
 
@@ -399,9 +396,7 @@
 
     if (consultants > 1) {
       const ratePerConsultant = rate / consultants;
-      const hourlyRatePerConsultant = hours > 0 ? ratePerConsultant / hours : 0;
       document.getElementById('calc-rate-per-consultant').textContent = `£${ratePerConsultant.toLocaleString(undefined, { maximumFractionDigits: 2 })}/day`;
-      document.getElementById('calc-hourly-rate-per-consultant').textContent = `£${hourlyRatePerConsultant.toLocaleString(undefined, { maximumFractionDigits: 2 })}/hour`;
       splitRow.style.display = 'flex';
       splitNote.style.display = 'block';
     } else {
@@ -410,7 +405,7 @@
     }
   }
 
-  ['calc-income', 'calc-expenses', 'calc-days', 'calc-consultants', 'calc-hours'].forEach(id => {
+  ['calc-income', 'calc-expenses', 'calc-days-per-week', 'calc-consultants', 'calc-hours'].forEach(id => {
     document.getElementById(id).addEventListener('input', updateCalculator);
   });
 
