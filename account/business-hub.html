@@ -128,12 +128,13 @@
   .template-btn:hover{ border-color:var(--gold); color:#8F6F36; }
   .template-btn.copied{ border-color:var(--green); color:var(--green); }
 
-  #insurer-search{
+  #insurer-search, #gp-search, #gp-town-filter{
     width:100%; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
     border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
     margin-bottom:18px;
   }
-  #insurer-search:focus{ outline:none; border-color:var(--gold); }
+  #gp-town-filter{ margin-bottom:0; cursor:pointer; }
+  #insurer-search:focus, #gp-search:focus, #gp-town-filter:focus{ outline:none; border-color:var(--gold); }
   .insurer-card{
     background:var(--paper); border:1px solid rgba(27,36,48,0.08); border-radius:12px;
     padding:18px 20px; margin-bottom:12px;
@@ -357,6 +358,23 @@
       <input type="text" id="insurer-search" placeholder="Type an insurer name…" autocomplete="off">
       <div id="insurer-suggestions"></div>
       <div id="insurer-detail"></div>
+    </div>
+
+    <div class="guide-card" id="gp-practices">
+      <span class="guide-label">Who to call</span>
+      <h2>GP practice search</h2>
+      <p>Search by GP practice name, or browse all practices in a town/city. <em>Note: this directory doesn't include a county field, so "town/city" is used instead.</em></p>
+      <input type="text" id="gp-search" placeholder="Type a GP practice name…" autocomplete="off">
+      <div class="field" style="margin-top:14px;">
+        <label for="gp-town-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Or show all practices in a town/city</label>
+        <select id="gp-town-filter">
+          <option value="">Select a town/city</option>
+        </select>
+      </div>
+      <p id="gp-loading" style="font-size:13px; color:var(--slate); margin-top:10px;">Loading GP practice directory…</p>
+      <div id="gp-suggestions"></div>
+      <div id="gp-detail"></div>
+      <div id="gp-town-results"></div>
     </div>
     </div>
   </div>
@@ -609,7 +627,119 @@ This is a plain-English starting template, not a substitute for legal advice —
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+      if (btn.dataset.tab === 'contacts') loadGpData();
     });
+  });
+
+  let gpPractices = null;
+  let gpDataPromise = null;
+
+  function loadGpData() {
+    if (gpDataPromise) return gpDataPromise;
+    gpDataPromise = fetch('gp-practices.json')
+      .then(res => res.json())
+      .then(data => {
+        gpPractices = data;
+        document.getElementById('gp-loading').style.display = 'none';
+
+        const towns = [...new Set(data.map(p => p.town))].sort();
+        const townSelect = document.getElementById('gp-town-filter');
+        towns.forEach(town => {
+          const opt = document.createElement('option');
+          opt.value = town;
+          opt.textContent = town;
+          townSelect.appendChild(opt);
+        });
+      })
+      .catch(() => {
+        document.getElementById('gp-loading').textContent = 'Could not load the GP practice directory.';
+      });
+    return gpDataPromise;
+  }
+
+  function renderGpDetail(gp) {
+    const detail = document.getElementById('gp-detail');
+    if (!gp) {
+      detail.innerHTML = '';
+      return;
+    }
+    detail.innerHTML = `
+      <div class="insurer-card">
+        <h3>${gp.name}</h3>
+        <span class="insurer-type">${gp.town}${gp.postcode ? ' · ' + gp.postcode : ''}</span>
+        ${gp.address ? `<div class="insurer-row"><span>Address</span><span>${gp.address}</span></div>` : ''}
+        ${gp.phone ? `<div class="insurer-row"><span>Telephone</span><span>${gp.phone}</span></div>` : ''}
+        ${gp.email ? `<div class="insurer-row"><span>Email</span><span>${gp.email}</span></div>` : ''}
+        ${gp.website ? `<div class="insurer-row"><span>Website</span><span>${gp.website}</span></div>` : ''}
+      </div>
+    `;
+  }
+
+  function renderGpSuggestions(matches) {
+    const list = document.getElementById('gp-suggestions');
+    if (matches.length === 0) {
+      list.innerHTML = `<div class="insurer-empty">No GP practices match that search.</div>`;
+      return;
+    }
+    list.innerHTML = matches.slice(0, 25).map((gp, i) => `
+      <button type="button" class="insurer-suggestion" data-index="${i}">
+        <span class="suggestion-name">${gp.name}</span>
+        <span class="suggestion-type">${gp.town}</span>
+      </button>
+    `).join('');
+
+    list.querySelectorAll('.insurer-suggestion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const gp = matches[Number(btn.dataset.index)];
+        document.getElementById('gp-search').value = gp.name;
+        list.innerHTML = '';
+        renderGpDetail(gp);
+      });
+    });
+  }
+
+  document.getElementById('gp-search').addEventListener('input', async (e) => {
+    await loadGpData();
+    const query = e.target.value.trim().toLowerCase();
+    renderGpDetail(null);
+    document.getElementById('gp-town-results').innerHTML = '';
+
+    if (!query || !gpPractices) {
+      document.getElementById('gp-suggestions').innerHTML = '';
+      return;
+    }
+
+    const matches = gpPractices.filter(gp => gp.name.toLowerCase().includes(query));
+    renderGpSuggestions(matches);
+  });
+
+  document.getElementById('gp-town-filter').addEventListener('change', async (e) => {
+    await loadGpData();
+    const town = e.target.value;
+    document.getElementById('gp-search').value = '';
+    document.getElementById('gp-suggestions').innerHTML = '';
+    renderGpDetail(null);
+
+    const resultsEl = document.getElementById('gp-town-results');
+    if (!town || !gpPractices) {
+      resultsEl.innerHTML = '';
+      return;
+    }
+
+    const matches = gpPractices.filter(gp => gp.town === town);
+    resultsEl.innerHTML = `
+      <p style="font-size:13px; color:var(--slate); margin:14px 0 10px;">${matches.length} practice${matches.length === 1 ? '' : 's'} in ${town}</p>
+      ${matches.map(gp => `
+        <div class="insurer-card">
+          <h3>${gp.name}</h3>
+          <span class="insurer-type">${gp.town}${gp.postcode ? ' · ' + gp.postcode : ''}</span>
+          ${gp.address ? `<div class="insurer-row"><span>Address</span><span>${gp.address}</span></div>` : ''}
+          ${gp.phone ? `<div class="insurer-row"><span>Telephone</span><span>${gp.phone}</span></div>` : ''}
+          ${gp.email ? `<div class="insurer-row"><span>Email</span><span>${gp.email}</span></div>` : ''}
+          ${gp.website ? `<div class="insurer-row"><span>Website</span><span>${gp.website}</span></div>` : ''}
+        </div>
+      `).join('')}
+    `;
   });
 </script>
 
