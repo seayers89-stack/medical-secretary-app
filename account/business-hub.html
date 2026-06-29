@@ -150,6 +150,15 @@
   .insurer-notes{ font-size:12.5px; color:var(--slate); margin-top:8px; font-style:italic; }
   .insurer-empty{ text-align:center; color:var(--slate); font-size:14px; padding:20px 0; }
 
+  .insurer-suggestion{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    width:100%; text-align:left; padding:10px 14px; border-radius:8px; cursor:pointer;
+    background:none; border:1px solid transparent; font-family:'Inter', sans-serif; color:var(--ink);
+  }
+  .insurer-suggestion:hover{ background:var(--paper); border-color:rgba(27,36,48,0.08); }
+  .insurer-suggestion .suggestion-name{ font-weight:600; font-size:14px; }
+  .insurer-suggestion .suggestion-type{ font-size:12px; color:var(--slate); }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
@@ -190,7 +199,7 @@
       <button class="tab-btn active" data-tab="calculator">Day-rate calculator</button>
       <button class="tab-btn" data-tab="info">Business info</button>
       <button class="tab-btn" data-tab="templates">Templates</button>
-      <button class="tab-btn" data-tab="contacts">Insurer contacts</button>
+      <button class="tab-btn" data-tab="contacts">Contacts</button>
     </div>
 
     <div class="tab-panel active" id="tab-calculator">
@@ -344,9 +353,10 @@
     <div class="guide-card" id="insurers">
       <span class="guide-label">Who to call</span>
       <h2>UK private health insurer contacts</h2>
-      <p>Authorisation, billing, and invoice-query contacts for the insurers and healthcare administrators you're most likely to deal with. Search by insurer name or type.</p>
-      <input type="text" id="insurer-search" placeholder="Search insurer, type, or what you need (e.g. authorisation, billing)…">
-      <div id="insurer-results"></div>
+      <p>Start typing an insurer name to find authorisation, billing, and invoice-query contacts.</p>
+      <input type="text" id="insurer-search" placeholder="Type an insurer name…" autocomplete="off">
+      <div id="insurer-suggestions"></div>
+      <div id="insurer-detail"></div>
     </div>
     </div>
   </div>
@@ -538,13 +548,13 @@ This is a plain-English starting template, not a substitute for legal advice —
     { name: 'Aetna International', type: 'International PMI', contact: '0203 788 3288', authorisation: 'Precertification team', billing: 'Provider claims', website: 'aetnainternational.com', usefulFor: 'International referrals and billing', notes: 'Global insurer' },
   ];
 
-  function renderInsurers(filtered) {
-    const list = document.getElementById('insurer-results');
-    if (filtered.length === 0) {
-      list.innerHTML = `<div class="insurer-empty">No insurers match that search.</div>`;
+  function renderInsurerDetail(ins) {
+    const detail = document.getElementById('insurer-detail');
+    if (!ins) {
+      detail.innerHTML = '';
       return;
     }
-    list.innerHTML = filtered.map(ins => `
+    detail.innerHTML = `
       <div class="insurer-card">
         <h3>${ins.name}</h3>
         <span class="insurer-type">${ins.type}</span>
@@ -554,18 +564,44 @@ This is a plain-English starting template, not a substitute for legal advice —
         <div class="insurer-row"><span>Provider portal</span><span>${ins.website}</span></div>
         <div class="insurer-notes">Useful for: ${ins.usefulFor}${ins.notes ? ` — ${ins.notes}` : ''}</div>
       </div>
+    `;
+  }
+
+  function renderInsurerSuggestions(matches) {
+    const list = document.getElementById('insurer-suggestions');
+    if (matches.length === 0) {
+      list.innerHTML = `<div class="insurer-empty">No insurers match that search.</div>`;
+      return;
+    }
+    list.innerHTML = matches.map((ins, i) => `
+      <button type="button" class="insurer-suggestion" data-index="${i}">
+        <span class="suggestion-name">${ins.name}</span>
+        <span class="suggestion-type">${ins.type}</span>
+      </button>
     `).join('');
+
+    list.querySelectorAll('.insurer-suggestion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ins = matches[Number(btn.dataset.index)];
+        document.getElementById('insurer-search').value = ins.name;
+        list.innerHTML = '';
+        renderInsurerDetail(ins);
+      });
+    });
   }
 
   document.getElementById('insurer-search').addEventListener('input', (e) => {
     const query = e.target.value.trim().toLowerCase();
-    const filtered = INSURERS.filter(ins =>
-      !query || Object.values(ins).some(v => String(v).toLowerCase().includes(query))
-    );
-    renderInsurers(filtered);
-  });
+    renderInsurerDetail(null);
 
-  renderInsurers(INSURERS);
+    if (!query) {
+      document.getElementById('insurer-suggestions').innerHTML = '';
+      return;
+    }
+
+    const matches = INSURERS.filter(ins => ins.name.toLowerCase().includes(query));
+    renderInsurerSuggestions(matches);
+  });
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
