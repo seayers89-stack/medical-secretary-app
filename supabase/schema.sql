@@ -35,6 +35,8 @@ create table secretary_profiles (
   terminology_quiz_passed boolean,
   terminology_quiz_taken_at timestamptz,
   english_fluency text,
+  languages_spoken text[],
+  languages_other text,
   right_to_work boolean,
   has_cv boolean,
   has_dbs boolean,

@@ -345,6 +345,21 @@
           </div>
         </div>
 
+        <div class="field">
+          <label>Other languages spoken</label>
+          <div class="chip-row" id="languages-row">
+            <label class="chip-toggle"><input type="checkbox" value="German"><span>German</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Polish"><span>Polish</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Urdu"><span>Urdu</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Punjabi"><span>Punjabi</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Italian"><span>Italian</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="French"><span>French</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Spanish"><span>Spanish</span></label>
+            <label class="chip-toggle"><input type="checkbox" value="Arabic"><span>Arabic</span></label>
+          </div>
+          <input type="text" id="languages-other" placeholder="Other language(s) — optional" style="margin-top:10px;">
+        </div>
+
         <span class="section-label">Verification</span>
         <div class="field toggle-row">
           <input type="checkbox" id="right-to-work">
@@ -561,6 +576,11 @@
           document.getElementById('terminology-quiz-note').innerHTML = `<strong style="color:var(--green);">✓ Passed: ${sec.terminology_quiz_score}%</strong> — shown on your profile.`;
         }
         if (sec.english_fluency) document.getElementById('english-fluency').value = sec.english_fluency;
+        (sec.languages_spoken || []).forEach(v => {
+          const el = document.querySelector(`#languages-row input[value="${v}"]`);
+          if (el) el.checked = true;
+        });
+        if (sec.languages_other) document.getElementById('languages-other').value = sec.languages_other;
         document.getElementById('right-to-work').checked = !!sec.right_to_work;
         document.getElementById('has-cv').checked = !!sec.has_cv;
         document.getElementById('has-dbs').checked = !!sec.has_dbs;
@@ -644,6 +664,8 @@
       const coreSkills = Array.from(document.querySelectorAll('#skills-admin-row input:checked, #skills-billing-row input:checked, #skills-comms-row input:checked')).map(el => el.value);
       const typingSpeed = document.getElementById('typing-speed').value;
       const englishFluency = document.getElementById('english-fluency').value;
+      const languagesSpoken = Array.from(document.querySelectorAll('#languages-row input:checked')).map(el => el.value);
+      const languagesOther = document.getElementById('languages-other').value.trim();
       const rightToWork = document.getElementById('right-to-work').checked;
       const hasCv = document.getElementById('has-cv').checked;
       const hasDbs = document.getElementById('has-dbs').checked;
@@ -671,6 +693,8 @@
           core_skills: coreSkills,
           typing_speed: typingSpeed || null,
           english_fluency: englishFluency,
+          languages_spoken: languagesSpoken,
+          languages_other: languagesOther || null,
           right_to_work: rightToWork,
           has_cv: hasCv,
           has_dbs: hasDbs,

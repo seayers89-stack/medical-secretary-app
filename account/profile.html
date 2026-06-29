@@ -217,6 +217,7 @@
           <div class="row"><span>Terminology quiz</span><span>${sec.terminology_quiz_passed ? `Passed (${sec.terminology_quiz_score}%) ✓ Verified` : '—'}</span></div>
           <div class="row"><span>Training modules completed</span><span id="training-modules-row">—</span></div>
           <div class="row"><span>English fluency</span><span>${sec.english_fluency || '—'}</span></div>
+          <div class="row"><span>Other languages</span><span>${[...(sec.languages_spoken || []), sec.languages_other].filter(Boolean).join(', ') || '—'}</span></div>
           <div class="row"><span>Right to work in UK</span><span>${sec.right_to_work ? 'Yes' : '—'}</span></div>
           <div class="row"><span>CV available</span><span>${sec.has_cv ? 'Yes' : 'No'}</span></div>
           <div class="row"><span>DBS certificate</span><span>${sec.has_dbs ? (sec.dbs_level || 'Yes') : 'No'}</span></div>
