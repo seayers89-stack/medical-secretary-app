@@ -242,6 +242,7 @@
         extraRows = `
           <div class="row"><span>Practice</span><span>${con.practice_name || '—'}</span></div>
           <div class="row"><span>Specialty</span><span>${con.specialty || '—'}</span></div>
+          <div class="row"><span>Hospitals</span><span>${(con.hospitals || []).join(', ') || '—'}</span></div>
         `;
       }
     }

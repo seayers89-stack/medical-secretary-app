@@ -60,6 +60,7 @@ create table consultant_profiles (
   profile_id uuid primary key references profiles(id) on delete cascade,
   practice_name text,
   specialty text,
+  hospitals text[],
   pass_type text,
   pass_expires_at timestamptz
 );

@@ -128,13 +128,19 @@
   .template-btn:hover{ border-color:var(--gold); color:#8F6F36; }
   .template-btn.copied{ border-color:var(--green); color:var(--green); }
 
-  #insurer-search, #gp-search, #gp-town-filter{
+  #insurer-search, #gp-search, #gp-town-filter, #hospital-search, #hospital-area-filter,
+  #consultant-search, #consultant-specialty-filter, #consultant-hospital-filter{
     width:100%; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
     border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
     margin-bottom:18px;
   }
-  #gp-town-filter{ margin-bottom:0; cursor:pointer; }
-  #insurer-search:focus, #gp-search:focus, #gp-town-filter:focus{ outline:none; border-color:var(--gold); }
+  #gp-town-filter, #hospital-area-filter, #consultant-specialty-filter{ margin-bottom:0; cursor:pointer; }
+  #consultant-hospital-filter{ margin-bottom:0; }
+  #insurer-search:focus, #gp-search:focus, #gp-town-filter:focus, #hospital-search:focus, #hospital-area-filter:focus,
+  #consultant-search:focus, #consultant-specialty-filter:focus, #consultant-hospital-filter:focus{ outline:none; border-color:var(--gold); }
+
+  .hospital-link{ color:var(--gold); text-decoration:underline; cursor:pointer; }
+  .hospital-link:hover{ color:#8F6F36; }
   .insurer-card{
     background:var(--paper); border:1px solid rgba(27,36,48,0.08); border-radius:12px;
     padding:18px 20px; margin-bottom:12px;
@@ -201,6 +207,7 @@
       <button class="tab-btn" data-tab="info">Business info</button>
       <button class="tab-btn" data-tab="templates">Templates</button>
       <button class="tab-btn" data-tab="contacts">Contacts</button>
+      <button class="tab-btn" data-tab="consultants">Consultant search</button>
     </div>
 
     <div class="tab-panel active" id="tab-calculator">
@@ -376,6 +383,46 @@
       <div id="gp-detail"></div>
       <div id="gp-town-results"></div>
     </div>
+
+    <div class="guide-card" id="hospitals">
+      <span class="guide-label">Who to call</span>
+      <h2>Private hospital search</h2>
+      <p>Search by hospital name, or browse all hospitals in a county/area.</p>
+      <input type="text" id="hospital-search" placeholder="Type a hospital name…" autocomplete="off">
+      <div class="field" style="margin-top:14px;">
+        <label for="hospital-area-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Or show all hospitals in a county/area</label>
+        <select id="hospital-area-filter">
+          <option value="">Select a county/area</option>
+        </select>
+      </div>
+      <div id="hospital-suggestions"></div>
+      <div id="hospital-detail"></div>
+      <div id="hospital-area-results"></div>
+    </div>
+    </div>
+
+    <div class="tab-panel" id="tab-consultants">
+      <div class="guide-card" id="consultant-search-card">
+        <span class="guide-label">Self-reported by consultants on Veyn</span>
+        <h2>Consultant search</h2>
+        <p>Search consultants on Veyn by name, specialty, or hospital. Hospitals are entered by the consultant themselves — click one to look it up directly.</p>
+        <input type="text" id="consultant-search" placeholder="Search by consultant name…" autocomplete="off">
+        <div class="field-row2" style="display:flex; gap:14px; margin-top:14px;">
+          <div class="field" style="flex:1;">
+            <label for="consultant-specialty-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Specialty</label>
+            <select id="consultant-specialty-filter">
+              <option value="">Any specialty</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1;">
+            <label for="consultant-hospital-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Hospital</label>
+            <input type="text" id="consultant-hospital-filter" placeholder="e.g. Spire">
+          </div>
+        </div>
+        <p id="consultant-loading" style="font-size:13px; color:var(--slate); margin-top:14px;">Loading consultants…</p>
+        <div id="consultant-results"></div>
+      </div>
+    </div>
     </div>
   </div>
 </div>
@@ -390,6 +437,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
+<script src="hospitals-data.js"></script>
 <script>
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'business-hub');
@@ -628,8 +676,91 @@ This is a plain-English starting template, not a substitute for legal advice —
       btn.classList.add('active');
       document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
       if (btn.dataset.tab === 'contacts') loadGpData();
+      if (btn.dataset.tab === 'consultants') loadConsultants();
     });
   });
+
+  const SPECIALTIES = [
+    'Aesthetic medicine', 'Cardiology', 'Dermatology', 'Endocrinology', 'ENT', 'Fertility',
+    'Gastroenterology', 'General medicine', 'General surgery', 'Gynaecology', 'Neurology',
+    'Oncology', 'Ophthalmology', 'Orthopaedics', 'Paediatrics', 'Pain management',
+    'Plastic surgery', 'Psychiatry', 'Respiratory medicine', 'Rheumatology', 'Urology',
+  ];
+  SPECIALTIES.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    document.getElementById('consultant-specialty-filter').appendChild(opt);
+  });
+
+  let consultants = null;
+  let consultantsPromise = null;
+
+  function loadConsultants() {
+    if (consultantsPromise) return consultantsPromise;
+    consultantsPromise = supabaseClient
+      .from('consultant_profiles')
+      .select('profile_id, practice_name, specialty, hospitals, profiles(first_name, last_name)')
+      .then(({ data, error }) => {
+        document.getElementById('consultant-loading').style.display = 'none';
+        if (error) {
+          document.getElementById('consultant-loading').textContent = 'Could not load consultants.';
+          document.getElementById('consultant-loading').style.display = 'block';
+          return;
+        }
+        consultants = data || [];
+        renderConsultants(consultants);
+      });
+    return consultantsPromise;
+  }
+
+  function hospitalLinkHtml(hospitalName) {
+    const match = HOSPITALS.find(h => h.name.toLowerCase() === hospitalName.toLowerCase());
+    const url = match && match.website
+      ? (match.website.startsWith('http') ? match.website : `https://${match.website}`)
+      : `https://www.google.com/search?q=${encodeURIComponent(hospitalName)}`;
+    return `<a class="hospital-link" href="${url}" target="_blank" rel="noopener">${hospitalName}</a>`;
+  }
+
+  function renderConsultants(list) {
+    const resultsEl = document.getElementById('consultant-results');
+    if (list.length === 0) {
+      resultsEl.innerHTML = `<div class="insurer-empty">No consultants match that search.</div>`;
+      return;
+    }
+    resultsEl.innerHTML = list.map(c => {
+      const name = c.profiles ? `${c.profiles.first_name} ${c.profiles.last_name}` : 'Consultant';
+      const hospitals = c.hospitals || [];
+      return `
+        <div class="insurer-card">
+          <h3>${name}</h3>
+          <span class="insurer-type">${c.specialty || 'Specialty not set'}</span>
+          ${c.practice_name ? `<div class="insurer-row"><span>Practice</span><span>${c.practice_name}</span></div>` : ''}
+          ${hospitals.length > 0 ? `<div class="insurer-row"><span>Hospitals</span><span>${hospitals.map(hospitalLinkHtml).join(', ')}</span></div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function filterConsultants() {
+    if (!consultants) return;
+    const query = document.getElementById('consultant-search').value.trim().toLowerCase();
+    const specialty = document.getElementById('consultant-specialty-filter').value;
+    const hospitalQuery = document.getElementById('consultant-hospital-filter').value.trim().toLowerCase();
+
+    const filtered = consultants.filter(c => {
+      const name = c.profiles ? `${c.profiles.first_name} ${c.profiles.last_name}`.toLowerCase() : '';
+      if (query && !name.includes(query)) return false;
+      if (specialty && c.specialty !== specialty) return false;
+      if (hospitalQuery && !(c.hospitals || []).some(h => h.toLowerCase().includes(hospitalQuery))) return false;
+      return true;
+    });
+    renderConsultants(filtered);
+  }
+
+  document.getElementById('consultant-search').addEventListener('input', filterConsultants);
+  document.getElementById('consultant-specialty-filter').addEventListener('change', filterConsultants);
+  document.getElementById('consultant-hospital-filter').addEventListener('input', filterConsultants);
 
   let gpPractices = null;
   let gpDataPromise = null;
@@ -739,6 +870,90 @@ This is a plain-English starting template, not a substitute for legal advice —
           ${gp.website ? `<div class="insurer-row"><span>Website</span><span>${gp.website}</span></div>` : ''}
         </div>
       `).join('')}
+    `;
+  });
+
+  (() => {
+    const areas = [...new Set(HOSPITALS.map(h => h.area))].sort();
+    const areaSelect = document.getElementById('hospital-area-filter');
+    areas.forEach(area => {
+      const opt = document.createElement('option');
+      opt.value = area;
+      opt.textContent = area;
+      areaSelect.appendChild(opt);
+    });
+  })();
+
+  function renderHospitalCard(h) {
+    return `
+      <div class="insurer-card">
+        <h3>${h.name}</h3>
+        <span class="insurer-type">${h.type}${h.town ? ' · ' + h.town : ''}</span>
+        ${h.contact ? `<div class="insurer-row"><span>Main contact</span><span>${h.contact}</span></div>` : ''}
+        ${h.website ? `<div class="insurer-row"><span>Website</span><span>${h.website}</span></div>` : ''}
+        ${h.specialties ? `<div class="insurer-row"><span>Specialties</span><span>${h.specialties}</span></div>` : ''}
+        ${h.notes ? `<div class="insurer-notes">${h.notes}</div>` : ''}
+      </div>
+    `;
+  }
+
+  function renderHospitalDetail(h) {
+    document.getElementById('hospital-detail').innerHTML = h ? renderHospitalCard(h) : '';
+  }
+
+  function renderHospitalSuggestions(matches) {
+    const list = document.getElementById('hospital-suggestions');
+    if (matches.length === 0) {
+      list.innerHTML = `<div class="insurer-empty">No hospitals match that search.</div>`;
+      return;
+    }
+    list.innerHTML = matches.slice(0, 25).map((h, i) => `
+      <button type="button" class="insurer-suggestion" data-index="${i}">
+        <span class="suggestion-name">${h.name}</span>
+        <span class="suggestion-type">${h.area}</span>
+      </button>
+    `).join('');
+
+    list.querySelectorAll('.insurer-suggestion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const h = matches[Number(btn.dataset.index)];
+        document.getElementById('hospital-search').value = h.name;
+        list.innerHTML = '';
+        renderHospitalDetail(h);
+      });
+    });
+  }
+
+  document.getElementById('hospital-search').addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    renderHospitalDetail(null);
+    document.getElementById('hospital-area-results').innerHTML = '';
+
+    if (!query) {
+      document.getElementById('hospital-suggestions').innerHTML = '';
+      return;
+    }
+
+    const matches = HOSPITALS.filter(h => h.name.toLowerCase().includes(query));
+    renderHospitalSuggestions(matches);
+  });
+
+  document.getElementById('hospital-area-filter').addEventListener('change', (e) => {
+    const area = e.target.value;
+    document.getElementById('hospital-search').value = '';
+    document.getElementById('hospital-suggestions').innerHTML = '';
+    renderHospitalDetail(null);
+
+    const resultsEl = document.getElementById('hospital-area-results');
+    if (!area) {
+      resultsEl.innerHTML = '';
+      return;
+    }
+
+    const matches = HOSPITALS.filter(h => h.area === area);
+    resultsEl.innerHTML = `
+      <p style="font-size:13px; color:var(--slate); margin:14px 0 10px;">${matches.length} hospital${matches.length === 1 ? '' : 's'} in ${area}</p>
+      ${matches.map(renderHospitalCard).join('')}
     `;
   });
 </script>
