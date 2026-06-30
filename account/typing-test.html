@@ -140,6 +140,13 @@
     </p>
     <button class="btn" id="start-btn">Start test</button>
     <p style="color:var(--slate); font-size:12.5px; text-align:center; margin-top:10px;">Or just press the space bar</p>
+    <p id="attempts-note" style="color:var(--slate); font-size:12.5px; text-align:center; margin-top:10px;"></p>
+  </div>
+
+  <div class="card" id="limit-card" style="display:none;">
+    <p style="color:var(--slate); font-size:14.5px; line-height:1.6; text-align:center;">
+      You've used all 3 attempts for today. You can try again <span id="limit-reset-time"></span>.
+    </p>
   </div>
 
   <div class="card" id="test-card" style="display:none;">
@@ -184,10 +191,33 @@
   let PASSAGE = PASSAGES[0];
 
   const DURATION_SECONDS = 60;
+  const MAX_ATTEMPTS_PER_DAY = 3;
   let userId = null;
   let timerInterval = null;
   let startTime = null;
   let secondsLeft = DURATION_SECONDS;
+
+  async function checkAttemptLimit() {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data } = await supabaseClient
+      .from('typing_test_attempts')
+      .select('created_at')
+      .eq('profile_id', userId)
+      .gte('created_at', since)
+      .order('created_at', { ascending: true });
+
+    const attempts = data || [];
+    if (attempts.length >= MAX_ATTEMPTS_PER_DAY) {
+      const resetAt = new Date(new Date(attempts[0].created_at).getTime() + 24 * 60 * 60 * 1000);
+      document.getElementById('limit-reset-time').textContent = `at ${resetAt.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}`;
+      document.getElementById('intro-card').style.display = 'none';
+      document.getElementById('limit-card').style.display = 'block';
+      return false;
+    }
+
+    document.getElementById('attempts-note').textContent = `${MAX_ATTEMPTS_PER_DAY - attempts.length} of ${MAX_ATTEMPTS_PER_DAY} attempts left today`;
+    return true;
+  }
 
   function renderPassage(typed) {
     const display = document.getElementById('passage-display');
@@ -214,7 +244,10 @@
     return { wpm, accuracy };
   }
 
-  function startTest() {
+  async function startTest() {
+    if (!(await checkAttemptLimit())) return;
+    await supabaseClient.from('typing_test_attempts').insert({ profile_id: userId });
+
     PASSAGE = PASSAGES[Math.floor(Math.random() * PASSAGES.length)];
 
     document.getElementById('intro-card').style.display = 'none';
@@ -277,6 +310,7 @@
     userId = navResult.session.user.id;
     loading.style.display = 'none';
     document.getElementById('intro-card').style.display = 'block';
+    await checkAttemptLimit();
   })();
 
   document.getElementById('start-btn').addEventListener('click', startTest);
@@ -289,10 +323,11 @@
     }
   });
 
-  document.getElementById('retake-btn').addEventListener('click', () => {
+  document.getElementById('retake-btn').addEventListener('click', async () => {
     document.getElementById('result-card').style.display = 'none';
     document.getElementById('save-status').style.display = 'none';
     document.getElementById('intro-card').style.display = 'block';
+    await checkAttemptLimit();
   });
 
   document.getElementById('save-btn').addEventListener('click', async (e) => {
