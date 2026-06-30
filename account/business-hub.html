@@ -451,6 +451,14 @@
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
     updateCalculator();
+
+    if (navResult.profile.role === 'consultant') {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-tab="consultants"]').classList.add('active');
+      document.getElementById('tab-consultants').classList.add('active');
+      loadConsultants();
+    }
   })();
 
   function updateCalculator() {

@@ -11,6 +11,7 @@ const CONSULTANT_NAV_LINKS = [
   { label: 'Search', href: 'search-secretaries.html', key: 'search' },
   { label: 'Post a job', href: 'post-job.html', key: 'post-job' },
   { label: 'My postings', href: 'my-postings.html', key: 'my-postings' },
+  { label: 'Consultant search', href: 'business-hub.html', key: 'business-hub' },
   { label: 'Edit profile', href: 'edit-profile.html', key: 'edit-profile' },
 ];
 
