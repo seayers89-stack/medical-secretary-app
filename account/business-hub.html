@@ -739,9 +739,22 @@ This is a plain-English starting template, not a substitute for legal advice —
   let healixFeesByCode = {};
 
   async function loadHealixFees() {
-    const { data } = await supabaseClient.from('healix_fees').select('ccsd_code, procedure_fee, anaesthetic_fee, synced_at');
-    (data || []).forEach(f => { healixFeesByCode[f.ccsd_code] = f; });
-    const latestSync = (data || []).reduce((latest, f) => !latest || f.synced_at > latest ? f.synced_at : latest, null);
+    // Supabase caps a single response at 1000 rows (project max_rows setting)
+    // — healix_fees has ~3,000+, so this has to page through in batches.
+    const PAGE_SIZE = 1000;
+    let allRows = [];
+    let from = 0;
+    while (true) {
+      const { data } = await supabaseClient
+        .from('healix_fees')
+        .select('ccsd_code, procedure_fee, anaesthetic_fee, synced_at')
+        .range(from, from + PAGE_SIZE - 1);
+      allRows = allRows.concat(data || []);
+      if (!data || data.length < PAGE_SIZE) break;
+      from += PAGE_SIZE;
+    }
+    allRows.forEach(f => { healixFeesByCode[f.ccsd_code] = f; });
+    const latestSync = allRows.reduce((latest, f) => !latest || f.synced_at > latest ? f.synced_at : latest, null);
     if (latestSync) {
       const label = new Date(latestSync).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
       document.getElementById('healix-synced-label').textContent = ` — last updated ${label}`;
