@@ -127,6 +127,43 @@ function availabilityBadgeHTML(sec) {
     : '<span class="result-badge unavailable">Not available</span>';
 }
 
+// True when a secretary_profiles row should show the grey "unavailable"-style
+// badge (No availability, or legacy data with no availability_start and
+// available === false). Secretaries with "Available within X" are not
+// considered unavailable — they're just not available immediately.
+function isSecretaryUnavailable(sec) {
+  const start = sec.availability_start;
+  if (start === 'No availability') return true;
+  if (start === 'Available now' || (start && start.startsWith('Available within'))) return false;
+  return sec.available === false;
+}
+
+// Shows a confirmation modal warning the consultant that this secretary is
+// currently set as not available, before letting them proceed to message or
+// pay to unlock contact. Calls proceedFn only if the consultant confirms.
+// If the secretary isn't flagged unavailable, proceedFn runs immediately.
+function confirmIfUnavailable(sec, proceedFn) {
+  if (!isSecretaryUnavailable(sec)) { proceedFn(); return; }
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(27,36,48,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:#F7F4ED; border-radius:14px; padding:28px; max-width:380px; width:100%; font-family:'Inter', sans-serif; box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+      <h3 style="font-family:'Fraunces', serif; font-size:19px; margin:0 0 10px; color:#1B2430;">This secretary is set as not available</h3>
+      <p style="font-size:14px; color:#5C6470; line-height:1.55; margin:0 0 22px;">They've marked their profile as not currently taking on new consultants. Are you sure you want to continue?</p>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button type="button" id="avail-confirm-cancel" style="padding:10px 16px; border-radius:8px; border:1px solid rgba(27,36,48,0.15); background:#fff; color:#1B2430; font-size:13.5px; cursor:pointer;">Cancel</button>
+        <button type="button" id="avail-confirm-continue" style="padding:10px 16px; border-radius:8px; border:none; background:#1B2430; color:#F7F4ED; font-size:13.5px; cursor:pointer; font-weight:600;">Continue anyway</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const cleanup = () => overlay.remove();
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(); });
+  overlay.querySelector('#avail-confirm-cancel').addEventListener('click', cleanup);
+  overlay.querySelector('#avail-confirm-continue').addEventListener('click', () => { cleanup(); proceedFn(); });
+}
+
 // Checks how many times a profile has attempted a given proficiency quiz
 // (terminology, or a specific system's skills quiz) in the last 24 hours.
 // Returns { allowed, resetAt } — resetAt is only set when allowed is false.
