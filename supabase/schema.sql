@@ -19,7 +19,6 @@ create table secretary_profiles (
   years_experience text,
   systems text[],
   specialties text[],
-  day_rate numeric,
   available boolean not null default true,
   region text,
   postcode text,
@@ -523,3 +522,46 @@ create policy "Users can read their own typing test attempts"
 
 create policy "Users can record their own typing test attempts"
   on typing_test_attempts for insert with check (auth.uid() = profile_id);
+
+create table proficiency_quiz_attempts (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references profiles(id) on delete cascade,
+  quiz_key text not null,
+  created_at timestamptz not null default now()
+);
+
+create index proficiency_quiz_attempts_profile_idx on proficiency_quiz_attempts (profile_id, quiz_key, created_at);
+
+alter table proficiency_quiz_attempts enable row level security;
+
+create policy "Users can read their own quiz attempts"
+  on proficiency_quiz_attempts for select using (auth.uid() = profile_id);
+
+create policy "Users can record their own quiz attempts"
+  on proficiency_quiz_attempts for insert with check (auth.uid() = profile_id);
+
+create table ideas (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references profiles(id) on delete cascade,
+  body text not null,
+  status text not null default 'new',
+  created_at timestamptz not null default now(),
+  constraint ideas_status_check check (status in ('new', 'reviewed', 'dismissed'))
+);
+
+alter table ideas enable row level security;
+
+create policy "Users can read their own ideas"
+  on ideas for select using (auth.uid() = profile_id);
+
+create policy "Users can submit their own ideas"
+  on ideas for insert with check (auth.uid() = profile_id);
+
+create policy "Admins can read all ideas"
+  on ideas for select using (is_admin());
+
+create policy "Admins can update idea status"
+  on ideas for update using (is_admin());
+
+create policy "Admins can delete ideas"
+  on ideas for delete using (is_admin());

@@ -12,6 +12,7 @@ const CONSULTANT_NAV_LINKS = [
   { label: 'Post a job', href: 'post-job.html', key: 'post-job' },
   { label: 'My postings', href: 'my-postings.html', key: 'my-postings' },
   { label: 'Consultant search', href: 'business-hub.html', key: 'business-hub' },
+  { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
   { label: 'Edit profile', href: 'edit-profile.html', key: 'edit-profile' },
 ];
 
@@ -22,6 +23,7 @@ const SECRETARY_NAV_LINKS = [
   { label: 'Academy', href: 'academy.html', key: 'academy' },
   { label: 'Business Hub', href: 'business-hub.html', key: 'business-hub' },
   { label: 'Community', href: 'community.html', key: 'community' },
+  { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
   { label: 'Edit profile', href: 'edit-profile.html', key: 'edit-profile' },
 ];
 
@@ -30,7 +32,9 @@ function buildAccountNavHtml(role, activeKey, isAdmin) {
   const allLinks = isAdmin ? [...links, { label: 'Admin', href: 'admin.html', key: 'admin' }] : links;
   return allLinks.map(l => {
     const active = l.key === activeKey ? ' class="active"' : '';
-    const badge = l.key === 'messages' ? '<span id="account-nav-unread"></span>' : '';
+    const badge = l.key === 'messages'
+      ? '<span id="account-nav-unread" style="display:none; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:999px; background:#C1393C; color:#fff; font-size:10.5px; font-weight:700; line-height:16px; text-align:center; vertical-align:middle;"></span>'
+      : '';
     return `<a href="${l.href}"${active}>${l.label}${badge}</a>`;
   }).join('');
 }
@@ -64,7 +68,10 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
 
   if (unread && unread.length > 0) {
     const badge = navEl.querySelector('#account-nav-unread');
-    if (badge) badge.textContent = ` (${unread.length})`;
+    if (badge) {
+      badge.textContent = unread.length > 9 ? '9+' : String(unread.length);
+      badge.style.display = 'inline-block';
+    }
   }
 
   await supabaseClient.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', session.user.id);
@@ -105,6 +112,29 @@ function formatSecretaryRate(sec) {
   }
   if (!base) return null;
   return sec.rate_negotiable ? `${base} (negotiable)` : base;
+}
+
+// Checks how many times a profile has attempted a given proficiency quiz
+// (terminology, or a specific system's skills quiz) in the last 24 hours.
+// Returns { allowed, resetAt } — resetAt is only set when allowed is false.
+async function checkQuizAttemptLimit(supabaseClient, profileId, quizKey) {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data } = await supabaseClient
+    .from('proficiency_quiz_attempts')
+    .select('created_at')
+    .eq('profile_id', profileId)
+    .eq('quiz_key', quizKey)
+    .gte('created_at', since)
+    .order('created_at', { ascending: true })
+    .limit(1);
+
+  const attempts = data || [];
+  if (attempts.length === 0) return { allowed: true };
+  return { allowed: false, resetAt: new Date(new Date(attempts[0].created_at).getTime() + 24 * 60 * 60 * 1000) };
+}
+
+async function recordQuizAttempt(supabaseClient, profileId, quizKey) {
+  await supabaseClient.from('proficiency_quiz_attempts').insert({ profile_id: profileId, quiz_key: quizKey });
 }
 
 // Fetches ratings *received* by a profile (i.e. given by the other party in

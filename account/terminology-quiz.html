@@ -141,9 +141,15 @@
       <div class="stat"><div class="num">Free</div><div class="label">Always</div></div>
     </div>
     <p style="color:var(--slate); font-size:14px; line-height:1.6; margin-bottom:8px;">
-      Drawn at random from our medical secretary terminology bank — covering clinical shorthand, abbreviations, imaging, dictation phrases, and more. You can retake it any time.
+      Drawn at random from our medical secretary terminology bank — covering clinical shorthand, abbreviations, imaging, dictation phrases, and more. You can retake it once every 24 hours.
     </p>
     <button class="btn" id="start-btn">Start quiz</button>
+  </div>
+
+  <div class="card" id="limit-card" style="display:none;">
+    <p style="color:var(--slate); font-size:14.5px; line-height:1.6; text-align:center;">
+      You've already taken this quiz today. You can retake it <span id="limit-reset-time"></span>.
+    </p>
   </div>
 
   <div class="card" id="quiz-card" style="display:none;">
@@ -352,7 +358,22 @@
     document.getElementById('save-btn').style.display = passed ? 'block' : 'none';
   }
 
-  function startQuiz() {
+  async function checkLimit() {
+    const result = await checkQuizAttemptLimit(supabaseClient, userId, 'terminology');
+    if (!result.allowed) {
+      document.getElementById('limit-reset-time').textContent = `at ${result.resetAt.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}`;
+      document.getElementById('intro-card').style.display = 'none';
+      document.getElementById('limit-card').style.display = 'block';
+      return false;
+    }
+    document.getElementById('limit-card').style.display = 'none';
+    return true;
+  }
+
+  async function startQuiz() {
+    if (!(await checkLimit())) return;
+    await recordQuizAttempt(supabaseClient, userId, 'terminology');
+
     document.getElementById('intro-card').style.display = 'none';
     document.getElementById('quiz-card').style.display = 'block';
     document.getElementById('save-status').style.display = 'none';
@@ -378,13 +399,15 @@
     userId = navResult.session.user.id;
     loading.style.display = 'none';
     document.getElementById('intro-card').style.display = 'block';
+    await checkLimit();
   })();
 
   document.getElementById('start-btn').addEventListener('click', startQuiz);
 
-  document.getElementById('retake-btn').addEventListener('click', () => {
+  document.getElementById('retake-btn').addEventListener('click', async () => {
     document.getElementById('result-card').style.display = 'none';
     document.getElementById('intro-card').style.display = 'block';
+    await checkLimit();
   });
 
   document.getElementById('save-btn').addEventListener('click', async (e) => {
@@ -416,6 +439,7 @@
 
     statusEl.textContent = 'Saved — your verified terminology score now shows on your profile.';
     statusEl.className = 'success';
+    setTimeout(() => { window.location.href = 'academy.html'; }, 1200);
   });
 </script>
 

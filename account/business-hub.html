@@ -129,15 +129,17 @@
   .template-btn.copied{ border-color:var(--green); color:var(--green); }
 
   #insurer-search, #gp-search, #gp-town-filter, #hospital-search, #hospital-area-filter,
-  #consultant-search, #consultant-specialty-filter, #consultant-hospital-filter{
+  #consultant-search, #consultant-specialty-filter, #consultant-hospital-filter,
+  #billing-search, #billing-chapter-filter, #billing-section-filter{
     width:100%; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
     border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
     margin-bottom:18px;
   }
-  #gp-town-filter, #hospital-area-filter, #consultant-specialty-filter{ margin-bottom:0; cursor:pointer; }
+  #gp-town-filter, #hospital-area-filter, #consultant-specialty-filter, #billing-chapter-filter, #billing-section-filter{ margin-bottom:0; cursor:pointer; }
   #consultant-hospital-filter{ margin-bottom:0; }
   #insurer-search:focus, #gp-search:focus, #gp-town-filter:focus, #hospital-search:focus, #hospital-area-filter:focus,
-  #consultant-search:focus, #consultant-specialty-filter:focus, #consultant-hospital-filter:focus{ outline:none; border-color:var(--gold); }
+  #consultant-search:focus, #consultant-specialty-filter:focus, #consultant-hospital-filter:focus,
+  #billing-search:focus, #billing-chapter-filter:focus, #billing-section-filter:focus{ outline:none; border-color:var(--gold); }
 
   .hospital-link{ color:var(--gold); text-decoration:underline; cursor:pointer; }
   .hospital-link:hover{ color:#8F6F36; }
@@ -208,6 +210,7 @@
       <button class="tab-btn" data-tab="templates">Templates</button>
       <button class="tab-btn" data-tab="contacts">Contacts</button>
       <button class="tab-btn" data-tab="consultants">Consultant search</button>
+      <button class="tab-btn" data-tab="billing">Billing codes</button>
     </div>
 
     <div class="tab-panel active" id="tab-calculator">
@@ -423,6 +426,31 @@
         <div id="consultant-results"></div>
       </div>
     </div>
+
+    <div class="tab-panel" id="tab-billing">
+      <div class="guide-card" id="billing-codes-card">
+        <span class="guide-label">CCSD fee schedule</span>
+        <h2>Billing codes</h2>
+        <p>Search the full CCSD code list by code, description, chapter, or section.</p>
+        <input type="text" id="billing-search" placeholder="Search by code or description…" autocomplete="off">
+        <div class="field-row2" style="display:flex; gap:14px; margin-top:14px;">
+          <div class="field" style="flex:1;">
+            <label for="billing-chapter-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">CCSD chapter</label>
+            <select id="billing-chapter-filter">
+              <option value="">Any chapter</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1;">
+            <label for="billing-section-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">CCSD section</label>
+            <select id="billing-section-filter">
+              <option value="">Any section</option>
+            </select>
+          </div>
+        </div>
+        <p id="billing-results-count" style="font-size:13px; color:var(--slate); margin-top:14px;"></p>
+        <div id="billing-results"></div>
+      </div>
+    </div>
     </div>
   </div>
 </div>
@@ -438,6 +466,7 @@
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
 <script src="hospitals-data.js"></script>
+<script src="billing-codes-data.js"></script>
 <script>
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'business-hub');
@@ -687,6 +716,64 @@ This is a plain-English starting template, not a substitute for legal advice —
       if (btn.dataset.tab === 'consultants') loadConsultants();
     });
   });
+
+  const BILLING_CHAPTERS = [...new Set(BILLING_CODES.map(c => c.chapter))].sort();
+  BILLING_CHAPTERS.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    document.getElementById('billing-chapter-filter').appendChild(opt);
+  });
+
+  const BILLING_SECTIONS = [...new Set(BILLING_CODES.map(c => c.section))].sort();
+  BILLING_SECTIONS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    document.getElementById('billing-section-filter').appendChild(opt);
+  });
+
+  function renderBillingCodes(list, cap) {
+    const resultsEl = document.getElementById('billing-results');
+    document.getElementById('billing-results-count').textContent = `${list.length} of ${BILLING_CODES.length} codes`;
+    if (list.length === 0) {
+      resultsEl.innerHTML = `<div class="insurer-empty">No billing codes match that search.</div>`;
+      return;
+    }
+    const shown = cap ? list.slice(0, cap) : list;
+    resultsEl.innerHTML = shown.map(c => `
+      <div class="insurer-card">
+        <h3>${escapeHtml(c.code)} — ${escapeHtml(c.description)}</h3>
+        <div class="insurer-row"><span>Chapter</span><span>${escapeHtml(c.chapter)}</span></div>
+        <div class="insurer-row"><span>Section</span><span>${escapeHtml(c.section)}</span></div>
+      </div>
+    `).join('');
+    if (cap && list.length > cap) {
+      resultsEl.innerHTML += `<div class="insurer-empty">Showing first ${cap} of ${list.length} matches — narrow your search to see more.</div>`;
+    }
+  }
+
+  function filterBillingCodes() {
+    const query = document.getElementById('billing-search').value.trim().toLowerCase();
+    const chapter = document.getElementById('billing-chapter-filter').value;
+    const section = document.getElementById('billing-section-filter').value;
+
+    const filtered = BILLING_CODES.filter(c => {
+      if (query && !c.code.toLowerCase().includes(query) && !c.description.toLowerCase().includes(query)) return false;
+      if (chapter && c.chapter !== chapter) return false;
+      if (section && c.section !== section) return false;
+      return true;
+    });
+    // Only cap unfiltered free-text browsing — selecting a chapter/section
+    // is an explicit request to see everything in it, however many codes.
+    const cap = (chapter || section) ? null : 200;
+    renderBillingCodes(filtered, cap);
+  }
+
+  document.getElementById('billing-search').addEventListener('input', filterBillingCodes);
+  document.getElementById('billing-chapter-filter').addEventListener('change', filterBillingCodes);
+  document.getElementById('billing-section-filter').addEventListener('change', filterBillingCodes);
+  renderBillingCodes(BILLING_CODES, 200);
 
   const SPECIALTIES = [
     'Aesthetic medicine', 'Cardiology', 'Dermatology', 'Endocrinology', 'ENT', 'Fertility',

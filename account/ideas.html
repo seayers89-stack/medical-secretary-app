@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ideas — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
+
+  .card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:32px 36px; margin-bottom:24px;
+  }
+
+  textarea{
+    width:100%; padding:14px 16px; font-family:'Inter', sans-serif; font-size:15px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:10px; background:var(--paper); color:var(--ink);
+    height:130px; resize:vertical;
+  }
+  textarea:focus{ outline:none; border-color:var(--gold); }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; width:100%; text-align:center; margin-top:14px;
+    background:var(--gold); color:var(--ink);
+  }
+  .btn:disabled{ opacity:0.6; cursor:not-allowed; }
+
+  #char-count{ font-size:12px; color:var(--slate); margin-top:6px; }
+
+  #save-status{ display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-top:14px; }
+  #save-status.error{ display:block; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
+  #save-status.success{ display:block; background:rgba(63,107,79,0.08); border:1px solid rgba(63,107,79,0.3); color:var(--green); }
+
+  .section-label{
+    display:block; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--slate); margin-bottom:14px;
+  }
+
+  .idea-item{ border-bottom:1px solid rgba(27,36,48,0.06); padding:14px 0; }
+  .idea-item:last-child{ border-bottom:none; }
+  .idea-item p{ font-size:14.5px; line-height:1.6; margin-bottom:8px; }
+  .idea-meta{ display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--slate); }
+  .idea-status{
+    font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.05em; text-transform:uppercase;
+    padding:3px 9px; border-radius:999px; background:rgba(27,36,48,0.06);
+  }
+  .idea-status.reviewed{ color:var(--green); background:rgba(63,107,79,0.1); }
+  .idea-status.dismissed{ color:var(--slate); background:rgba(27,36,48,0.06); }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+  .empty-state{ color:var(--slate); font-size:14px; text-align:center; padding:20px 0; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <button class="btn-login" id="logout-btn">Log out</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Ideas</div>
+  <h1>Share an idea</h1>
+  <p class="sub">Got a suggestion for how Veyn could work better for you? Tell us — it goes straight to the team for review.</p>
+
+  <p id="loading">Loading…</p>
+
+  <div id="page-content" style="display:none;">
+    <div class="card">
+      <form id="idea-form">
+        <textarea id="idea-body" maxlength="1000" placeholder="What would make Veyn better for you?" required></textarea>
+        <p id="char-count">0/1000</p>
+        <button type="submit" class="btn" id="submit-btn">Send to the team</button>
+        <p id="save-status"></p>
+      </form>
+    </div>
+
+    <span class="section-label">Your past ideas</span>
+    <div class="card">
+      <div id="ideas-list"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Founded by a medical secretary, not a market gap.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script>
+  let userId = null;
+
+  function formatDate(iso) {
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function statusLabel(status) {
+    if (status === 'reviewed') return 'Reviewed';
+    if (status === 'dismissed') return 'Dismissed';
+    return 'Submitted';
+  }
+
+  async function loadIdeas() {
+    const list = document.getElementById('ideas-list');
+    const { data: ideas, error } = await supabaseClient
+      .from('ideas')
+      .select('*')
+      .eq('profile_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load your ideas.</div>`;
+      return;
+    }
+    if (!ideas || ideas.length === 0) {
+      list.innerHTML = `<div class="empty-state">You haven't sent any ideas yet.</div>`;
+      return;
+    }
+
+    list.innerHTML = ideas.map(i => `
+      <div class="idea-item">
+        <p>${escapeHtml(i.body)}</p>
+        <div class="idea-meta">
+          <span>${formatDate(i.created_at)}</span>
+          <span class="idea-status ${i.status}">${statusLabel(i.status)}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  (async () => {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'ideas');
+    const loading = document.getElementById('loading');
+
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    userId = navResult.session.user.id;
+    loading.style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+    await loadIdeas();
+  })();
+
+  document.getElementById('idea-body').addEventListener('input', (e) => {
+    document.getElementById('char-count').textContent = `${e.target.value.length}/1000`;
+  });
+
+  document.getElementById('idea-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = document.getElementById('idea-body').value.trim();
+    const statusEl = document.getElementById('save-status');
+    const submitBtn = document.getElementById('submit-btn');
+    if (!body) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+    statusEl.style.display = 'none';
+
+    const { error } = await supabaseClient.from('ideas').insert({ profile_id: userId, body });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send to the team';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'error';
+      return;
+    }
+
+    document.getElementById('idea-form').reset();
+    document.getElementById('char-count').textContent = '0/1000';
+    statusEl.textContent = 'Thanks — your idea has been sent to the team.';
+    statusEl.className = 'success';
+    await loadIdeas();
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+  });
+</script>
+
+<script src="../mobile-nav.js"></script>
+</body>
+</html>

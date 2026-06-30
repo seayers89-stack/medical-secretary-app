@@ -159,7 +159,7 @@
 <div class="wrap">
   <div class="eyebrow">Admin</div>
   <h1>Moderation &amp; submissions</h1>
-  <p class="sub">Reported community content and "share your knowledge" responses. Staff only.</p>
+  <p class="sub">Reported community content, "share your knowledge" responses, and user-submitted ideas. Staff only.</p>
 
   <p id="loading">Loading…</p>
   <div id="denied" class="denied-state" style="display:none;">You don't have access to this area.</div>
@@ -168,6 +168,7 @@
     <div class="tab-row" id="tab-row">
       <button class="tab-btn active" data-tab="reports">Reported content</button>
       <button class="tab-btn" data-tab="knowledge">Share your knowledge</button>
+      <button class="tab-btn" data-tab="ideas">Ideas</button>
       <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">Manage admins</button>
     </div>
 
@@ -177,6 +178,10 @@
 
     <div class="tab-panel" id="tab-knowledge">
       <div id="knowledge-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-ideas">
+      <div id="ideas-admin-list"></div>
     </div>
 
     <div class="tab-panel" id="tab-staff">
@@ -211,7 +216,7 @@
   async function fetchProfilesByIds(ids) {
     const uniqueIds = [...new Set(ids.filter(Boolean))];
     if (uniqueIds.length === 0) return {};
-    const { data } = await supabaseClient.from('profiles').select('id, first_name, last_name').in('id', uniqueIds);
+    const { data } = await supabaseClient.from('profiles').select('id, first_name, last_name, role').in('id', uniqueIds);
     const byId = {};
     (data || []).forEach(p => { byId[p.id] = p; });
     return byId;
@@ -320,6 +325,68 @@
         if (!confirm('Remove this report? The underlying post/reply will not be affected.')) return;
         await supabaseClient.from('community_reports').delete().eq('id', btn.dataset.removeReport);
         await loadReports();
+      });
+    });
+  }
+
+  async function loadIdeasAdmin() {
+    const list = document.getElementById('ideas-admin-list');
+    const { data: ideas, error } = await supabaseClient
+      .from('ideas')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load ideas: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    if (!ideas || ideas.length === 0) {
+      list.innerHTML = `<div class="empty-state">No ideas submitted yet.</div>`;
+      return;
+    }
+
+    const profilesById = await fetchProfilesByIds(ideas.map(i => i.profile_id));
+
+    list.innerHTML = ideas.map(i => {
+      const p = profilesById[i.profile_id];
+      const name = p ? `${p.first_name} ${p.last_name}` : 'Unknown';
+      return `
+        <div class="card ${i.status !== 'new' ? 'resolved' : ''}" data-idea-id="${i.id}">
+          <div class="item-meta">
+            <span class="tag">${escapeHtml(p ? p.role || '' : '')}</span>
+            <span>${escapeHtml(name)}</span>
+            <span>${formatDate(i.created_at)}</span>
+            <span>· ${escapeHtml(i.status)}</span>
+          </div>
+          <div class="quoted-content">${escapeHtml(i.body)}</div>
+          <div class="row-actions">
+            ${i.status !== 'reviewed' ? `<button type="button" class="success" data-mark-reviewed="${i.id}">Mark reviewed</button>` : ''}
+            ${i.status !== 'dismissed' ? `<button type="button" data-dismiss="${i.id}">Dismiss</button>` : ''}
+            <button type="button" class="danger" data-delete-idea="${i.id}">Delete</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('[data-mark-reviewed]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        await supabaseClient.from('ideas').update({ status: 'reviewed' }).eq('id', btn.dataset.markReviewed);
+        await loadIdeasAdmin();
+      });
+    });
+    list.querySelectorAll('[data-dismiss]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        await supabaseClient.from('ideas').update({ status: 'dismissed' }).eq('id', btn.dataset.dismiss);
+        await loadIdeasAdmin();
+      });
+    });
+    list.querySelectorAll('[data-delete-idea]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this idea?')) return;
+        await supabaseClient.from('ideas').delete().eq('id', btn.dataset.deleteIdea);
+        await loadIdeasAdmin();
       });
     });
   }
@@ -561,6 +628,7 @@
 
     await loadReports();
     await loadKnowledgeSubmissions();
+    await loadIdeasAdmin();
 
     const { data: isSuperAdmin } = await supabaseClient.rpc('is_super_admin');
     if (isSuperAdmin) {
