@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Practical exercises — Veyn Academy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .btn-login{
+    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
+
+  .progress-dots{ display:flex; gap:8px; margin-bottom:24px; }
+  .progress-dot{ flex:1; height:5px; border-radius:999px; background:rgba(27,36,48,0.1); }
+  .progress-dot.active{ background:var(--gold); }
+  .progress-dot.done{ background:var(--green); }
+
+  .card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:32px 36px; margin-bottom:14px;
+  }
+  .card h2{ font-family:'Fraunces', serif; font-weight:600; font-size:19px; margin-bottom:10px; }
+  .card .intro{ color:var(--slate); font-size:14px; line-height:1.6; margin-bottom:18px; }
+
+  .letter-box{
+    background:var(--paper); border:1.5px solid rgba(27,36,48,0.1); border-radius:10px;
+    padding:20px 22px; font-size:14px; line-height:1.8; white-space:pre-wrap; margin-bottom:24px; font-family:'IBM Plex Mono', monospace; font-size:13px;
+  }
+
+  .question-block{ margin-bottom:26px; }
+  .question-block:last-child{ margin-bottom:0; }
+  .question-text{ font-weight:600; font-size:15px; margin-bottom:12px; }
+
+  .choice{
+    display:block; width:100%; text-align:left; padding:12px 16px; margin-bottom:8px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:10px; background:var(--white); color:var(--ink);
+    font-family:'Inter', sans-serif; font-size:14px; cursor:pointer; transition:all .15s ease;
+  }
+  .choice:hover{ border-color:var(--gold); }
+  .choice.correct{ border-color:var(--green); background:rgba(63,107,79,0.1); }
+  .choice.incorrect{ border-color:#a33; background:rgba(193,68,68,0.08); }
+  .choice:disabled{ cursor:default; }
+
+  .checkbox-row{
+    display:flex; align-items:flex-start; gap:10px; padding:11px 14px; margin-bottom:8px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:10px; cursor:pointer; font-size:14px;
+  }
+  .checkbox-row.correct{ border-color:var(--green); background:rgba(63,107,79,0.1); }
+  .checkbox-row.incorrect{ border-color:#a33; background:rgba(193,68,68,0.08); }
+  .checkbox-row input{ margin-top:2px; }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; width:100%; text-align:center; margin-top:8px;
+    background:var(--gold); color:var(--ink);
+  }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  .btn-secondary{ background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink); }
+
+  .result-note{
+    background:rgba(63,107,79,0.08); border:1px solid rgba(63,107,79,0.3); border-radius:10px;
+    padding:14px 18px; font-size:14px; color:var(--green); margin-top:18px; display:none;
+  }
+
+  .complete-card{ text-align:center; }
+  .complete-card .badge{
+    display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:11.5px;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--green); background:rgba(63,107,79,0.1);
+    border:1px solid rgba(63,107,79,0.3); padding:7px 16px; border-radius:999px; margin-bottom:14px;
+  }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+    <a href="#" class="btn-login" id="back-link">Back to course</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Academy · Specialist course · Practical exercises</div>
+  <h1 id="page-title">Practical exercises</h1>
+  <p class="sub">Practice applying what you've learned — this is self-paced revision, not scored or saved to your profile.</p>
+
+  <p id="loading">Loading…</p>
+
+  <div id="page-content" style="display:none;">
+    <div class="progress-dots" id="progress-dots"></div>
+    <div id="exercise-container"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Skills-tested, every time.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="specialist-courses-data.js"></script>
+<script>
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  const course = SPECIALIST_COURSES[slug];
+
+  document.getElementById('back-link').href = `specialist-course.html?slug=${slug}`;
+
+  let currentExerciseIndex = 0;
+
+  function renderProgressDots() {
+    document.getElementById('progress-dots').innerHTML = course.exercises.map((ex, i) => {
+      const cls = i < currentExerciseIndex ? 'done' : (i === currentExerciseIndex ? 'active' : '');
+      return `<div class="progress-dot ${cls}"></div>`;
+    }).join('');
+  }
+
+  function renderExercise() {
+    renderProgressDots();
+    const ex = course.exercises[currentExerciseIndex];
+    const container = document.getElementById('exercise-container');
+
+    if (ex.type === 'letter-interpretation') {
+      container.innerHTML = `
+        <div class="card">
+          <h2>${ex.title}</h2>
+          <p class="intro">${ex.intro}</p>
+          <div class="letter-box">${ex.letter}</div>
+          <div id="questions-area"></div>
+          <p class="result-note" id="result-note"></p>
+          <button class="btn" id="continue-btn" style="display:none;">${currentExerciseIndex < course.exercises.length - 1 ? 'Continue →' : 'Finish →'}</button>
+        </div>
+      `;
+      renderMultipleChoiceQuestions(ex.questions);
+    } else if (ex.type === 'quiz') {
+      container.innerHTML = `
+        <div class="card">
+          <h2>${ex.title}</h2>
+          <p class="intro">${ex.intro}</p>
+          <div id="questions-area"></div>
+          <p class="result-note" id="result-note"></p>
+          <button class="btn" id="continue-btn" style="display:none;">${currentExerciseIndex < course.exercises.length - 1 ? 'Continue →' : 'Finish →'}</button>
+        </div>
+      `;
+      renderMultipleChoiceQuestions(ex.questions);
+    } else if (ex.type === 'missing-details') {
+      container.innerHTML = `
+        <div class="card">
+          <h2>${ex.title}</h2>
+          <p class="intro">${ex.intro}</p>
+          <div class="letter-box">${ex.referralText}</div>
+          <div id="options-area"></div>
+          <button class="btn" id="check-btn">Check answers</button>
+          <p class="result-note" id="result-note"></p>
+          <button class="btn" id="continue-btn" style="display:none;">${currentExerciseIndex < course.exercises.length - 1 ? 'Continue →' : 'Finish →'}</button>
+        </div>
+      `;
+      renderMissingDetails(ex);
+    }
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function renderMultipleChoiceQuestions(questions) {
+    const area = document.getElementById('questions-area');
+    let answeredCount = 0;
+
+    area.innerHTML = questions.map((q, qi) => `
+      <div class="question-block" data-qi="${qi}">
+        <div class="question-text">${qi + 1}. ${q.question}</div>
+        <div class="choices" data-qi="${qi}"></div>
+      </div>
+    `).join('');
+
+    questions.forEach((q, qi) => {
+      const choices = shuffle([q.correctAnswer, ...q.distractors]);
+      const choicesEl = area.querySelector(`.choices[data-qi="${qi}"]`);
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.textContent = choice;
+        btn.addEventListener('click', () => {
+          const block = area.querySelector(`.question-block[data-qi="${qi}"]`);
+          block.querySelectorAll('.choice').forEach(c => c.disabled = true);
+          if (choice === q.correctAnswer) {
+            btn.classList.add('correct');
+          } else {
+            btn.classList.add('incorrect');
+            block.querySelectorAll('.choice').forEach(c => { if (c.textContent === q.correctAnswer) c.classList.add('correct'); });
+          }
+          answeredCount++;
+          if (answeredCount === questions.length) {
+            document.getElementById('result-note').textContent = 'Nice work — you’ve worked through every question in this exercise.';
+            document.getElementById('result-note').style.display = 'block';
+            document.getElementById('continue-btn').style.display = 'block';
+          }
+        });
+        choicesEl.appendChild(btn);
+      });
+    });
+  }
+
+  function renderMissingDetails(ex) {
+    const area = document.getElementById('options-area');
+    area.innerHTML = ex.options.map((opt, i) => `
+      <label class="checkbox-row" data-i="${i}">
+        <input type="checkbox" value="${i}">
+        <span>${opt.label}</span>
+      </label>
+    `).join('');
+
+    document.getElementById('check-btn').addEventListener('click', () => {
+      const checked = new Set(Array.from(area.querySelectorAll('input:checked')).map(el => Number(el.value)));
+      let correctCount = 0;
+      ex.options.forEach((opt, i) => {
+        const row = area.querySelector(`.checkbox-row[data-i="${i}"]`);
+        const wasChecked = checked.has(i);
+        row.querySelector('input').disabled = true;
+        if (wasChecked === opt.missing) {
+          row.classList.add('correct');
+          correctCount++;
+        } else {
+          row.classList.add('incorrect');
+        }
+      });
+      document.getElementById('check-btn').style.display = 'none';
+      const note = document.getElementById('result-note');
+      note.textContent = `${correctCount}/${ex.options.length} correct — items in green were marked correctly.`;
+      note.style.display = 'block';
+      document.getElementById('continue-btn').style.display = 'block';
+    });
+  }
+
+  function renderComplete() {
+    document.getElementById('progress-dots').style.display = 'none';
+    document.getElementById('exercise-container').innerHTML = `
+      <div class="card complete-card">
+        <div class="badge">✓ Exercises complete</div>
+        <h2>Nicely done</h2>
+        <p class="intro">You've worked through all three exercises for ${course.title}. Head back to the course, or take the quiz to earn your verified badge.</p>
+        <button class="btn btn-secondary" id="restart-exercises-btn">Restart exercises</button>
+        <a class="btn" href="specialist-course-quiz.html?slug=${slug}" style="display:block; text-decoration:none;">Take the quiz →</a>
+      </div>
+    `;
+    document.getElementById('restart-exercises-btn').addEventListener('click', () => {
+      currentExerciseIndex = 0;
+      document.getElementById('progress-dots').style.display = 'flex';
+      renderExercise();
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'continue-btn') {
+      currentExerciseIndex++;
+      if (currentExerciseIndex >= course.exercises.length) {
+        renderComplete();
+      } else {
+        renderExercise();
+      }
+    }
+  });
+
+  (async () => {
+    const loading = document.getElementById('loading');
+
+    if (!course) {
+      loading.textContent = 'Course not found.';
+      return;
+    }
+    if (!course.exercises || course.exercises.length === 0) {
+      loading.textContent = 'No practical exercises available for this course yet.';
+      return;
+    }
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const { data: purchase } = await supabaseClient
+      .from('specialist_course_purchases')
+      .select('id')
+      .eq('profile_id', session.user.id)
+      .eq('course_slug', slug)
+      .maybeSingle();
+
+    if (!purchase) {
+      loading.textContent = "You haven't purchased this course yet.";
+      const link = document.createElement('a');
+      link.href = `specialist-course.html?slug=${slug}`;
+      link.textContent = ' View course →';
+      loading.appendChild(link);
+      return;
+    }
+
+    document.getElementById('page-title').textContent = `${course.title} — Practical exercises`;
+    loading.style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+    renderExercise();
+  })();
+</script>
+
+<script src="../mobile-nav.js"></script>
+</body>
+</html>

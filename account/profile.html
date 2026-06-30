@@ -128,6 +128,7 @@
 <script src="account-nav.js"></script>
 <script src="badges.js"></script>
 <script src="system-skills-data.js"></script>
+<script src="specialist-courses-data.js"></script>
 <script>
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'profile');
@@ -181,10 +182,20 @@
           .eq('profile_id', userId)
           .eq('quiz_passed', true);
 
+        const { data: passedCourses } = await supabaseClient
+          .from('specialist_course_results')
+          .select('course_slug')
+          .eq('profile_id', userId)
+          .eq('quiz_passed', true);
+
         const skillsParts = [];
         if (sec.typing_wpm_verified != null) skillsParts.push(`${sec.typing_wpm_verified} WPM`);
         if (sec.terminology_quiz_passed) skillsParts.push('Terminology passed');
         (passedSystems || []).forEach(r => skillsParts.push(`${(SYSTEM_SKILLS[r.system_slug] && SYSTEM_SKILLS[r.system_slug].name) || r.system_slug} verified`));
+        (passedCourses || []).forEach(r => {
+          const course = SPECIALIST_COURSES[r.course_slug];
+          if (course) skillsParts.push(`${course.title} specialist certified`);
+        });
         if (skillsParts.length > 0) {
           document.getElementById('skills-tested-badge-row').innerHTML =
             `<span class="result-badge skills-tested-badge">${skillsTestedIconSVG(14)} Skills-Tested · ${skillsParts.join(' · ')}</span>`;
