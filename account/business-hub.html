@@ -708,7 +708,7 @@ This is a plain-English starting template, not a substitute for legal advice —
     if (consultantsPromise) return consultantsPromise;
     consultantsPromise = supabaseClient
       .from('consultant_profiles')
-      .select('profile_id, practice_name, specialty, hospitals, profiles(first_name, last_name)')
+      .select('profile_id, practice_name, specialty, hospitals, profiles(first_name, last_name, bio)')
       .then(async ({ data, error }) => {
         document.getElementById('consultant-loading').style.display = 'none';
         if (error) {
@@ -762,6 +762,7 @@ This is a plain-English starting template, not a substitute for legal advice —
           ${ratingLabel ? `<div class="insurer-row"><span>Rating</span><span>${ratingLabel}</span></div>` : ''}
           ${c.practice_name ? `<div class="insurer-row"><span>Practice</span><span>${c.practice_name}</span></div>` : ''}
           ${hospitals.length > 0 ? `<div class="insurer-row"><span>Hospitals</span><span>${hospitals.map(hospitalLinkHtml).join(', ')}</span></div>` : ''}
+          ${c.profiles?.bio ? `<p style="font-size:13.5px; line-height:1.6; color:var(--slate); margin-top:10px;">${escapeHtml(c.profiles.bio)}</p>` : ''}
         </div>
       `;
     }).join('');

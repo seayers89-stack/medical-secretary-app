@@ -84,6 +84,14 @@ function formatLastActive(iso) {
   return 'Active over a month ago';
 }
 
+// Shared HTML-escaping helper for free-text fields (bios, messages, etc.)
+// rendered via innerHTML.
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 // Fetches ratings *received* by a profile (i.e. given by the other party in
 // each pairing, not ratings this profile gave out) and returns the average
 // plus count, or null if they have none yet.

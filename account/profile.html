@@ -142,7 +142,7 @@
 
     const { data: profile, error } = await supabaseClient
       .from('profiles')
-      .select('id, role, first_name, last_name, created_at')
+      .select('id, role, first_name, last_name, created_at, bio')
       .eq('id', userId)
       .single();
 
@@ -258,6 +258,7 @@
       <div class="row"><span>Name</span><span>${profile.first_name} ${profile.last_name}</span></div>
       <div class="row"><span>Role</span><span>${profile.role}</span></div>
       <div class="row"><span>Email</span><span>${session.user.email}</span></div>
+      <div class="row"><span>Bio</span><span>${profile.bio ? escapeHtml(profile.bio) : '—'}</span></div>
       ${extraRows}
     `;
 

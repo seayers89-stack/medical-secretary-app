@@ -500,3 +500,9 @@ create policy "Users can rate after contact is made"
 
 create policy "Users can update their own rating"
   on ratings for update using (auth.uid() = rater_id);
+
+alter table profiles add column bio text;
+alter table profiles add constraint profiles_bio_length check (char_length(bio) <= 500);
+
+grant select (bio) on profiles to anon, authenticated;
+grant update (bio) on profiles to authenticated;
