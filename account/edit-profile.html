@@ -465,22 +465,25 @@
           <label>How do you charge?</label>
           <div class="chip-row" id="rate-type-row">
             <label class="chip-toggle"><input type="radio" name="rate-type" value="hourly"><span>Hourly rate</span></label>
+            <label class="chip-toggle"><input type="radio" name="rate-type" value="day"><span>Day rate</span></label>
             <label class="chip-toggle"><input type="radio" name="rate-type" value="percentage"><span>% of consultant's income</span></label>
           </div>
         </div>
-        <div class="field-row2" id="hourly-rate-fields">
-          <div class="field">
-            <label for="hourly-rate-min">Hourly rate — min (£)</label>
-            <input type="number" id="hourly-rate-min" min="10" max="60" step="2.5">
-          </div>
-          <div class="field">
-            <label for="hourly-rate-max">Hourly rate — max (£)</label>
-            <input type="number" id="hourly-rate-max" min="10" max="60" step="2.5">
-          </div>
+        <div class="field" id="hourly-rate-field">
+          <label for="hourly-rate">Hourly rate (£)</label>
+          <input type="number" id="hourly-rate" min="10" max="60" step="2.5">
+        </div>
+        <div class="field" id="day-rate-field" style="display:none;">
+          <label for="day-rate">Day rate (£)</label>
+          <input type="number" id="day-rate" min="50" max="500" step="5">
         </div>
         <div class="field" id="percentage-rate-field" style="display:none;">
           <label for="percentage-rate">Percentage of consultant's income (%)</label>
           <input type="number" id="percentage-rate" min="1" max="100" step="0.5">
+        </div>
+        <div class="field toggle-row">
+          <input type="checkbox" id="rate-negotiable">
+          <label for="rate-negotiable" style="margin:0;">Rate is negotiable</label>
         </div>
       </div>
 
@@ -643,13 +646,15 @@
           const el = document.querySelector(`#availability-type-row input[value="${v}"]`);
           if (el) el.checked = true;
         });
-        if (sec.hourly_rate_min != null) document.getElementById('hourly-rate-min').value = sec.hourly_rate_min;
-        if (sec.hourly_rate_max != null) document.getElementById('hourly-rate-max').value = sec.hourly_rate_max;
+        if (sec.hourly_rate != null) document.getElementById('hourly-rate').value = sec.hourly_rate;
+        if (sec.day_rate != null) document.getElementById('day-rate').value = sec.day_rate;
         if (sec.percentage_rate != null) document.getElementById('percentage-rate').value = sec.percentage_rate;
+        document.getElementById('rate-negotiable').checked = !!sec.rate_negotiable;
         const rateType = sec.rate_type || 'hourly';
         const rateTypeInput = document.querySelector(`input[name="rate-type"][value="${rateType}"]`);
         if (rateTypeInput) rateTypeInput.checked = true;
-        document.getElementById('hourly-rate-fields').style.display = rateType === 'percentage' ? 'none' : 'flex';
+        document.getElementById('hourly-rate-field').style.display = rateType === 'hourly' ? 'block' : 'none';
+        document.getElementById('day-rate-field').style.display = rateType === 'day' ? 'block' : 'none';
         document.getElementById('percentage-rate-field').style.display = rateType === 'percentage' ? 'block' : 'none';
       }
     } else if (role === 'consultant') {
@@ -676,9 +681,10 @@
 
   document.querySelectorAll('input[name="rate-type"]').forEach(input => {
     input.addEventListener('change', (e) => {
-      const isPercentage = e.target.value === 'percentage';
-      document.getElementById('hourly-rate-fields').style.display = isPercentage ? 'none' : 'flex';
-      document.getElementById('percentage-rate-field').style.display = isPercentage ? 'block' : 'none';
+      const type = e.target.value;
+      document.getElementById('hourly-rate-field').style.display = type === 'hourly' ? 'block' : 'none';
+      document.getElementById('day-rate-field').style.display = type === 'day' ? 'block' : 'none';
+      document.getElementById('percentage-rate-field').style.display = type === 'percentage' ? 'block' : 'none';
     });
   });
 
@@ -763,9 +769,10 @@
       const availableEvenings = document.getElementById('available-evenings').checked;
       const availableWeekends = document.getElementById('available-weekends').checked;
       const rateType = document.querySelector('input[name="rate-type"]:checked').value;
-      const hourlyRateMin = rateType === 'hourly' ? (document.getElementById('hourly-rate-min').value || null) : null;
-      const hourlyRateMax = rateType === 'hourly' ? (document.getElementById('hourly-rate-max').value || null) : null;
+      const hourlyRate = rateType === 'hourly' ? (document.getElementById('hourly-rate').value || null) : null;
+      const dayRate = rateType === 'day' ? (document.getElementById('day-rate').value || null) : null;
       const percentageRate = rateType === 'percentage' ? (document.getElementById('percentage-rate').value || null) : null;
+      const rateNegotiable = document.getElementById('rate-negotiable').checked;
 
       const { error } = await supabaseClient
         .from('secretary_profiles')
@@ -791,10 +798,11 @@
           daily_availability: dailyAvailability,
           available_evenings: availableEvenings,
           available_weekends: availableWeekends,
-          hourly_rate_min: hourlyRateMin,
-          hourly_rate_max: hourlyRateMax,
+          hourly_rate: hourlyRate,
+          day_rate: dayRate,
           rate_type: rateType,
           percentage_rate: percentageRate,
+          rate_negotiable: rateNegotiable,
         })
         .eq('profile_id', userId);
       roleError = error;

@@ -92,6 +92,21 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Formats a secretary_profiles row's rate fields into a display string, or
+// null if no rate is set.
+function formatSecretaryRate(sec) {
+  let base = null;
+  if (sec.rate_type === 'percentage') {
+    base = sec.percentage_rate != null ? `${sec.percentage_rate}% of consultant's income` : null;
+  } else if (sec.rate_type === 'day') {
+    base = sec.day_rate != null ? `£${sec.day_rate}/day` : null;
+  } else {
+    base = sec.hourly_rate != null ? `£${sec.hourly_rate}/hour` : null;
+  }
+  if (!base) return null;
+  return sec.rate_negotiable ? `${base} (negotiable)` : base;
+}
+
 // Fetches ratings *received* by a profile (i.e. given by the other party in
 // each pairing, not ratings this profile gave out) and returns the average
 // plus count, or null if they have none yet.

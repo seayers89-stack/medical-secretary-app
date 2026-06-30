@@ -48,10 +48,11 @@ create table secretary_profiles (
   daily_availability text[],
   available_evenings boolean,
   available_weekends boolean,
-  hourly_rate_min numeric,
-  hourly_rate_max numeric,
+  hourly_rate numeric,
+  day_rate numeric,
   rate_type text not null default 'hourly',
   percentage_rate numeric,
+  rate_negotiable boolean not null default false,
   premium_active boolean not null default false,
   premium_expires_at timestamptz
 );
