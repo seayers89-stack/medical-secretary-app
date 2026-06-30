@@ -165,6 +165,17 @@
   <div id="denied" class="denied-state" style="display:none;">You don't have access to this area.</div>
 
   <div id="page-content" style="display:none;">
+    <div class="card" id="healix-sync-card" style="margin-bottom:24px;">
+      <div class="item-meta" style="margin-bottom:10px;">
+        <span class="tag">CCSD billing data</span>
+      </div>
+      <p style="font-size:14px; color:var(--slate); margin-bottom:4px;">Pulls the latest Healix Health Services fee schedule and updates the Billing codes tab in Business Hub.</p>
+      <p id="healix-sync-status" style="font-size:13px; color:var(--slate); margin-bottom:12px;"></p>
+      <div class="row-actions">
+        <button type="button" class="success" id="healix-sync-btn">Run CCSD update</button>
+      </div>
+    </div>
+
     <div class="tab-row" id="tab-row">
       <button class="tab-btn active" data-tab="reports">Reported content</button>
       <button class="tab-btn" data-tab="knowledge">Share your knowledge</button>
@@ -629,6 +640,7 @@
     await loadReports();
     await loadKnowledgeSubmissions();
     await loadIdeasAdmin();
+    await loadHealixSyncStatus();
 
     const { data: isSuperAdmin } = await supabaseClient.rpc('is_super_admin');
     if (isSuperAdmin) {
@@ -644,6 +656,49 @@
       btn.classList.add('active');
       document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
     });
+  });
+
+  async function loadHealixSyncStatus() {
+    const statusEl = document.getElementById('healix-sync-status');
+    const { data, error } = await supabaseClient
+      .from('healix_fees')
+      .select('synced_at')
+      .order('synced_at', { ascending: false })
+      .limit(1);
+
+    if (error || !data || data.length === 0) {
+      statusEl.textContent = 'No data synced yet.';
+      return;
+    }
+    statusEl.textContent = `Last updated ${formatDate(data[0].synced_at)}.`;
+  }
+
+  document.getElementById('healix-sync-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('healix-sync-btn');
+    const statusEl = document.getElementById('healix-sync-status');
+
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+    statusEl.textContent = 'Pulling the latest Healix fee schedule — this can take a minute.';
+
+    const { data, error } = await supabaseClient.functions.invoke('sync-healix-fees');
+
+    btn.disabled = false;
+    btn.textContent = 'Run CCSD update';
+
+    if (error || (data && data.error)) {
+      let message = (data && data.error) || error.message;
+      if (error && error.context && typeof error.context.json === 'function') {
+        try {
+          const body = await error.context.json();
+          if (body && body.error) message = body.error;
+        } catch (_) { /* response body already consumed or not JSON */ }
+      }
+      statusEl.textContent = `Update failed: ${escapeHtml(message)}`;
+      return;
+    }
+
+    statusEl.textContent = `Updated ${data.count} codes — last updated ${formatDate(data.syncedAt)}.`;
   });
 
   document.getElementById('logout-btn').addEventListener('click', async () => {

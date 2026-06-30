@@ -143,6 +143,13 @@
 
   .hospital-link{ color:var(--gold); text-decoration:underline; cursor:pointer; }
   .hospital-link:hover{ color:#8F6F36; }
+  .insurer-link-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:500;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:999px; padding:7px 14px; color:var(--ink);
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .insurer-link-pill:hover{ border-color:var(--gold); color:#8F6F36; }
+  .insurer-link-pill.synced{ border-color:rgba(63,107,79,0.4); color:var(--green); background:rgba(63,107,79,0.06); }
   .insurer-card{
     background:var(--paper); border:1px solid rgba(27,36,48,0.08); border-radius:12px;
     padding:18px 20px; margin-bottom:12px;
@@ -431,7 +438,8 @@
       <div class="guide-card" id="billing-codes-card">
         <span class="guide-label">CCSD fee schedule</span>
         <h2>Billing codes</h2>
-        <p>Search the full CCSD code list by code, description, chapter, or section.</p>
+        <p>Search the full CCSD code list by code, description, chapter, or section. Healix's reimbursement fee is shown where available, pulled directly from Healix's own published fee schedule<span id="healix-synced-label"></span>. The other major insurers don't offer a public fee schedule we can pull from, so we link straight to their official lookup tools instead.</p>
+        <div id="insurer-links-row" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;"></div>
         <input type="text" id="billing-search" placeholder="Search by code or description…" autocomplete="off">
         <div class="field-row2" style="display:flex; gap:14px; margin-top:14px;">
           <div class="field" style="flex:1;">
@@ -717,6 +725,30 @@ This is a plain-English starting template, not a substitute for legal advice —
     });
   });
 
+  const INSURER_LINKS = [
+    { name: 'Bupa', url: 'https://www.bupa.co.uk/healthcare-professionals/for-your-role/consultants/fees-explained', synced: false },
+    { name: 'AXA Health', url: 'https://provider.axahealth.co.uk/schedule-of-procedures-and-fees/', synced: false },
+    { name: 'Vitality', url: 'https://www.vitality.co.uk/healthcare-providers/fee-finder/', synced: false },
+    { name: 'WPA', url: 'https://www.wpa.org.uk/healthcare-providers/medical-fees', synced: false },
+    { name: 'Aviva', url: 'https://www.aviva.co.uk/health-insurance/providers/practitioners/fee-schedule/details', synced: false },
+  ];
+  document.getElementById('insurer-links-row').innerHTML = INSURER_LINKS.map(ins => `
+    <a class="insurer-link-pill" href="${ins.url}" target="_blank" rel="noopener">${escapeHtml(ins.name)} fee schedule ↗</a>
+  `).join('');
+
+  let healixFeesByCode = {};
+
+  async function loadHealixFees() {
+    const { data } = await supabaseClient.from('healix_fees').select('ccsd_code, procedure_fee, anaesthetic_fee, synced_at');
+    (data || []).forEach(f => { healixFeesByCode[f.ccsd_code] = f; });
+    const latestSync = (data || []).reduce((latest, f) => !latest || f.synced_at > latest ? f.synced_at : latest, null);
+    if (latestSync) {
+      const label = new Date(latestSync).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      document.getElementById('healix-synced-label').textContent = ` — last updated ${label}`;
+    }
+    filterBillingCodes();
+  }
+
   const BILLING_CHAPTERS = [...new Set(BILLING_CODES.map(c => c.chapter))].sort();
   BILLING_CHAPTERS.forEach(c => {
     const opt = document.createElement('option');
@@ -741,13 +773,20 @@ This is a plain-English starting template, not a substitute for legal advice —
       return;
     }
     const shown = cap ? list.slice(0, cap) : list;
-    resultsEl.innerHTML = shown.map(c => `
+    resultsEl.innerHTML = shown.map(c => {
+      const healix = healixFeesByCode[c.code];
+      const healixRow = healix
+        ? `<div class="insurer-row"><span>Healix fee</span><span>£${healix.procedure_fee ?? '—'}${healix.anaesthetic_fee != null ? ` (+£${healix.anaesthetic_fee} anaesthetic)` : ''}</span></div>`
+        : '';
+      return `
       <div class="insurer-card">
         <h3>${escapeHtml(c.code)} — ${escapeHtml(c.description)}</h3>
         <div class="insurer-row"><span>Chapter</span><span>${escapeHtml(c.chapter)}</span></div>
         <div class="insurer-row"><span>Section</span><span>${escapeHtml(c.section)}</span></div>
+        ${healixRow}
       </div>
-    `).join('');
+    `;
+    }).join('');
     if (cap && list.length > cap) {
       resultsEl.innerHTML += `<div class="insurer-empty">Showing first ${cap} of ${list.length} matches — narrow your search to see more.</div>`;
     }
@@ -774,6 +813,7 @@ This is a plain-English starting template, not a substitute for legal advice —
   document.getElementById('billing-chapter-filter').addEventListener('change', filterBillingCodes);
   document.getElementById('billing-section-filter').addEventListener('change', filterBillingCodes);
   renderBillingCodes(BILLING_CODES, 200);
+  loadHealixFees();
 
   const SPECIALTIES = [
     'Aesthetic medicine', 'Cardiology', 'Dermatology', 'Endocrinology', 'ENT', 'Fertility',

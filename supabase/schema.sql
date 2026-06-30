@@ -565,3 +565,16 @@ create policy "Admins can update idea status"
 
 create policy "Admins can delete ideas"
   on ideas for delete using (is_admin());
+
+create table healix_fees (
+  ccsd_code text primary key,
+  description text,
+  procedure_fee numeric,
+  anaesthetic_fee numeric,
+  synced_at timestamptz not null default now()
+);
+
+alter table healix_fees enable row level security;
+
+create policy "Healix fees are publicly readable"
+  on healix_fees for select using (true);

@@ -44,5 +44,12 @@ enable_confirmations = false
 [edge_runtime]
 enabled = true
 
+[functions.sync-healix-fees]
+# Browsers send the preflight OPTIONS request without the Authorization
+# header, so the platform-level JWT gate (default on) rejects it before our
+# code ever runs. We do our own admin check inside the function using the
+# caller's token from the real POST request, so it's safe to disable here.
+verify_jwt = false
+
 [analytics]
 enabled = false
