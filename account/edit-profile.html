@@ -425,19 +425,17 @@
             <label class="chip-toggle"><input type="checkbox" value="Permanent role"><span>Permanent role</span></label>
           </div>
         </div>
-        <div class="field toggle-row">
-          <input type="checkbox" id="available">
-          <label for="available" style="margin:0;">Available for new placements right now</label>
-        </div>
         <div class="field">
-          <label for="availability-start">Availability start date</label>
+          <label for="availability-start">Current availability</label>
           <select id="availability-start">
             <option>Available now</option>
-            <option>Within 2 weeks</option>
-            <option>Within 1 month</option>
-            <option>Within 2 months</option>
-            <option>Within 3 months</option>
+            <option>Available within 2 weeks</option>
+            <option>Available within 1 month</option>
+            <option>Available within 2 months</option>
+            <option>Available within 3 months</option>
+            <option>No availability</option>
           </select>
+          <p style="font-size:12px; color:var(--slate); margin-top:6px;">Update this any time as your availability changes. Consultants see this as your availability badge in search.</p>
         </div>
         <div class="field">
           <label>Days available</label>
@@ -599,8 +597,15 @@
           const el = document.querySelector(`#specialties-row input[value="${v}"]`);
           if (el) el.checked = true;
         });
-        document.getElementById('available').checked = !!sec.available;
-        if (sec.availability_start) document.getElementById('availability-start').value = sec.availability_start;
+        if (sec.availability_start) {
+          let legacyStart = sec.availability_start;
+          if (legacyStart.startsWith('Within')) legacyStart = `Available ${legacyStart.charAt(0).toLowerCase()}${legacyStart.slice(1)}`;
+          else if (legacyStart.startsWith('Not available — within')) legacyStart = legacyStart.replace('Not available — within', 'Available within');
+          const startEl = document.getElementById('availability-start');
+          if (Array.from(startEl.options).some(o => o.value === legacyStart)) startEl.value = legacyStart;
+        } else if (sec.available === false) {
+          document.getElementById('availability-start').value = 'Available within 2 weeks';
+        }
         (sec.daily_availability || []).forEach(v => {
           const el = document.querySelector(`#daily-availability-row input[value="${v}"]`);
           if (el) el.checked = true;
@@ -744,7 +749,6 @@
     if (role === 'secretary') {
       const systems = Array.from(document.querySelectorAll('#systems-row input:checked')).map(el => el.value);
       const specialties = Array.from(document.querySelectorAll('#specialties-row input:checked')).map(el => el.value);
-      const available = document.getElementById('available').checked;
       const experience = document.getElementById('experience').value;
 
       const region = document.getElementById('region').value;
@@ -765,6 +769,7 @@
       const workMode = Array.from(document.querySelectorAll('#work-mode-row input:checked')).map(el => el.value);
       const availabilityType = Array.from(document.querySelectorAll('#availability-type-row input:checked')).map(el => el.value);
       const availabilityStart = document.getElementById('availability-start').value;
+      const available = availabilityStart === 'Available now';
       const dailyAvailability = Array.from(document.querySelectorAll('#daily-availability-row input:checked')).map(el => el.value);
       const availableEvenings = document.getElementById('available-evenings').checked;
       const availableWeekends = document.getElementById('available-weekends').checked;

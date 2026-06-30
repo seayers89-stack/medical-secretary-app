@@ -114,6 +114,19 @@ function formatSecretaryRate(sec) {
   return sec.rate_negotiable ? `${base} (negotiable)` : base;
 }
 
+// Builds the availability badge HTML for a secretary_profiles row, reflecting
+// the specific "Available now" / "Available within X" / "No availability"
+// state rather than a flat available/not-available boolean.
+function availabilityBadgeHTML(sec) {
+  const start = sec.availability_start;
+  if (start === 'Available now') return '<span class="result-badge">Available now</span>';
+  if (start === 'No availability') return '<span class="result-badge unavailable">No availability</span>';
+  if (start && start.startsWith('Available within')) return `<span class="result-badge soon">${escapeHtml(start)}</span>`;
+  return sec.available
+    ? '<span class="result-badge">Available now</span>'
+    : '<span class="result-badge unavailable">Not available</span>';
+}
+
 // Checks how many times a profile has attempted a given proficiency quiz
 // (terminology, or a specific system's skills quiz) in the last 24 hours.
 // Returns { allowed, resetAt } — resetAt is only set when allowed is false.
