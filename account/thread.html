@@ -84,6 +84,21 @@
   }
   .blocked-note a{ font-weight:600; text-decoration:underline; }
 
+  .rating-card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:18px 24px; margin-top:16px; display:flex; align-items:center; justify-content:space-between;
+    gap:14px; flex-wrap:wrap;
+  }
+  .rating-label{ font-size:13.5px; color:var(--slate); }
+  .star-row{ display:flex; gap:4px; }
+  .star-btn{
+    background:none; border:none; cursor:pointer; font-size:24px; line-height:1; padding:2px;
+    color:rgba(27,36,48,0.2);
+  }
+  .star-btn.filled{ color:var(--gold); }
+  .star-btn:hover{ color:var(--gold); }
+  .rating-saved-note{ font-size:12px; color:var(--green); }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
 </style>
@@ -117,6 +132,18 @@
       <textarea id="message-body" placeholder="Write a message…" required></textarea>
       <button type="submit" class="send-btn" id="send-btn">Send</button>
     </form>
+
+    <div class="rating-card" id="rating-card" style="display:none;">
+      <span class="rating-label" id="rating-label">Rate working with <span id="rating-other-name"></span></span>
+      <div class="star-row" id="star-row">
+        <button type="button" class="star-btn" data-star="1">★</button>
+        <button type="button" class="star-btn" data-star="2">★</button>
+        <button type="button" class="star-btn" data-star="3">★</button>
+        <button type="button" class="star-btn" data-star="4">★</button>
+        <button type="button" class="star-btn" data-star="5">★</button>
+      </div>
+      <span class="rating-saved-note" id="rating-saved-note" style="display:none;">Saved ✓</span>
+    </div>
   </div>
 </div>
 
@@ -248,7 +275,49 @@
       .eq('secretary_id', secretaryId)
       .neq('sender_id', currentUserId)
       .is('read_at', null);
+
+    document.getElementById('rating-other-name').textContent = otherName;
+    document.getElementById('rating-card').style.display = 'flex';
+
+    const { data: existingRating } = await supabaseClient
+      .from('ratings')
+      .select('rating')
+      .eq('consultant_id', consultantId)
+      .eq('secretary_id', secretaryId)
+      .eq('rater_id', currentUserId)
+      .maybeSingle();
+
+    if (existingRating) setStarDisplay(existingRating.rating);
+
+    document.querySelectorAll('.star-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const rating = Number(btn.dataset.star);
+        setStarDisplay(rating);
+
+        const { error } = await supabaseClient
+          .from('ratings')
+          .upsert({
+            consultant_id: consultantId,
+            secretary_id: secretaryId,
+            rater_id: currentUserId,
+            rating,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'consultant_id,secretary_id,rater_id' });
+
+        const savedNote = document.getElementById('rating-saved-note');
+        if (!error) {
+          savedNote.style.display = 'inline';
+          setTimeout(() => { savedNote.style.display = 'none'; }, 1800);
+        }
+      });
+    });
   })();
+
+  function setStarDisplay(rating) {
+    document.querySelectorAll('.star-btn').forEach(btn => {
+      btn.classList.toggle('filled', Number(btn.dataset.star) <= rating);
+    });
+  }
 
   document.getElementById('compose-form').addEventListener('submit', async (e) => {
     e.preventDefault();

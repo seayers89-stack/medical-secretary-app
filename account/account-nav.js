@@ -83,3 +83,25 @@ function formatLastActive(iso) {
   if (hours < 24 * 30) return 'Active in the last month';
   return 'Active over a month ago';
 }
+
+// Fetches ratings *received* by a profile (i.e. given by the other party in
+// each pairing, not ratings this profile gave out) and returns the average
+// plus count, or null if they have none yet.
+async function fetchAverageRating(supabaseClient, profileId) {
+  const { data } = await supabaseClient
+    .from('ratings')
+    .select('rating, rater_id')
+    .or(`consultant_id.eq.${profileId},secretary_id.eq.${profileId}`);
+
+  const received = (data || []).filter(r => r.rater_id !== profileId);
+  if (received.length === 0) return null;
+
+  const avg = received.reduce((sum, r) => sum + r.rating, 0) / received.length;
+  return { avg, count: received.length };
+}
+
+// Renders a compact "★ 4.5 (3)" style string for the rating helper above.
+function formatRating(ratingResult) {
+  if (!ratingResult) return null;
+  return `★ ${ratingResult.avg.toFixed(1)} (${ratingResult.count})`;
+}

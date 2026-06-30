@@ -709,7 +709,7 @@ This is a plain-English starting template, not a substitute for legal advice —
     consultantsPromise = supabaseClient
       .from('consultant_profiles')
       .select('profile_id, practice_name, specialty, hospitals, profiles(first_name, last_name)')
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         document.getElementById('consultant-loading').style.display = 'none';
         if (error) {
           document.getElementById('consultant-loading').textContent = 'Could not load consultants.';
@@ -717,6 +717,21 @@ This is a plain-English starting template, not a substitute for legal advice —
           return;
         }
         consultants = data || [];
+
+        const { data: ratingsData } = await supabaseClient.from('ratings').select('consultant_id, rating, rater_id');
+        const ratingsByConsultant = {};
+        (ratingsData || []).forEach(r => {
+          if (r.rater_id === r.consultant_id) return;
+          if (!ratingsByConsultant[r.consultant_id]) ratingsByConsultant[r.consultant_id] = [];
+          ratingsByConsultant[r.consultant_id].push(r.rating);
+        });
+        consultants.forEach(c => {
+          const ratings = ratingsByConsultant[c.profile_id];
+          c.ratingResult = ratings && ratings.length > 0
+            ? { avg: ratings.reduce((s, r) => s + r, 0) / ratings.length, count: ratings.length }
+            : null;
+        });
+
         renderConsultants(consultants);
       });
     return consultantsPromise;
@@ -739,10 +754,12 @@ This is a plain-English starting template, not a substitute for legal advice —
     resultsEl.innerHTML = list.map(c => {
       const name = c.profiles ? `${c.profiles.first_name} ${c.profiles.last_name}` : 'Consultant';
       const hospitals = c.hospitals || [];
+      const ratingLabel = formatRating(c.ratingResult);
       return `
         <div class="insurer-card">
           <h3>${name}</h3>
           <span class="insurer-type">${c.specialty || 'Specialty not set'}</span>
+          ${ratingLabel ? `<div class="insurer-row"><span>Rating</span><span>${ratingLabel}</span></div>` : ''}
           ${c.practice_name ? `<div class="insurer-row"><span>Practice</span><span>${c.practice_name}</span></div>` : ''}
           ${hospitals.length > 0 ? `<div class="insurer-row"><span>Hospitals</span><span>${hospitals.map(hospitalLinkHtml).join(', ')}</span></div>` : ''}
         </div>
