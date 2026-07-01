@@ -203,11 +203,7 @@
     </div>
 
     <div class="tab-panel" id="tab-packs">
-      <div class="skill-card">
-        <h3>Specialty packs</h3>
-        <p>Paid, in-depth courses on specific specialties — the terminology, paperwork, and day-to-day detail of working with a particular type of consultant. One-off purchase, yours for good.</p>
-        <a href="specialist-courses.html">Browse specialist courses →</a>
-      </div>
+      <div id="packs-list"><p style="color:var(--slate); font-size:14.5px;">Loading…</p></div>
     </div>
 
     <div class="tab-panel" id="tab-share">
@@ -231,6 +227,7 @@
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
 <script src="training-modules-data.js"></script>
+<script src="specialist-courses-data.js"></script>
 <script>
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'academy');
@@ -316,6 +313,46 @@
         </div>
       `;
     }).join('');
+
+    // ── Specialist courses (packs tab) ───────────────────────────────────────
+    const [{ data: purchases }, { data: courseResults }] = await Promise.all([
+      supabaseClient.from('specialist_course_purchases').select('course_slug').eq('profile_id', userId),
+      supabaseClient.from('specialist_course_results').select('course_slug, quiz_score, quiz_passed').eq('profile_id', userId),
+    ]);
+
+    const ownedSlugs = new Set((purchases || []).map(p => p.course_slug));
+    const courseResultBySlug = {};
+    (courseResults || []).forEach(r => { courseResultBySlug[r.course_slug] = r; });
+
+    const courses = Object.values(SPECIALIST_COURSES);
+    const packsList = document.getElementById('packs-list');
+    if (courses.length === 0) {
+      packsList.innerHTML = '<p style="color:var(--slate); font-size:14px; padding:20px 0;">No specialist courses available yet — check back soon.</p>';
+    } else {
+      packsList.innerHTML = courses.map(c => {
+        const owned = ownedSlugs.has(c.slug);
+        const result = courseResultBySlug[c.slug];
+        let status = '';
+        if (result && result.quiz_passed) {
+          status = `<div class="module-status completed">✓ Completed — ${result.quiz_score}%</div>`;
+        } else if (owned) {
+          status = `<div class="module-status" style="background:rgba(63,107,79,0.1); color:var(--green);">Owned</div>`;
+        }
+        const action = owned
+          ? `<a class="quiz-link" href="specialist-course.html?slug=${c.slug}">Open course →</a>`
+          : `<a class="quiz-link" href="specialist-course.html?slug=${c.slug}" style="color:var(--gold);">£${c.price} — View →</a>`;
+        return `
+          <div class="module-row">
+            <div>
+              <div class="module-title">${c.title}</div>
+              <div class="module-status" style="background:none; color:var(--slate); padding:0; font-family:'Inter',sans-serif; font-size:12.5px; margin-top:4px;">${c.sections.length} sections · ${c.flashcards.length} flashcards · ${c.quiz.length}-question quiz</div>
+              ${status}
+            </div>
+            <div class="module-actions">${action}</div>
+          </div>
+        `;
+      }).join('');
+    }
 
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
