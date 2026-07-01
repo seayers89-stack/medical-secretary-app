@@ -623,8 +623,8 @@
     list.innerHTML = '<div class="empty-state">Loading…</div>';
     const { data, error } = await supabaseClient
       .from('secretary_profiles')
-      .select('profile_id, first_name, last_name, email, region, specialties, availability_start, available, day_rate, hourly_rate, percentage_rate, rate_type, created_at')
-      .order('created_at', { ascending: false });
+      .select('profile_id, region, specialties, availability_start, available, day_rate, hourly_rate, percentage_rate, rate_type, profiles(first_name, last_name, email, created_at)')
+      .order('profiles(created_at)', { ascending: false });
 
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
     allSecretaries = data || [];
@@ -644,17 +644,18 @@
         </tr></thead>
         <tbody>
           ${rows.map(s => {
+            const p = s.profiles || {};
             const rate = formatSecretaryRate(s) || '—';
             const badge = availabilityBadgeHTML(s);
             const specs = Array.isArray(s.specialties) ? s.specialties.slice(0,3).join(', ') : (s.specialties || '—');
             return `<tr>
-              <td><strong>${escapeHtml(s.first_name)} ${escapeHtml(s.last_name)}</strong></td>
-              <td>${escapeHtml(s.email || '—')}</td>
+              <td><strong>${escapeHtml(p.first_name || '')} ${escapeHtml(p.last_name || '')}</strong></td>
+              <td>${escapeHtml(p.email || '—')}</td>
               <td>${escapeHtml(s.region || '—')}</td>
               <td>${escapeHtml(specs)}</td>
               <td>${escapeHtml(rate)}</td>
               <td>${badge}</td>
-              <td style="white-space:nowrap;">${formatDate(s.created_at)}</td>
+              <td style="white-space:nowrap;">${formatDate(p.created_at)}</td>
               <td><a href="view-secretary.html?id=${s.profile_id}">View</a></td>
             </tr>`;
           }).join('')}
@@ -672,8 +673,8 @@
     list.innerHTML = '<div class="empty-state">Loading…</div>';
     const { data, error } = await supabaseClient
       .from('consultant_profiles')
-      .select('profile_id, first_name, last_name, email, practice_name, specialty, hospitals, pass_expires_at, created_at')
-      .order('created_at', { ascending: false });
+      .select('profile_id, practice_name, specialty, hospitals, pass_expires_at, profiles(first_name, last_name, email, created_at)')
+      .order('profiles(created_at)', { ascending: false });
 
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
     allConsultants = data || [];
@@ -693,16 +694,17 @@
         </tr></thead>
         <tbody>
           ${rows.map(c => {
+            const p = c.profiles || {};
             const passActive = c.pass_expires_at && new Date(c.pass_expires_at) > new Date();
             const hospitals = Array.isArray(c.hospitals) ? c.hospitals.slice(0,2).join(', ') : (c.hospitals || '—');
             return `<tr>
-              <td><strong>${escapeHtml(c.first_name)} ${escapeHtml(c.last_name)}</strong></td>
-              <td>${escapeHtml(c.email || '—')}</td>
+              <td><strong>${escapeHtml(p.first_name || '')} ${escapeHtml(p.last_name || '')}</strong></td>
+              <td>${escapeHtml(p.email || '—')}</td>
               <td>${escapeHtml(c.practice_name || '—')}</td>
               <td>${escapeHtml(c.specialty || '—')}</td>
               <td>${escapeHtml(hospitals)}</td>
               <td>${passActive ? '<span class="result-badge">Yes</span>' : '<span class="result-badge unavailable">No</span>'}</td>
-              <td style="white-space:nowrap;">${formatDate(c.created_at)}</td>
+              <td style="white-space:nowrap;">${formatDate(p.created_at)}</td>
             </tr>`;
           }).join('')}
         </tbody>
