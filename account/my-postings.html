@@ -70,6 +70,19 @@
   .respondent-row:first-of-type{ border-top:none; }
   .open-thread{ font-size:13px; font-weight:600; color:var(--gold); }
 
+  .job-status-badge{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.05em;
+    text-transform:uppercase; padding:3px 10px; border-radius:999px; font-weight:500; margin-bottom:12px;
+  }
+  .job-status-badge.open{ background:rgba(63,107,79,0.1); color:#3F6B4F; }
+  .job-status-badge.closed{ background:rgba(92,100,112,0.1); color:var(--slate); }
+  .btn-close-job{
+    font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:8px 16px;
+    border-radius:7px; border:1.5px solid rgba(27,36,48,0.2); background:none;
+    color:var(--ink); cursor:pointer; margin-top:16px;
+  }
+  .btn-close-job:hover{ background:rgba(27,36,48,0.05); }
+  .job-card.closed{ opacity:0.65; }
   .empty-state{ text-align:center; padding:60px 20px; color:var(--slate); font-size:14.5px; }
   #loading{ color:var(--slate); font-size:14.5px; }
 
@@ -135,13 +148,15 @@
 
     for (const job of jobs) {
       const card = document.createElement('div');
-      card.className = 'job-card';
+      card.className = `job-card${job.status === 'closed' ? ' closed' : ''}`;
       const metaParts = [job.specialty, job.location, job.day_rate].filter(Boolean);
       card.innerHTML = `
         <div class="job-title">${job.title}</div>
         <div class="job-meta">${metaParts.join(' · ')}</div>
+        <span class="job-status-badge ${job.status === 'closed' ? 'closed' : 'open'}">${job.status === 'closed' ? 'Position filled' : 'Open'}</span>
         <span class="respondents-label">Respondents</span>
         <div class="respondents-list">Loading…</div>
+        ${job.status === 'open' ? `<button class="btn-close-job" data-job-id="${job.id}">Mark position as filled</button>` : ''}
       `;
       jobsEl.appendChild(card);
 
@@ -174,6 +189,29 @@
         </div>
       `).join('');
     }
+    jobsEl.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.btn-close-job');
+      if (!btn) return;
+      if (!confirm('Mark this position as filled? The listing will be closed and hidden from the job board.')) return;
+      btn.disabled = true;
+      btn.textContent = 'Closing…';
+      const jobId = btn.dataset.jobId;
+      const { error } = await supabaseClient
+        .from('job_postings')
+        .update({ status: 'closed' })
+        .eq('id', jobId);
+      if (error) {
+        btn.disabled = false;
+        btn.textContent = 'Mark position as filled';
+        alert('Could not close listing: ' + error.message);
+        return;
+      }
+      const card = btn.closest('.job-card');
+      card.classList.add('closed');
+      card.querySelector('.job-status-badge').textContent = 'Position filled';
+      card.querySelector('.job-status-badge').className = 'job-status-badge closed';
+      btn.remove();
+    });
   })();
 
   document.getElementById('logout-btn').addEventListener('click', async () => {
