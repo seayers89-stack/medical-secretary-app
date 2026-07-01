@@ -214,6 +214,7 @@
       <button class="tab-btn" data-tab="ideas">Ideas</button>
       <button class="tab-btn" data-tab="secretaries">Secretaries</button>
       <button class="tab-btn" data-tab="consultants">Consultants</button>
+      <button class="tab-btn" data-tab="support">Support <span id="support-unread-badge" style="display:none; background:#C1393C; color:#fff; border-radius:999px; font-size:10px; font-weight:700; padding:1px 6px; margin-left:4px;"></span></button>
       <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">Manage admins</button>
     </div>
 
@@ -227,6 +228,10 @@
 
     <div class="tab-panel" id="tab-ideas">
       <div id="ideas-admin-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-support">
+      <div id="support-list"></div>
     </div>
 
     <div class="tab-panel" id="tab-secretaries">
@@ -804,12 +809,15 @@
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
 
+    adminUserId = navResult.session.user.id;
+
     await loadReports();
     await loadKnowledgeSubmissions();
     await loadIdeasAdmin();
     await loadHealixSyncStatus();
     await loadSecretaries();
     await loadConsultants();
+    await loadSupportThreads();
 
     const { data: isSuperAdmin } = await supabaseClient.rpc('is_super_admin');
     if (isSuperAdmin) {
@@ -871,6 +879,112 @@
 
     statusEl.textContent = `Updated ${data.count} codes — last updated ${formatDate(data.syncedAt)}.`;
   });
+
+  // ── Support tab ───────────────────────────────────────────────────────────
+  let adminUserId = null;
+  let allSupportThreads = [];
+
+  async function loadSupportThreads() {
+    const list = document.getElementById('support-list');
+    list.innerHTML = '<div class="empty-state">Loading…</div>';
+
+    const { data: threads, error } = await supabaseClient
+      .from('support_threads')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
+    if (!threads || threads.length === 0) { list.innerHTML = '<div class="empty-state">No support queries yet.</div>'; return; }
+
+    const profileIds = [...new Set(threads.map(t => t.profile_id))];
+    const { data: profs } = await supabaseClient.from('profiles').select('id, first_name, last_name, email').in('id', profileIds);
+    const profMap = {};
+    (profs || []).forEach(p => { profMap[p.id] = p; });
+
+    const openCount = threads.filter(t => t.status === 'open').length;
+    const badge = document.getElementById('support-unread-badge');
+    if (openCount > 0) { badge.textContent = openCount; badge.style.display = 'inline'; }
+    else { badge.style.display = 'none'; }
+
+    allSupportThreads = threads;
+
+    list.innerHTML = threads.map(t => {
+      const p = profMap[t.profile_id] || {};
+      const name = `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.email || 'Unknown';
+      return `
+        <div class="card" id="admin-thread-${t.id}" style="margin-bottom:14px;">
+          <div class="card-head" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:6px;">
+            <div>
+              <div class="staff-name">${escapeHtml(t.subject)}</div>
+              <div class="staff-meta">${escapeHtml(name)} · ${formatDate(t.created_at)}</div>
+            </div>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; padding:3px 9px; border-radius:999px; font-weight:500; white-space:nowrap; ${t.status === 'open' ? 'background:rgba(63,107,79,0.1); color:var(--green);' : 'background:rgba(92,100,112,0.1); color:var(--slate);'}">${t.status === 'open' ? 'Open' : 'Resolved'}</span>
+          </div>
+          <div id="admin-msgs-${t.id}" style="display:flex; flex-direction:column; gap:10px; margin:12px 0;"><div class="empty-state" style="padding:4px 0; text-align:left;">Loading…</div></div>
+          ${t.status === 'open' ? `
+            <div style="margin-top:10px;">
+              <textarea id="admin-reply-${t.id}" placeholder="Reply to ${escapeHtml(name)}…" style="width:100%; padding:10px 13px; font-family:'Inter',sans-serif; font-size:13.5px; border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink); resize:vertical; min-height:70px;"></textarea>
+              <div class="row-actions" style="margin-top:8px;">
+                <button type="button" class="success" data-admin-reply="${t.id}">Send reply</button>
+                <button type="button" data-resolve-thread="${t.id}">Mark resolved</button>
+              </div>
+              <p id="admin-reply-status-${t.id}" style="font-size:13px; margin-top:6px; display:none;"></p>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+
+    for (const t of threads) {
+      await loadAdminMessages(t.id, profMap[t.profile_id]);
+    }
+
+    list.querySelectorAll('[data-admin-reply]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const threadId = btn.dataset.adminReply;
+        const textarea = document.getElementById(`admin-reply-${threadId}`);
+        const statusEl = document.getElementById(`admin-reply-status-${threadId}`);
+        const body = textarea.value.trim();
+        if (!body) return;
+        btn.disabled = true;
+        const { error } = await supabaseClient.from('support_messages').insert({ thread_id: threadId, sender_id: adminUserId, body });
+        if (error) { statusEl.textContent = error.message; statusEl.style.color = '#a33'; statusEl.style.display = 'block'; btn.disabled = false; return; }
+        textarea.value = '';
+        statusEl.style.display = 'none';
+        btn.disabled = false;
+        await supabaseClient.from('support_threads').update({ updated_at: new Date().toISOString() }).eq('id', threadId);
+        await loadAdminMessages(threadId, allSupportThreads.find(t => t.id === threadId));
+      });
+    });
+
+    list.querySelectorAll('[data-resolve-thread]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        await supabaseClient.from('support_threads').update({ status: 'resolved' }).eq('id', btn.dataset.resolveThread);
+        await loadSupportThreads();
+      });
+    });
+  }
+
+  async function loadAdminMessages(threadId, userProfile) {
+    const el = document.getElementById(`admin-msgs-${threadId}`);
+    const { data: msgs, error } = await supabaseClient
+      .from('support_messages')
+      .select('*')
+      .eq('thread_id', threadId)
+      .order('created_at', { ascending: true });
+
+    if (error || !msgs || msgs.length === 0) { el.innerHTML = ''; return; }
+
+    const p = userProfile || {};
+    el.innerHTML = msgs.map(m => {
+      const fromAdmin = m.sender_id === adminUserId;
+      return `<div style="padding:10px 13px; border-radius:9px; font-size:13.5px; line-height:1.6; max-width:88%; align-self:${fromAdmin ? 'flex-end' : 'flex-start'}; background:${fromAdmin ? 'var(--ink)' : 'var(--paper)'}; color:${fromAdmin ? 'var(--paper)' : 'var(--ink)'};">
+        ${escapeHtml(m.body)}
+        <div style="font-size:11px; color:${fromAdmin ? 'rgba(247,244,237,0.5)' : 'var(--slate)'}; margin-top:3px;">${fromAdmin ? 'Veyn support' : escapeHtml(`${p.first_name || ''} ${p.last_name || ''}`.trim())} · ${formatDate(m.created_at)}</div>
+      </div>`;
+    }).join('');
+  }
 
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
