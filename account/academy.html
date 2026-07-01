@@ -132,6 +132,20 @@
   #share-submit-status{ display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-top:14px; }
   #share-submit-status.error{ display:block; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
   #share-submit-status.success{ display:block; background:rgba(63,107,79,0.08); border:1px solid rgba(63,107,79,0.3); color:var(--green); }
+  .bundle-banner{
+    background:linear-gradient(135deg,rgba(184,146,74,0.12) 0%,rgba(63,107,79,0.08) 100%);
+    border:1.5px solid rgba(184,146,74,0.35); border-radius:14px;
+    padding:20px 24px; display:flex; align-items:center; justify-content:space-between;
+    gap:20px; flex-wrap:wrap; margin-bottom:22px;
+  }
+  .bundle-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:4px; }
+  .bundle-title{ font-family:'Fraunces',serif; font-size:22px; font-weight:600; margin-bottom:4px; }
+  .bundle-sub{ font-size:13.5px; color:var(--slate); }
+  .bundle-btn{ font-family:'Inter',sans-serif; font-weight:600; font-size:14px; padding:11px 22px; border-radius:8px; cursor:pointer; border:none; background:var(--gold); color:var(--ink); white-space:nowrap; }
+  .bundle-hint{ font-size:13.5px; color:var(--slate); margin-bottom:14px; }
+  .bundle-selector{ margin-bottom:4px; }
+  .course-row-check{ display:flex; align-items:center; gap:14px; }
+  .course-row-check input[type=checkbox]{ width:18px; height:18px; accent-color:var(--gold); cursor:pointer; flex-shrink:0; }
   .past-heading{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; margin:28px 0 12px; }
   .past-item{ padding:14px 18px; }
   .past-item .past-meta{ font-size:12px; color:var(--slate); margin-bottom:4px; }
@@ -232,6 +246,22 @@
     </div>
 
     <div class="tab-panel" id="tab-packs">
+      <div class="bundle-banner" id="bundle-banner" style="display:none;">
+        <div class="bundle-left">
+          <div class="bundle-eyebrow">Bundle offer</div>
+          <div class="bundle-title">3 courses for £35</div>
+          <div class="bundle-sub">Save £10 — pick any three and pay together.</div>
+        </div>
+        <button class="bundle-btn" id="bundle-start-btn" type="button">Choose 3 courses</button>
+      </div>
+      <div class="bundle-selector" id="bundle-selector" style="display:none;">
+        <p class="bundle-hint">Select exactly 3 courses to unlock the bundle price.</p>
+        <div id="bundle-buy-row" style="display:none; align-items:center; gap:14px; margin-bottom:16px;">
+          <span id="bundle-selected-label" style="font-size:14px; color:var(--slate);"></span>
+          <button class="course-action" id="bundle-buy-btn" type="button" style="padding:10px 20px; font-size:14px;">Buy 3 for £35</button>
+          <button class="course-action" id="bundle-cancel-btn" type="button" style="padding:10px 16px; font-size:13px; background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink);">Cancel</button>
+        </div>
+      </div>
       <div id="packs-list"><p style="color:var(--slate); font-size:14.5px;">Loading…</p></div>
     </div>
 
@@ -410,32 +440,94 @@
 
     const courses = Object.values(SPECIALIST_COURSES);
     const packsList = document.getElementById('packs-list');
+    const unownedCount = courses.filter(c => !ownedSlugs.has(c.slug)).length;
+
+    // Show bundle banner only if at least 3 unowned courses exist
+    if (unownedCount >= 3) {
+      document.getElementById('bundle-banner').style.display = 'flex';
+    }
+
     if (courses.length === 0) {
       packsList.innerHTML = '<p style="color:var(--slate); font-size:14px; padding:20px 0;">No specialist courses available yet — check back soon.</p>';
     } else {
-      packsList.innerHTML = courses.map(c => {
-        const owned = ownedSlugs.has(c.slug);
-        const result = courseResultBySlug[c.slug];
-        let status = '';
-        if (result && result.quiz_passed) {
-          status = `<div class="module-status completed">✓ Completed — ${result.quiz_score}%</div>`;
-        } else if (owned) {
-          status = `<div class="module-status" style="background:rgba(63,107,79,0.1); color:var(--green);">Owned</div>`;
-        }
-        const action = owned
-          ? `<a class="quiz-link" href="specialist-course.html?slug=${c.slug}">Open course →</a>`
-          : `<a class="quiz-link" href="specialist-course.html?slug=${c.slug}" style="color:var(--gold);">£${c.price} — View →</a>`;
-        return `
-          <div class="module-row">
-            <div>
-              <div class="module-title">${c.title}</div>
-              <div class="module-status" style="background:none; color:var(--slate); padding:0; font-family:'Inter',sans-serif; font-size:12.5px; margin-top:4px;">${c.sections.length} sections · ${c.flashcards.length} flashcards · ${c.quiz.length}-question quiz</div>
-              ${status}
+      const renderCourseRows = (bundleMode) => {
+        packsList.innerHTML = courses.map(c => {
+          const owned = ownedSlugs.has(c.slug);
+          const result = courseResultBySlug[c.slug];
+          let status = '';
+          if (result && result.quiz_passed) {
+            status = `<div class="module-status completed">✓ Completed — ${result.quiz_score}%</div>`;
+          } else if (owned) {
+            status = `<div class="module-status" style="background:rgba(63,107,79,0.1); color:var(--green);">Owned</div>`;
+          }
+          const action = owned
+            ? `<a class="quiz-link" href="specialist-course.html?slug=${c.slug}">Open course →</a>`
+            : `<a class="quiz-link" href="specialist-course.html?slug=${c.slug}" style="color:var(--gold);">£${c.price} — View →</a>`;
+
+          if (bundleMode && !owned) {
+            return `
+              <div class="module-row course-row-check">
+                <input type="checkbox" class="bundle-check" data-slug="${c.slug}" id="bc-${c.slug}">
+                <div style="flex:1;">
+                  <div class="module-title">${c.title}</div>
+                  <div class="module-status" style="background:none; color:var(--slate); padding:0; font-family:'Inter',sans-serif; font-size:12.5px; margin-top:4px;">${c.sections.length} sections · ${c.flashcards.length} flashcards · ${c.quiz.length}-question quiz</div>
+                  ${status}
+                </div>
+              </div>
+            `;
+          }
+          return `
+            <div class="module-row">
+              <div>
+                <div class="module-title">${c.title}</div>
+                <div class="module-status" style="background:none; color:var(--slate); padding:0; font-family:'Inter',sans-serif; font-size:12.5px; margin-top:4px;">${c.sections.length} sections · ${c.flashcards.length} flashcards · ${c.quiz.length}-question quiz</div>
+                ${status}
+              </div>
+              <div class="module-actions">${action}</div>
             </div>
-            <div class="module-actions">${action}</div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
+
+        if (bundleMode) {
+          packsList.querySelectorAll('.bundle-check').forEach(cb => {
+            cb.addEventListener('change', () => {
+              const checked = [...packsList.querySelectorAll('.bundle-check:checked')];
+              const buyRow = document.getElementById('bundle-buy-row');
+              const buyBtn = document.getElementById('bundle-buy-btn');
+              const label = document.getElementById('bundle-selected-label');
+              if (checked.length === 3) {
+                buyRow.style.display = 'flex';
+                label.textContent = `${checked.map(c => SPECIALIST_COURSES[c.dataset.slug].title).join(', ')}`;
+                buyBtn.onclick = () => {
+                  const slugs = checked.map(c => c.dataset.slug).join(',');
+                  window.location.href = `mock-checkout.html?type=specialist_bundle&slugs=${encodeURIComponent(slugs)}`;
+                };
+              } else {
+                buyRow.style.display = 'none';
+                // Disable further selection beyond 3
+                packsList.querySelectorAll('.bundle-check:not(:checked)').forEach(c => {
+                  c.disabled = checked.length >= 3;
+                });
+              }
+            });
+          });
+        }
+      };
+
+      renderCourseRows(false);
+
+      document.getElementById('bundle-start-btn').addEventListener('click', () => {
+        document.getElementById('bundle-banner').style.display = 'none';
+        document.getElementById('bundle-selector').style.display = 'block';
+        renderCourseRows(true);
+      });
+
+      document.getElementById('bundle-cancel-btn').addEventListener('click', () => {
+        document.getElementById('bundle-selector').style.display = 'none';
+        document.getElementById('bundle-buy-row').style.display = 'none';
+        document.getElementById('bundle-banner').style.display = 'flex';
+        renderCourseRows(false);
+      });
     }
 
     loading.style.display = 'none';

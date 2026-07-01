@@ -194,6 +194,19 @@
       document.getElementById('summary-price').textContent = `£${course.price.toFixed(2)}`;
       document.getElementById('summary-total').textContent = `£${course.price.toFixed(2)}`;
       document.getElementById('pay-btn').textContent = `Pay £${course.price.toFixed(2)}`;
+    } else if (type === 'specialist_bundle') {
+      const slugs = (params.get('slugs') || '').split(',').filter(Boolean);
+      const bundleCourses = slugs.map(s => SPECIALIST_COURSES[s]).filter(Boolean);
+      if (bundleCourses.length !== 3) {
+        document.getElementById('checkout-desc').textContent = 'Invalid bundle — please go back and select exactly 3 courses.';
+        return;
+      }
+      document.getElementById('checkout-title').textContent = '3-course bundle';
+      document.getElementById('checkout-desc').textContent = `${bundleCourses.map(c => c.title).join(', ')} — all yours for good.`;
+      document.getElementById('summary-label').textContent = '3 specialist courses (bundle)';
+      document.getElementById('summary-price').textContent = '£35.00';
+      document.getElementById('summary-total').textContent = '£35.00';
+      document.getElementById('pay-btn').textContent = 'Pay £35.00';
     } else {
       document.getElementById('checkout-desc').textContent = 'Nothing to check out.';
     }
@@ -303,6 +316,19 @@
         return;
       }
       window.location.href = `specialist-course.html?slug=${course.slug}`;
+    } else if (type === 'specialist_bundle') {
+      const slugs = (params.get('slugs') || '').split(',').filter(Boolean);
+      const bundleCourses = slugs.map(s => SPECIALIST_COURSES[s]).filter(Boolean);
+      const rows = bundleCourses.map(c => ({ profile_id: userId, course_slug: c.slug, price_paid: 35 / 3 }));
+      const { error } = await supabaseClient.from('specialist_course_purchases').insert(rows);
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        payBtn.disabled = false;
+        payBtn.textContent = 'Pay £35.00';
+        return;
+      }
+      window.location.href = `academy.html#packs`;
     }
   });
 </script>
