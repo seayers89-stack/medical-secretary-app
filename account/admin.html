@@ -137,6 +137,11 @@
   }
   .search-input:focus{ outline:none; border-color:var(--gold); }
 
+  .admin-stats{ display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+  .admin-stat-card{ flex:1; min-width:160px; background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:12px; padding:18px 22px; }
+  .admin-stat-value{ font-family:'Fraunces',serif; font-size:36px; font-weight:600; line-height:1; margin-bottom:6px; }
+  .admin-stat-label{ font-size:13px; color:var(--slate); }
+
   .data-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
   .data-table th{
     text-align:left; font-size:11px; font-family:'IBM Plex Mono', monospace; letter-spacing:0.06em;
@@ -197,6 +202,18 @@
   <div id="denied" class="denied-state" style="display:none;">You don't have access to this area.</div>
 
   <div id="page-content" style="display:none;">
+
+    <div class="admin-stats" id="admin-stats" style="display:none;">
+      <div class="admin-stat-card">
+        <div class="admin-stat-value" id="stat-secretaries">—</div>
+        <div class="admin-stat-label">Secretaries registered</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-value" id="stat-consultants">—</div>
+        <div class="admin-stat-label">Consultants registered</div>
+      </div>
+    </div>
+
     <div class="card" id="healix-sync-card" style="margin-bottom:24px;">
       <div class="item-meta" style="margin-bottom:10px;">
         <span class="tag">CCSD billing data</span>
@@ -623,12 +640,20 @@
   // ── Secretaries tab ──────────────────────────────────────────────────────
   let allSecretaries = [];
 
+  function updateStatsVisibility() {
+    const secDone = document.getElementById('stat-secretaries').textContent !== '—';
+    const conDone = document.getElementById('stat-consultants').textContent !== '—';
+    if (secDone || conDone) document.getElementById('admin-stats').style.display = 'flex';
+  }
+
   async function loadSecretaries() {
     const list = document.getElementById('secretaries-list');
     list.innerHTML = '<div class="empty-state">Loading…</div>';
     const { data, error } = await supabaseClient.rpc('admin_list_secretaries');
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
     allSecretaries = (data || []).map(s => ({ ...s, profiles: { first_name: s.first_name, last_name: s.last_name, email: s.email, created_at: s.created_at } }));
+    document.getElementById('stat-secretaries').textContent = allSecretaries.length;
+    updateStatsVisibility();
     renderSecretaries();
   }
 
@@ -678,6 +703,8 @@
     const { data, error } = await supabaseClient.rpc('admin_list_consultants');
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
     allConsultants = (data || []).map(c => ({ ...c, profiles: { first_name: c.first_name, last_name: c.last_name, email: c.email, created_at: c.created_at } }));
+    document.getElementById('stat-consultants').textContent = allConsultants.length;
+    updateStatsVisibility();
     renderConsultants();
   }
 
