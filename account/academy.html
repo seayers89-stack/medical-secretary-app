@@ -108,6 +108,35 @@
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
+  .sk-field{ margin-bottom:18px; }
+  .sk-field-row2{ display:flex; gap:16px; }
+  .sk-field-row2 .sk-field{ flex:1; }
+  .sk-field label{ display:block; font-size:13px; font-weight:600; margin-bottom:7px; color:var(--ink); }
+  .sk-field .hint{ font-size:12.5px; color:var(--slate); margin-top:5px; line-height:1.5; }
+  .sk-field input, .sk-field select, .sk-field textarea{
+    width:100%; padding:12px 14px; font-family:'Inter',sans-serif; font-size:14px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .sk-field textarea{ resize:vertical; min-height:80px; }
+  .sk-field input:focus, .sk-field select:focus, .sk-field textarea:focus{ outline:none; border-color:var(--gold); }
+  .sk-section-label{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--gold); margin:24px 0 14px; display:block; border-top:1px solid rgba(27,36,48,0.08); padding-top:20px;
+  }
+  .sk-btn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14.5px; padding:13px 28px;
+    border-radius:8px; cursor:pointer; border:none; width:100%; text-align:center; margin-top:8px;
+    background:var(--gold); color:var(--ink);
+  }
+  .sk-btn:disabled{ opacity:0.6; cursor:not-allowed; }
+  #share-submit-status{ display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-top:14px; }
+  #share-submit-status.error{ display:block; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
+  #share-submit-status.success{ display:block; background:rgba(63,107,79,0.08); border:1px solid rgba(63,107,79,0.3); color:var(--green); }
+  .past-heading{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; margin:28px 0 12px; }
+  .past-item{ padding:14px 18px; }
+  .past-item .past-meta{ font-size:12px; color:var(--slate); margin-bottom:4px; }
+  .past-item .past-system{ font-weight:600; font-size:14px; }
+
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
   .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
 
@@ -207,11 +236,66 @@
     </div>
 
     <div class="tab-panel" id="tab-share">
-      <div class="skill-card">
-        <h3>Help us improve the proficiency quizzes</h3>
-        <p>If you use Carebit, Semble, Pabau, DGL Practice Manager, or anything else day to day, a short questionnaire helps us write better, more accurate quiz questions — and eventually free Academy guides for each system.</p>
-        <a href="share-knowledge.html">Share what you know →</a>
+      <p style="color:var(--slate); font-size:14px; line-height:1.6; margin-bottom:22px;">The questions in our system quizzes are written from real, working knowledge. If you use one of these systems day to day, a few honest answers here directly improve the quiz for everyone.</p>
+      <div class="skill-card" style="max-width:100%; flex:none;">
+        <form id="knowledge-form">
+          <div class="sk-field">
+            <label for="sk-system-select">Which system is this about?</label>
+            <select id="sk-system-select" required>
+              <option value="">Select a system</option>
+              <option value="carebit">Carebit</option>
+              <option value="semble">Semble</option>
+              <option value="pabau">Pabau</option>
+              <option value="dgl">DGL Practice Manager</option>
+              <option value="other">Other (not listed)</option>
+            </select>
+          </div>
+          <div class="sk-field" id="sk-other-system-field" style="display:none;">
+            <label for="sk-system-other">System name</label>
+            <input type="text" id="sk-system-other" placeholder="e.g. WriteUpp, Healthcode/ePractice, Ultragenda">
+          </div>
+          <div class="sk-field-row2">
+            <div class="sk-field">
+              <label for="sk-years-experience">Years of experience with this system</label>
+              <input type="text" id="sk-years-experience" placeholder="e.g. 3 years">
+            </div>
+            <div class="sk-field">
+              <label for="sk-specialty">Practice type / specialty</label>
+              <input type="text" id="sk-specialty" placeholder="e.g. Orthopaedics">
+            </div>
+          </div>
+          <span class="sk-section-label">The detail that matters most</span>
+          <div class="sk-field">
+            <label for="sk-failure-points">What goes wrong? Failure points, edge cases, things that catch people out</label>
+            <textarea id="sk-failure-points" placeholder="e.g. what happens if two appointments are booked into the same slot?"></textarea>
+            <p class="hint">This is the single most useful section — almost impossible to find anywhere except from someone who's actually used the system.</p>
+          </div>
+          <div class="sk-field">
+            <label for="sk-common-mistakes">What's a mistake you made, or saw a colleague make, when new to this system?</label>
+            <textarea id="sk-common-mistakes"></textarea>
+          </div>
+          <span class="sk-section-label">How it actually works</span>
+          <div class="sk-field">
+            <label for="sk-sequence-notes">How do you do something routine — e.g. create a booking, send a letter, raise an invoice? (the actual click-path)</label>
+            <textarea id="sk-sequence-notes"></textarea>
+          </div>
+          <div class="sk-field">
+            <label for="sk-location-notes">Where do key things live on screen? (menu names, tabs, button labels)</label>
+            <textarea id="sk-location-notes"></textarea>
+          </div>
+          <div class="sk-field">
+            <label for="sk-terminology-notes">Any system-specific terminology or screen names worth knowing?</label>
+            <textarea id="sk-terminology-notes"></textarea>
+          </div>
+          <div class="sk-field">
+            <label for="sk-version-notes">Anything version-specific, or recently changed?</label>
+            <textarea id="sk-version-notes"></textarea>
+          </div>
+          <button type="submit" class="sk-btn" id="sk-submit-btn">Submit</button>
+          <p id="share-submit-status"></p>
+        </form>
       </div>
+      <div id="share-past-submissions"></div>
     </div>
   </div>
 </div>
@@ -356,7 +440,80 @@
 
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
+
+    await loadSharePastSubmissions(userId);
   })();
+
+  // ── Share your knowledge form ─────────────────────────────────────────────
+  const SK_SYSTEM_NAMES = { carebit: 'Carebit', semble: 'Semble', pabau: 'Pabau', dgl: 'DGL Practice Manager' };
+
+  document.getElementById('sk-system-select').addEventListener('change', (e) => {
+    document.getElementById('sk-other-system-field').style.display = e.target.value === 'other' ? 'block' : 'none';
+  });
+
+  async function loadSharePastSubmissions(uid) {
+    const { data } = await supabaseClient
+      .from('system_knowledge_submissions')
+      .select('system_slug, system_name_other, created_at')
+      .eq('profile_id', uid)
+      .order('created_at', { ascending: false });
+
+    const container = document.getElementById('share-past-submissions');
+    if (!data || data.length === 0) { container.innerHTML = ''; return; }
+    container.innerHTML = `
+      <div class="past-heading">Your past submissions</div>
+      ${data.map(s => {
+        const name = s.system_slug === 'other' ? (s.system_name_other || 'Other system') : (SK_SYSTEM_NAMES[s.system_slug] || s.system_slug);
+        const date = new Date(s.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+        return `<div class="module-row past-item"><div><div class="past-meta">${date}</div><div class="past-system">${escapeHtml(name)}</div></div></div>`;
+      }).join('')}
+    `;
+  }
+
+  document.getElementById('knowledge-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('share-submit-status');
+    const submitBtn = document.getElementById('sk-submit-btn');
+    statusEl.style.display = 'none';
+
+    const systemSlug = document.getElementById('sk-system-select').value;
+    if (!systemSlug) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const uid = session.user.id;
+
+    const { error } = await supabaseClient.from('system_knowledge_submissions').insert({
+      profile_id: uid,
+      system_slug: systemSlug,
+      system_name_other: systemSlug === 'other' ? document.getElementById('sk-system-other').value.trim() : null,
+      years_experience: document.getElementById('sk-years-experience').value.trim(),
+      specialty: document.getElementById('sk-specialty').value.trim(),
+      sequence_notes: document.getElementById('sk-sequence-notes').value.trim(),
+      location_notes: document.getElementById('sk-location-notes').value.trim(),
+      failure_points: document.getElementById('sk-failure-points').value.trim(),
+      common_mistakes: document.getElementById('sk-common-mistakes').value.trim(),
+      terminology_notes: document.getElementById('sk-terminology-notes').value.trim(),
+      version_notes: document.getElementById('sk-version-notes').value.trim(),
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'error';
+      return;
+    }
+
+    statusEl.textContent = 'Thank you — this has been recorded and will help improve the quiz and future guides.';
+    statusEl.className = 'success';
+    document.getElementById('knowledge-form').reset();
+    document.getElementById('sk-other-system-field').style.display = 'none';
+    await loadSharePastSubmissions(uid);
+  });
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
