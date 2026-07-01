@@ -623,8 +623,7 @@
     list.innerHTML = '<div class="empty-state">Loading…</div>';
     const { data, error } = await supabaseClient
       .from('secretary_profiles')
-      .select('profile_id, region, specialties, availability_start, available, day_rate, hourly_rate, percentage_rate, rate_type, profiles(first_name, last_name, email, created_at)')
-      .order('profiles(created_at)', { ascending: false });
+      .select('profile_id, region, specialties, availability_start, available, day_rate, hourly_rate, percentage_rate, rate_type, profiles(first_name, last_name, email, created_at)');
 
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
     allSecretaries = data || [];
@@ -634,7 +633,10 @@
   function renderSecretaries() {
     const list = document.getElementById('secretaries-list');
     const q = document.getElementById('sec-search').value.trim().toLowerCase();
-    const rows = allSecretaries.filter(s => `${s.first_name} ${s.last_name}`.toLowerCase().includes(q) || (s.email || '').toLowerCase().includes(q));
+    const rows = allSecretaries.filter(s => {
+      const p = s.profiles || {};
+      return `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase().includes(q) || (p.email || '').toLowerCase().includes(q);
+    });
     if (rows.length === 0) { list.innerHTML = '<div class="empty-state">No secretaries found.</div>'; return; }
 
     list.innerHTML = `
@@ -673,8 +675,7 @@
     list.innerHTML = '<div class="empty-state">Loading…</div>';
     const { data, error } = await supabaseClient
       .from('consultant_profiles')
-      .select('profile_id, practice_name, specialty, hospitals, pass_expires_at, profiles(first_name, last_name, email, created_at)')
-      .order('profiles(created_at)', { ascending: false });
+      .select('profile_id, practice_name, specialty, hospitals, pass_expires_at, profiles(first_name, last_name, email, created_at)');
 
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
     allConsultants = data || [];
@@ -684,7 +685,10 @@
   function renderConsultants() {
     const list = document.getElementById('consultants-list');
     const q = document.getElementById('con-search').value.trim().toLowerCase();
-    const rows = allConsultants.filter(c => `${c.first_name} ${c.last_name}`.toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q) || (c.practice_name || '').toLowerCase().includes(q));
+    const rows = allConsultants.filter(c => {
+      const p = c.profiles || {};
+      return `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase().includes(q) || (p.email || '').toLowerCase().includes(q) || (c.practice_name || '').toLowerCase().includes(q);
+    });
     if (rows.length === 0) { list.innerHTML = '<div class="empty-state">No consultants found.</div>'; return; }
 
     list.innerHTML = `
