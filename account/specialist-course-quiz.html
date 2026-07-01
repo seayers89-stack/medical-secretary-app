@@ -286,7 +286,7 @@
       window.location.href = 'login.html';
       return;
     }
-    if (navResult.profile.role !== 'secretary') {
+    if (!navResult.isAdmin && navResult.profile.role !== 'secretary') {
       loading.textContent = 'Specialist courses are available to secretary accounts.';
       return;
     }
@@ -300,7 +300,7 @@
       .eq('course_slug', slug)
       .maybeSingle();
 
-    if (!purchase) {
+    if (!navResult.isAdmin && !purchase) {
       loading.textContent = "You haven't purchased this course yet.";
       const link = document.createElement('a');
       link.href = `specialist-course.html?slug=${slug}`;

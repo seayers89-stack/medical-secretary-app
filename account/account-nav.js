@@ -27,10 +27,20 @@ const SECRETARY_NAV_LINKS = [
   { label: 'Edit profile', href: 'edit-profile.html', key: 'edit-profile' },
 ];
 
-function buildAccountNavHtml(role, activeKey, isAdmin) {
-  const links = role === 'consultant' ? CONSULTANT_NAV_LINKS : SECRETARY_NAV_LINKS;
-  const allLinks = isAdmin ? [...links, { label: 'Admin', href: 'admin.html', key: 'admin' }] : links;
-  return allLinks.map(l => {
+const ADMIN_NAV_LINKS = [
+  { label: 'Admin dashboard', href: 'admin.html', key: 'admin' },
+];
+
+const ADMIN_ALLOWLIST = [
+  'admin.html', 'admin-accept-invite.html', 'login.html',
+  'view-secretary.html', 'search-secretaries.html',
+  'specialist-course.html', 'specialist-course-exercises.html',
+  'specialist-course-quiz.html', 'specialist-course-flashcards.html', 'specialist-course-printables.html',
+];
+
+function buildAccountNavHtml(role, activeKey) {
+  const links = role === 'admin' ? ADMIN_NAV_LINKS : (role === 'consultant' ? CONSULTANT_NAV_LINKS : SECRETARY_NAV_LINKS);
+  return links.map(l => {
     const active = l.key === activeKey ? ' class="active"' : '';
     const badge = l.key === 'messages'
       ? '<span id="account-nav-unread" style="display:none; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:999px; background:#C1393C; color:#fff; font-size:10.5px; font-weight:700; line-height:16px; text-align:center; vertical-align:middle;"></span>'
@@ -55,16 +65,28 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
     .single();
   if (!profile) return null;
 
-  const { data: isAdmin } = await supabaseClient.rpc('is_admin');
-  navEl.innerHTML = buildAccountNavHtml(profile.role, activeKey, isAdmin);
+  if (profile.role === 'admin') {
+    const currentPage = window.location.pathname.split('/').pop() || '';
+    if (!ADMIN_ALLOWLIST.includes(currentPage)) {
+      window.location.href = 'admin.html';
+      return null;
+    }
+  }
 
-  const filterColumn = profile.role === 'consultant' ? 'consultant_id' : 'secretary_id';
-  const { data: unread } = await supabaseClient
-    .from('messages')
-    .select('id')
-    .eq(filterColumn, session.user.id)
-    .neq('sender_id', session.user.id)
-    .is('read_at', null);
+  const { data: isAdmin } = await supabaseClient.rpc('is_admin');
+  navEl.innerHTML = buildAccountNavHtml(profile.role, activeKey);
+
+  let unread = null;
+  if (profile.role !== 'admin') {
+    const filterColumn = profile.role === 'consultant' ? 'consultant_id' : 'secretary_id';
+    const { data } = await supabaseClient
+      .from('messages')
+      .select('id')
+      .eq(filterColumn, session.user.id)
+      .neq('sender_id', session.user.id)
+      .is('read_at', null);
+    unread = data;
+  }
 
   if (unread && unread.length > 0) {
     const badge = navEl.querySelector('#account-nav-unread');
@@ -76,7 +98,7 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
 
   await supabaseClient.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', session.user.id);
 
-  return { session, profile };
+  return { session, profile, isAdmin: !!isAdmin };
 }
 
 // Shared "last active" formatter for search results / profile views. Buckets

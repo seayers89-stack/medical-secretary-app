@@ -130,12 +130,44 @@
     font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.04em; text-transform:uppercase;
     color:#8F6F36; background:rgba(184,146,74,0.12); padding:3px 9px; border-radius:999px; margin-left:8px;
   }
-  #staff-search{
+  .search-input{
     width:100%; padding:11px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
     border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--white); color:var(--ink);
     margin-bottom:16px;
   }
-  #staff-search:focus{ outline:none; border-color:var(--gold); }
+  .search-input:focus{ outline:none; border-color:var(--gold); }
+
+  .data-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .data-table th{
+    text-align:left; font-size:11px; font-family:'IBM Plex Mono', monospace; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--slate); padding:8px 12px; border-bottom:1.5px solid rgba(27,36,48,0.1);
+  }
+  .data-table td{ padding:11px 12px; border-bottom:1px solid rgba(27,36,48,0.06); vertical-align:top; }
+  .data-table tr:last-child td{ border-bottom:none; }
+  .data-table tr:hover td{ background:rgba(27,36,48,0.02); }
+  .data-table a{ color:var(--gold); font-weight:600; font-size:12.5px; }
+  .data-table .result-badge{
+    display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px;
+    background:rgba(63,107,79,0.12); color:var(--green); font-weight:600;
+  }
+  .data-table .result-badge.soon{ background:rgba(184,146,74,0.12); color:#8F6F36; }
+  .data-table .result-badge.unavailable{ background:rgba(92,100,112,0.12); color:var(--slate); }
+
+  .detail-panel{ background:var(--paper); border-radius:8px; padding:14px 16px; margin-top:6px; font-size:13px; line-height:1.65; }
+  .detail-panel dt{ font-weight:600; color:var(--slate); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; margin-top:10px; }
+  .detail-panel dd{ margin:0 0 0 0; color:var(--ink); }
+
+  .invite-form{ background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:12px; padding:22px 24px; margin-bottom:24px; }
+  .invite-form h3{ font-family:'Fraunces', serif; font-size:17px; margin-bottom:16px; }
+  .invite-form .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .invite-form .field input{
+    width:100%; padding:10px 12px; font-family:'Inter', sans-serif; font-size:13.5px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:7px; background:var(--paper); color:var(--ink);
+  }
+  .invite-form .field input:focus{ outline:none; border-color:var(--gold); }
+  .invite-form .field label{ display:block; font-size:12px; font-weight:600; margin-bottom:5px; }
+  .invite-form .field.full{ grid-column:1 / -1; }
+  .invite-form .status{ font-size:13px; margin-top:10px; display:none; }
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
@@ -180,6 +212,8 @@
       <button class="tab-btn active" data-tab="reports">Reported content</button>
       <button class="tab-btn" data-tab="knowledge">Share your knowledge</button>
       <button class="tab-btn" data-tab="ideas">Ideas</button>
+      <button class="tab-btn" data-tab="secretaries">Secretaries</button>
+      <button class="tab-btn" data-tab="consultants">Consultants</button>
       <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">Manage admins</button>
     </div>
 
@@ -195,9 +229,34 @@
       <div id="ideas-admin-list"></div>
     </div>
 
+    <div class="tab-panel" id="tab-secretaries">
+      <input type="text" class="search-input" id="sec-search" placeholder="Search by name…">
+      <div id="secretaries-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-consultants">
+      <input type="text" class="search-input" id="con-search" placeholder="Search by name…">
+      <div id="consultants-list"></div>
+    </div>
+
     <div class="tab-panel" id="tab-staff">
-      <p class="sub" style="margin-bottom:20px;">Only super admins can grant or remove admin access.</p>
-      <input type="text" id="staff-search" placeholder="Search by name…">
+      <div class="invite-form" id="invite-form-wrap">
+        <h3>Add admin by email</h3>
+        <form id="invite-form">
+          <div class="field-row">
+            <div class="field"><label>First name</label><input type="text" id="inv-first" placeholder="First name" required></div>
+            <div class="field"><label>Last name</label><input type="text" id="inv-last" placeholder="Last name"></div>
+          </div>
+          <div class="field-row">
+            <div class="field full"><label>Email address</label><input type="email" id="inv-email" placeholder="admin@example.com" required></div>
+          </div>
+          <div class="row-actions">
+            <button type="submit" class="success" id="invite-btn">Send invite</button>
+          </div>
+          <p class="status" id="invite-status"></p>
+        </form>
+      </div>
+      <input type="text" class="search-input" id="staff-search" placeholder="Search admins by name…">
       <div id="staff-list"></div>
     </div>
   </div>
@@ -556,17 +615,109 @@
     });
   }
 
+  // ── Secretaries tab ──────────────────────────────────────────────────────
+  let allSecretaries = [];
+
+  async function loadSecretaries() {
+    const list = document.getElementById('secretaries-list');
+    list.innerHTML = '<div class="empty-state">Loading…</div>';
+    const { data, error } = await supabaseClient
+      .from('secretary_profiles')
+      .select('id, first_name, last_name, email, region, specialties, availability_start, available, day_rate, hourly_rate, percentage_rate, rate_type, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
+    allSecretaries = data || [];
+    renderSecretaries();
+  }
+
+  function renderSecretaries() {
+    const list = document.getElementById('secretaries-list');
+    const q = document.getElementById('sec-search').value.trim().toLowerCase();
+    const rows = allSecretaries.filter(s => `${s.first_name} ${s.last_name}`.toLowerCase().includes(q) || (s.email || '').toLowerCase().includes(q));
+    if (rows.length === 0) { list.innerHTML = '<div class="empty-state">No secretaries found.</div>'; return; }
+
+    list.innerHTML = `
+      <table class="data-table">
+        <thead><tr>
+          <th>Name</th><th>Email</th><th>Region</th><th>Specialties</th><th>Rate</th><th>Availability</th><th>Joined</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(s => {
+            const rate = formatSecretaryRate(s) || '—';
+            const badge = availabilityBadgeHTML(s);
+            const specs = Array.isArray(s.specialties) ? s.specialties.slice(0,3).join(', ') : (s.specialties || '—');
+            return `<tr>
+              <td><strong>${escapeHtml(s.first_name)} ${escapeHtml(s.last_name)}</strong></td>
+              <td>${escapeHtml(s.email || '—')}</td>
+              <td>${escapeHtml(s.region || '—')}</td>
+              <td>${escapeHtml(specs)}</td>
+              <td>${escapeHtml(rate)}</td>
+              <td>${badge}</td>
+              <td style="white-space:nowrap;">${formatDate(s.created_at)}</td>
+              <td><a href="view-secretary.html?id=${s.id}">View</a></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  document.getElementById('sec-search').addEventListener('input', renderSecretaries);
+
+  // ── Consultants tab ───────────────────────────────────────────────────────
+  let allConsultants = [];
+
+  async function loadConsultants() {
+    const list = document.getElementById('consultants-list');
+    list.innerHTML = '<div class="empty-state">Loading…</div>';
+    const { data, error } = await supabaseClient
+      .from('consultant_profiles')
+      .select('id, first_name, last_name, email, practice_name, specialty, hospitals, pass_expires_at, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
+    allConsultants = data || [];
+    renderConsultants();
+  }
+
+  function renderConsultants() {
+    const list = document.getElementById('consultants-list');
+    const q = document.getElementById('con-search').value.trim().toLowerCase();
+    const rows = allConsultants.filter(c => `${c.first_name} ${c.last_name}`.toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q) || (c.practice_name || '').toLowerCase().includes(q));
+    if (rows.length === 0) { list.innerHTML = '<div class="empty-state">No consultants found.</div>'; return; }
+
+    list.innerHTML = `
+      <table class="data-table">
+        <thead><tr>
+          <th>Name</th><th>Email</th><th>Practice</th><th>Specialty</th><th>Hospitals</th><th>Pass active</th><th>Joined</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(c => {
+            const passActive = c.pass_expires_at && new Date(c.pass_expires_at) > new Date();
+            const hospitals = Array.isArray(c.hospitals) ? c.hospitals.slice(0,2).join(', ') : (c.hospitals || '—');
+            return `<tr>
+              <td><strong>${escapeHtml(c.first_name)} ${escapeHtml(c.last_name)}</strong></td>
+              <td>${escapeHtml(c.email || '—')}</td>
+              <td>${escapeHtml(c.practice_name || '—')}</td>
+              <td>${escapeHtml(c.specialty || '—')}</td>
+              <td>${escapeHtml(hospitals)}</td>
+              <td>${passActive ? '<span class="result-badge">Yes</span>' : '<span class="result-badge unavailable">No</span>'}</td>
+              <td style="white-space:nowrap;">${formatDate(c.created_at)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  document.getElementById('con-search').addEventListener('input', renderConsultants);
+
+  // ── Manage admins tab ─────────────────────────────────────────────────────
   let allStaff = [];
 
   async function loadStaffList() {
     const { data, error } = await supabaseClient.rpc('list_profiles_for_admin');
     const list = document.getElementById('staff-list');
-
-    if (error) {
-      list.innerHTML = `<div class="empty-state">Could not load staff list: ${escapeHtml(error.message)}</div>`;
-      return;
-    }
-
+    if (error) { list.innerHTML = `<div class="empty-state">Could not load admin list: ${escapeHtml(error.message)}</div>`; return; }
     allStaff = data || [];
     renderStaffList();
   }
@@ -574,48 +725,64 @@
   function renderStaffList() {
     const list = document.getElementById('staff-list');
     const query = document.getElementById('staff-search').value.trim().toLowerCase();
+    const filtered = allStaff.filter(p => `${p.first_name} ${p.last_name}`.toLowerCase().includes(query) || (p.email || '').toLowerCase().includes(query));
 
-    const filtered = allStaff.filter(p => `${p.first_name} ${p.last_name}`.toLowerCase().includes(query));
-
-    if (filtered.length === 0) {
-      list.innerHTML = `<div class="empty-state">No matching accounts.</div>`;
-      return;
-    }
+    if (filtered.length === 0) { list.innerHTML = `<div class="empty-state">No admins found.</div>`; return; }
 
     list.innerHTML = filtered.map(p => `
       <div class="card staff-row">
         <div>
-          <div class="staff-name">${escapeHtml(p.first_name)} ${escapeHtml(p.last_name)} ${p.is_super_admin ? '<span class="super-tag">Super admin</span>' : ''}</div>
-          <div class="staff-meta">${escapeHtml(p.role)}</div>
+          <div class="staff-name">${escapeHtml(p.first_name)} ${escapeHtml(p.last_name)}${p.is_super_admin ? ' <span class="super-tag">Super admin</span>' : ''}</div>
+          <div class="staff-meta">${escapeHtml(p.email || '')} · Joined ${formatDate(p.created_at)}</div>
         </div>
-        ${p.is_super_admin
-          ? ''
-          : p.is_admin
-            ? `<button type="button" class="danger" data-revoke="${p.id}">Remove admin</button>`
-            : `<button type="button" class="success" data-grant="${p.id}">Make admin</button>`
-        }
+        ${p.is_super_admin ? '' : `<button type="button" class="danger" data-revoke="${p.id}">Remove admin</button>`}
       </div>
     `).join('');
 
-    list.querySelectorAll('[data-grant]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        btn.disabled = true;
-        const { error } = await supabaseClient.rpc('set_admin_status', { target_user_id: btn.dataset.grant, new_is_admin: true });
-        if (error) { alert(error.message); btn.disabled = false; return; }
-        await loadStaffList();
-      });
-    });
     list.querySelectorAll('[data-revoke]').forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (!confirm('Remove this admin account permanently?')) return;
         btn.disabled = true;
-        const { error } = await supabaseClient.rpc('set_admin_status', { target_user_id: btn.dataset.revoke, new_is_admin: false });
-        if (error) { alert(error.message); btn.disabled = false; return; }
+        const { data, error } = await supabaseClient.functions.invoke('admin-revoke', { body: { target_user_id: btn.dataset.revoke } });
+        if (error || (data && data.error)) { alert((data && data.error) || error.message); btn.disabled = false; return; }
         await loadStaffList();
       });
     });
   }
 
   document.getElementById('staff-search').addEventListener('input', renderStaffList);
+
+  document.getElementById('invite-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('invite-status');
+    const btn = document.getElementById('invite-btn');
+    const email = document.getElementById('inv-email').value.trim();
+    const first_name = document.getElementById('inv-first').value.trim();
+    const last_name = document.getElementById('inv-last').value.trim();
+
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    statusEl.style.display = 'none';
+
+    const redirectTo = `${window.location.origin}${window.location.pathname.replace('admin.html', '')}admin-accept-invite.html`;
+    const { data, error } = await supabaseClient.functions.invoke('admin-invite', { body: { email, first_name, last_name, redirectTo } });
+
+    btn.disabled = false;
+    btn.textContent = 'Send invite';
+
+    if (error || (data && data.error)) {
+      statusEl.textContent = (data && data.error) || error.message;
+      statusEl.style.color = '#a33';
+      statusEl.style.display = 'block';
+      return;
+    }
+
+    statusEl.textContent = `Invite sent to ${email}.`;
+    statusEl.style.color = 'var(--green)';
+    statusEl.style.display = 'block';
+    document.getElementById('invite-form').reset();
+    await loadStaffList();
+  });
 
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'admin');
@@ -641,11 +808,15 @@
     await loadKnowledgeSubmissions();
     await loadIdeasAdmin();
     await loadHealixSyncStatus();
+    await loadSecretaries();
+    await loadConsultants();
 
     const { data: isSuperAdmin } = await supabaseClient.rpc('is_super_admin');
     if (isSuperAdmin) {
       document.getElementById('staff-tab-btn').style.display = 'inline-block';
       await loadStaffList();
+    } else {
+      document.getElementById('invite-form-wrap').style.display = 'none';
     }
   })();
 

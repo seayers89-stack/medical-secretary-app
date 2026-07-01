@@ -322,6 +322,8 @@
       return;
     }
 
+    const { data: isAdminUser } = await supabaseClient.rpc('is_admin');
+
     const { data: purchase } = await supabaseClient
       .from('specialist_course_purchases')
       .select('id')
@@ -330,7 +332,7 @@
       .maybeSingle();
 
     const loading = document.getElementById('loading');
-    if (!purchase) {
+    if (!isAdminUser && !purchase) {
       loading.textContent = "You haven't purchased this course yet.";
       const link = document.createElement('a');
       link.href = `specialist-course.html?slug=${slug}`;

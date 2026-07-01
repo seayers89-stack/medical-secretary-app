@@ -1,7 +1,7 @@
 -- Veyn: initial schema for secretary/consultant profiles
 -- Run this in the Supabase SQL editor (Project > SQL Editor > New query)
 
-create type user_role as enum ('secretary', 'consultant');
+create type user_role as enum ('secretary', 'consultant', 'admin');
 
 create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -83,8 +83,8 @@ alter table consultant_profiles enable row level security;
 create policy "Profiles are publicly readable"
   on profiles for select using (true);
 
-create policy "Users can insert their own profile"
-  on profiles for insert with check (auth.uid() = id);
+create policy "Users can insert their own non-admin profile"
+  on profiles for insert with check (auth.uid() = id and role in ('secretary', 'consultant'));
 
 create policy "Users can update their own profile"
   on profiles for update using (auth.uid() = id);
@@ -360,13 +360,17 @@ grant update (first_name, last_name) on profiles to authenticated;
 
 alter table profiles add column is_super_admin boolean not null default false;
 
+-- Admin status is role-based (role = 'admin'), not a flag on a
+-- secretary/consultant profile. Admin profile rows are only ever created
+-- by the admin-invite edge function (service_role key, bypasses RLS).
+-- is_super_admin marks the permanent superuser who can manage other admins.
 create or replace function is_admin()
 returns boolean
 language sql
 security definer
 set search_path = public
 as $$
-  select coalesce((select (p.is_admin or p.is_super_admin) from profiles p where p.id = auth.uid()), false);
+  select coalesce((select p.role = 'admin' from profiles p where p.id = auth.uid()), false);
 $$;
 
 create or replace function is_super_admin()
@@ -375,40 +379,25 @@ language sql
 security definer
 set search_path = public
 as $$
-  select coalesce((select p.is_super_admin from profiles p where p.id = auth.uid()), false);
+  select coalesce((select p.role = 'admin' and p.is_super_admin from profiles p where p.id = auth.uid()), false);
 $$;
 
 grant execute on function is_super_admin() to authenticated;
 
-create or replace function set_admin_status(target_user_id uuid, new_is_admin boolean)
-returns void
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  if not is_super_admin() then
-    raise exception 'Only super admins can change admin status';
-  end if;
-  update profiles set is_admin = new_is_admin where id = target_user_id;
-end;
-$$;
-
-grant execute on function set_admin_status(uuid, boolean) to authenticated;
-
 create or replace function list_profiles_for_admin()
-returns table(id uuid, first_name text, last_name text, role user_role, is_admin boolean, is_super_admin boolean)
+returns table(id uuid, first_name text, last_name text, email text, is_super_admin boolean, created_at timestamptz)
 language plpgsql
 security definer
 set search_path = public
 as $$
 begin
   if not is_super_admin() then
-    raise exception 'Only super admins can list staff status';
+    raise exception 'Only super admins can list admin accounts';
   end if;
   return query
-    select p.id, p.first_name, p.last_name, p.role, p.is_admin, p.is_super_admin
+    select p.id, p.first_name, p.last_name, p.email, p.is_super_admin, p.created_at
     from profiles p
+    where p.role = 'admin'
     order by p.created_at desc;
 end;
 $$;
@@ -422,7 +411,7 @@ security definer
 set search_path = public
 stable
 as $$
-  select id from profiles where is_admin or is_super_admin;
+  select id from profiles where role = 'admin';
 $$;
 
 grant execute on function staff_profile_ids() to anon, authenticated;

@@ -170,7 +170,7 @@
       window.location.href = 'login.html';
       return;
     }
-    if (navResult.profile.role !== 'secretary') {
+    if (!navResult.isAdmin && navResult.profile.role !== 'secretary') {
       loading.textContent = 'Specialist courses are available to secretary accounts.';
       return;
     }
@@ -185,7 +185,7 @@
 
     loading.style.display = 'none';
 
-    if (!purchase) {
+    if (!navResult.isAdmin && !purchase) {
       document.getElementById('paywall-title').textContent = course.title;
       document.getElementById('paywall-aim').textContent = course.aim;
       document.getElementById('paywall-price').textContent = `£${course.price}`;
