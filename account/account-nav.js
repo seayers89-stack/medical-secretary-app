@@ -68,8 +68,8 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
   if (profile.role === 'admin') {
     const currentPage = window.location.pathname.split('/').pop() || '';
     if (!ADMIN_ALLOWLIST.includes(currentPage)) {
-      window.location.href = 'admin.html';
-      return null;
+      window.location.replace('admin.html');
+      return { session, profile, isAdmin: true, redirecting: true };
     }
   }
 
