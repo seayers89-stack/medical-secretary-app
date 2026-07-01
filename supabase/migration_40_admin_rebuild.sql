@@ -46,6 +46,7 @@ create policy "Users can insert their own non-admin profile"
 drop function if exists set_admin_status(uuid, boolean);
 
 -- 5. list_profiles_for_admin() now lists admin-role accounts directly.
+drop function if exists list_profiles_for_admin();
 create or replace function list_profiles_for_admin()
 returns table(id uuid, first_name text, last_name text, email text, is_super_admin boolean, created_at timestamptz)
 language plpgsql

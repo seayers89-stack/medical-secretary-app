@@ -623,7 +623,7 @@
     list.innerHTML = '<div class="empty-state">Loading…</div>';
     const { data, error } = await supabaseClient
       .from('secretary_profiles')
-      .select('id, first_name, last_name, email, region, specialties, availability_start, available, day_rate, hourly_rate, percentage_rate, rate_type, created_at')
+      .select('profile_id, first_name, last_name, email, region, specialties, availability_start, available, day_rate, hourly_rate, percentage_rate, rate_type, created_at')
       .order('created_at', { ascending: false });
 
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
@@ -655,7 +655,7 @@
               <td>${escapeHtml(rate)}</td>
               <td>${badge}</td>
               <td style="white-space:nowrap;">${formatDate(s.created_at)}</td>
-              <td><a href="view-secretary.html?id=${s.id}">View</a></td>
+              <td><a href="view-secretary.html?id=${s.profile_id}">View</a></td>
             </tr>`;
           }).join('')}
         </tbody>
