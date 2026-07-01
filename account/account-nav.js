@@ -30,7 +30,14 @@ const SECRETARY_NAV_LINKS = [
 ];
 
 const ADMIN_NAV_LINKS = [
-  { label: 'Admin dashboard', href: 'admin.html', key: 'admin' },
+  { label: 'Admin', href: 'admin.html', key: 'admin' },
+  { label: 'Search', href: 'search-secretaries.html', key: 'search' },
+  { label: 'Job board', href: 'job-board.html', key: 'job-board' },
+  { label: 'Academy', href: 'academy.html', key: 'academy' },
+  { label: 'Business Hub', href: 'business-hub.html', key: 'business-hub' },
+  { label: 'Community', href: 'community.html', key: 'community' },
+  { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
+  { label: 'Support', href: 'admin.html#support', key: 'support' },
 ];
 
 const ADMIN_ALLOWLIST = [
@@ -38,7 +45,9 @@ const ADMIN_ALLOWLIST = [
   'view-secretary.html', 'search-secretaries.html',
   'specialist-course.html', 'specialist-course-exercises.html',
   'specialist-course-quiz.html', 'specialist-course-flashcards.html', 'specialist-course-printables.html',
-  'support.html',
+  'support.html', 'job-board.html', 'academy.html', 'specialist-courses.html',
+  'business-hub.html', 'community.html', 'community-post.html', 'ideas.html',
+  'messages.html', 'thread.html', 'post-job.html', 'my-postings.html',
 ];
 
 function buildAccountNavHtml(role, activeKey) {
