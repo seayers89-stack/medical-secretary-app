@@ -672,7 +672,7 @@
     list.innerHTML = '<div class="empty-state">Loading…</div>';
     const { data, error } = await supabaseClient
       .from('consultant_profiles')
-      .select('id, first_name, last_name, email, practice_name, specialty, hospitals, pass_expires_at, created_at')
+      .select('profile_id, first_name, last_name, email, practice_name, specialty, hospitals, pass_expires_at, created_at')
       .order('created_at', { ascending: false });
 
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
