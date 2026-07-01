@@ -621,23 +621,9 @@
   async function loadSecretaries() {
     const list = document.getElementById('secretaries-list');
     list.innerHTML = '<div class="empty-state">Loading…</div>';
-    const { data: secs, error } = await supabaseClient
-      .from('secretary_profiles')
-      .select('profile_id, region, specialties, availability_start, available, day_rate, hourly_rate, percentage_rate, rate_type');
-
+    const { data, error } = await supabaseClient.rpc('admin_list_secretaries');
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
-    if (!secs || secs.length === 0) { list.innerHTML = '<div class="empty-state">No secretaries found.</div>'; return; }
-
-    const ids = secs.map(s => s.profile_id);
-    const { data: profs, error: profError } = await supabaseClient
-      .from('profiles')
-      .select('id, first_name, last_name, email, created_at')
-      .in('id', ids);
-
-    if (profError) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(profError.message)}</div>`; return; }
-    const profMap = {};
-    (profs || []).forEach(p => { profMap[p.id] = p; });
-    allSecretaries = secs.map(s => ({ ...s, profiles: profMap[s.profile_id] || {} }));
+    allSecretaries = (data || []).map(s => ({ ...s, profiles: { first_name: s.first_name, last_name: s.last_name, email: s.email, created_at: s.created_at } }));
     renderSecretaries();
   }
 
@@ -684,23 +670,9 @@
   async function loadConsultants() {
     const list = document.getElementById('consultants-list');
     list.innerHTML = '<div class="empty-state">Loading…</div>';
-    const { data: cons, error } = await supabaseClient
-      .from('consultant_profiles')
-      .select('profile_id, practice_name, specialty, hospitals, pass_expires_at');
-
+    const { data, error } = await supabaseClient.rpc('admin_list_consultants');
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
-    if (!cons || cons.length === 0) { list.innerHTML = '<div class="empty-state">No consultants found.</div>'; return; }
-
-    const ids = cons.map(c => c.profile_id);
-    const { data: profs, error: profError } = await supabaseClient
-      .from('profiles')
-      .select('id, first_name, last_name, email, created_at')
-      .in('id', ids);
-
-    if (profError) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(profError.message)}</div>`; return; }
-    const profMap = {};
-    (profs || []).forEach(p => { profMap[p.id] = p; });
-    allConsultants = cons.map(c => ({ ...c, profiles: profMap[c.profile_id] || {} }));
+    allConsultants = (data || []).map(c => ({ ...c, profiles: { first_name: c.first_name, last_name: c.last_name, email: c.email, created_at: c.created_at } }));
     renderConsultants();
   }
 
