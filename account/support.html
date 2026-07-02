@@ -66,6 +66,13 @@
   .btn-outline{ background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink); }
   .btn-row{ display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap; }
 
+  .support-tab-row{ display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid rgba(27,36,48,0.08); }
+  .support-tab-btn{ font-family:'Inter',sans-serif; font-size:14px; font-weight:500; color:var(--slate); background:none; border:none; padding:10px 18px 12px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; }
+  .support-tab-btn:hover{ color:var(--ink); }
+  .support-tab-btn.active{ color:var(--ink); font-weight:600; border-bottom-color:var(--gold); }
+  .support-tab-panel{ display:none; }
+  .support-tab-panel.active{ display:block; }
+
   .new-thread-card{ background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:14px; padding:24px 26px; margin-bottom:28px; }
   .new-thread-card h2{ font-family:'Fraunces',serif; font-size:18px; margin-bottom:16px; }
 
@@ -97,26 +104,35 @@
 
   <div id="page-content" style="display:none;">
 
-    <div class="new-thread-card" id="new-thread-section">
-      <h2>New support query</h2>
-      <form id="new-thread-form">
-        <div class="field">
-          <label for="thread-subject">Subject</label>
-          <input type="text" id="thread-subject" placeholder="Briefly describe your query" required maxlength="120">
-        </div>
-        <div class="field">
-          <label for="thread-body">Message</label>
-          <textarea id="thread-body" placeholder="Tell us more…" required></textarea>
-        </div>
-        <div class="btn-row">
-          <button type="submit" class="btn btn-primary" id="new-thread-btn">Send message</button>
-        </div>
-        <p class="status-msg" id="new-thread-status"></p>
-      </form>
+    <div class="support-tab-row">
+      <button class="support-tab-btn active" data-tab="new-query">New query</button>
+      <button class="support-tab-btn" data-tab="previous-tickets">Previous tickets <span id="tickets-count" style="display:none; background:rgba(27,36,48,0.1); color:var(--slate); border-radius:999px; font-size:10.5px; font-weight:700; padding:1px 7px; margin-left:4px;"></span></button>
     </div>
 
-    <h2 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:16px;" id="threads-heading" style="display:none;">Your queries</h2>
-    <div id="threads-list"></div>
+    <div class="support-tab-panel active" id="tab-new-query">
+      <div class="new-thread-card">
+        <h2>New support query</h2>
+        <form id="new-thread-form">
+          <div class="field">
+            <label for="thread-subject">Subject</label>
+            <input type="text" id="thread-subject" placeholder="Briefly describe your query" required maxlength="120">
+          </div>
+          <div class="field">
+            <label for="thread-body">Message</label>
+            <textarea id="thread-body" placeholder="Tell us more…" required></textarea>
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="btn btn-primary" id="new-thread-btn">Send message</button>
+          </div>
+          <p class="status-msg" id="new-thread-status"></p>
+        </form>
+      </div>
+    </div>
+
+    <div class="support-tab-panel" id="tab-previous-tickets">
+      <p id="tickets-loading" style="color:var(--slate); font-size:14.5px; display:none;">Loading your tickets…</p>
+      <div id="threads-list"></div>
+    </div>
 
   </div>
 </div>
@@ -145,9 +161,17 @@
     return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
   }
 
+  function switchSupportTab(tabName) {
+    document.querySelectorAll('.support-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+    document.querySelectorAll('.support-tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tabName}`));
+  }
+
+  document.querySelectorAll('.support-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchSupportTab(btn.dataset.tab));
+  });
+
   async function loadThreads() {
     const list = document.getElementById('threads-list');
-    const heading = document.getElementById('threads-heading');
 
     const { data: threads, error } = await supabaseClient
       .from('support_threads')
@@ -155,10 +179,21 @@
       .eq('profile_id', currentUserId)
       .order('updated_at', { ascending: false });
 
-    if (error) { list.innerHTML = `<div class="empty-state">Could not load threads: ${escapeHtml(error.message)}</div>`; return; }
-    if (!threads || threads.length === 0) { heading.style.display = 'none'; return; }
+    if (error) { list.innerHTML = `<div class="empty-state">Could not load tickets: ${escapeHtml(error.message)}</div>`; return; }
 
-    heading.style.display = 'block';
+    // Update count badge
+    const countBadge = document.getElementById('tickets-count');
+    if (threads && threads.length > 0) {
+      countBadge.textContent = threads.length;
+      countBadge.style.display = 'inline';
+    } else {
+      countBadge.style.display = 'none';
+    }
+
+    if (!threads || threads.length === 0) {
+      list.innerHTML = '<div class="empty-state">No previous tickets — use the New query tab to get in touch.</div>';
+      return;
+    }
 
     list.innerHTML = threads.map(t => `
       <div class="card" id="thread-${t.id}">
@@ -275,6 +310,10 @@
     statusEl.style.color = 'var(--green)';
     statusEl.style.display = 'block';
     await loadThreads();
+    setTimeout(() => {
+      statusEl.style.display = 'none';
+      switchSupportTab('previous-tickets');
+    }, 1800);
   });
 
   (async () => {
