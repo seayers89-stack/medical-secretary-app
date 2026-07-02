@@ -91,6 +91,25 @@
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
+  /* Profile views */
+  .views-card{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    padding:26px 30px; margin-bottom:20px;
+  }
+  .views-card h3{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; margin-bottom:16px; }
+  .views-filters{ display:flex; gap:7px; flex-wrap:wrap; margin-bottom:20px; }
+  .views-filter-btn{
+    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:500; padding:6px 14px;
+    border-radius:999px; border:1.5px solid rgba(27,36,48,0.15); background:none; color:var(--slate);
+    cursor:pointer; transition:background .15s, border-color .15s, color .15s;
+  }
+  .views-filter-btn.active{ background:var(--ink); border-color:var(--ink); color:var(--paper); }
+  .views-stat{ display:flex; align-items:baseline; gap:10px; }
+  .views-number{
+    font-family:'Fraunces',serif; font-weight:700; font-size:48px; line-height:1; color:var(--ink);
+  }
+  .views-label{ font-size:14px; color:var(--slate); }
+
   /* Profile completeness */
   .completeness-card{
     background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
@@ -179,6 +198,7 @@
   <div id="rating-row" style="margin-bottom:20px; font-size:14px; color:var(--slate);"></div>
 
   <p id="loading">Loading your profile…</p>
+  <div id="views-card" style="display:none;"></div>
   <div id="completeness-card" style="display:none;"></div>
   <div class="card" id="premium-boost-card" style="display:none;"></div>
   <div class="card" id="profile-card" style="display:none;"></div>
@@ -202,6 +222,60 @@
 <script src="system-skills-data.js"></script>
 <script src="specialist-courses-data.js"></script>
 <script>
+  async function renderViewsCard(userId) {
+    const { data: views, error } = await supabaseClient
+      .from('profile_views')
+      .select('viewed_at')
+      .eq('secretary_id', userId);
+
+    if (error || !views) return;
+
+    const PERIODS = [
+      { label: 'Last 7 days',   days: 7 },
+      { label: 'Last month',    days: 30 },
+      { label: 'Last 6 months', days: 182 },
+      { label: 'Last year',     days: 365 },
+      { label: 'All time',      days: null },
+    ];
+
+    function countFor(days) {
+      if (days === null) return views.length;
+      const cutoff = Date.now() - days * 86400000;
+      return views.filter(v => new Date(v.viewed_at).getTime() >= cutoff).length;
+    }
+
+    let activePeriod = PERIODS[1]; // default: last month
+
+    const el = document.getElementById('views-card');
+
+    function renderCard() {
+      const count = countFor(activePeriod.days);
+      el.className = 'views-card';
+      el.innerHTML = `
+        <h3>Profile views</h3>
+        <div class="views-filters">
+          ${PERIODS.map(p => `
+            <button class="views-filter-btn${p === activePeriod ? ' active' : ''}" data-days="${p.days ?? 'null'}">${p.label}</button>
+          `).join('')}
+        </div>
+        <div class="views-stat">
+          <span class="views-number">${count}</span>
+          <span class="views-label">view${count !== 1 ? 's' : ''} — ${activePeriod.label.toLowerCase()}</span>
+        </div>
+      `;
+      el.querySelectorAll('.views-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const d = btn.dataset.days;
+          activePeriod = PERIODS.find(p => String(p.days ?? 'null') === d);
+          renderCard();
+        });
+      });
+    }
+
+    renderCard();
+    el.style.display = 'block';
+  }
+
   function renderCompleteness(profile, sec) {
     const ITEMS = [
       { label: 'Bio',             done: !!(profile.bio && profile.bio.trim()) },
@@ -331,6 +405,7 @@
           `;
         }
         boostCard.style.display = 'block';
+        renderViewsCard(userId);
         renderCompleteness(profile, sec);
 
         const outcode = (sec.postcode || '').trim().split(' ')[0];
