@@ -74,6 +74,40 @@
   .empty-state{ text-align:center; padding:60px 20px; color:var(--slate); font-size:14.5px; }
   #loading{ color:var(--slate); font-size:14.5px; }
 
+  /* Filters */
+  .filter-bar{
+    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:14px;
+    padding:20px 22px; margin-bottom:22px;
+  }
+  .filter-row{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .filter-row:last-child{ margin-bottom:0; }
+  .filter-select, .filter-input{
+    font-family:'Inter',sans-serif; font-size:13.5px; padding:9px 13px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    flex:1; min-width:160px;
+  }
+  .filter-select:focus, .filter-input:focus{ outline:none; border-color:var(--gold); }
+  .filter-tier-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--slate); display:block; margin-bottom:8px;
+  }
+  .chip-row{ display:flex; gap:7px; flex-wrap:wrap; }
+  .chip{
+    font-size:12.5px; padding:6px 13px; border-radius:999px;
+    border:1.5px solid rgba(27,36,48,0.15); color:var(--slate); cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, color .15s ease; user-select:none;
+  }
+  .chip.active{ background:var(--ink); border-color:var(--ink); color:var(--paper); }
+
+  .results-header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px; font-size:13.5px; color:var(--slate);
+  }
+  .clear-filters{
+    font-size:13px; color:var(--gold); font-weight:600; cursor:pointer; background:none; border:none; padding:0;
+  }
+  .clear-filters:hover{ text-decoration:underline; }
+
 </style>
 </head>
 <body>
@@ -100,6 +134,26 @@
   <p class="sub">Free to browse and respond to. Responding to a posting opens messaging with that consultant directly.</p>
 
   <p id="loading">Loading postings…</p>
+
+  <div id="filter-section" style="display:none;">
+    <div class="filter-bar">
+      <div class="filter-row">
+        <select class="filter-select" id="filter-specialty">
+          <option value="">All specialties</option>
+        </select>
+        <input class="filter-input" id="filter-location" type="text" placeholder="Location…">
+      </div>
+      <div>
+        <span class="filter-tier-label">Systems required</span>
+        <div class="chip-row" id="filter-systems"></div>
+      </div>
+    </div>
+    <div class="results-header">
+      <span id="results-count"></span>
+      <button class="clear-filters" id="clear-filters" style="display:none;">Clear filters</button>
+    </div>
+  </div>
+
   <div id="jobs"></div>
 </div>
 
@@ -107,35 +161,105 @@
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
 <script>
+  const ALL_SYSTEMS = [
+    'Allocate','Careflow','Cerner','Cliniko','Docman','Emis','Helix','iGPR',
+    'Meditech','Meditop','Microtest','Mirth','Notepad','Optio','Patchwork',
+    'Rio','S1','Systmone','TPP','Vision','Webv','Zedmed'
+  ];
+
   let currentUserId = null;
   let isSecretary = false;
   let respondedJobIds = new Set();
+  let allJobs = [];
 
-  async function loadJobs() {
-    const { data: jobs, error } = await supabaseClient
-      .from('job_postings')
-      .select('*, profiles(first_name, last_name)')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false });
+  let activeSpecialty = '';
+  let activeLocation = '';
+  let activeSystems = new Set();
 
-    const loading = document.getElementById('loading');
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function buildFilters() {
+    // Specialty dropdown — only specialties present in current data
+    const specialties = [...new Set(allJobs.map(j => j.specialty).filter(Boolean))].sort();
+    const specialtyEl = document.getElementById('filter-specialty');
+    specialties.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s;
+      specialtyEl.appendChild(opt);
+    });
+
+    // Systems chips — only systems that appear in at least one job
+    const usedSystems = new Set(allJobs.flatMap(j => j.systems || []));
+    const systemsEl = document.getElementById('filter-systems');
+    ALL_SYSTEMS.filter(s => usedSystems.has(s)).forEach(s => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = s;
+      chip.dataset.value = s;
+      chip.addEventListener('click', () => {
+        if (activeSystems.has(s)) { activeSystems.delete(s); chip.classList.remove('active'); }
+        else { activeSystems.add(s); chip.classList.add('active'); }
+        render();
+      });
+      systemsEl.appendChild(chip);
+    });
+
+    specialtyEl.addEventListener('change', () => { activeSpecialty = specialtyEl.value; render(); });
+    document.getElementById('filter-location').addEventListener('input', (e) => {
+      activeLocation = e.target.value.trim().toLowerCase();
+      render();
+    });
+    document.getElementById('clear-filters').addEventListener('click', clearFilters);
+
+    document.getElementById('filter-section').style.display = 'block';
+  }
+
+  function clearFilters() {
+    activeSpecialty = '';
+    activeLocation = '';
+    activeSystems.clear();
+    document.getElementById('filter-specialty').value = '';
+    document.getElementById('filter-location').value = '';
+    document.querySelectorAll('#filter-systems .chip').forEach(c => c.classList.remove('active'));
+    render();
+  }
+
+  function filtersActive() {
+    return activeSpecialty || activeLocation || activeSystems.size > 0;
+  }
+
+  function render() {
     const jobsEl = document.getElementById('jobs');
-    loading.style.display = 'none';
+    const clearBtn = document.getElementById('clear-filters');
+    clearBtn.style.display = filtersActive() ? 'inline' : 'none';
 
-    if (error) {
-      jobsEl.innerHTML = `<div class="empty-state">Could not load jobs: ${error.message}</div>`;
+    const filtered = allJobs.filter(job => {
+      if (activeSpecialty && job.specialty !== activeSpecialty) return false;
+      if (activeLocation && !(job.location || '').toLowerCase().includes(activeLocation)) return false;
+      if (activeSystems.size > 0) {
+        const jobSystems = new Set(job.systems || []);
+        for (const s of activeSystems) { if (!jobSystems.has(s)) return false; }
+      }
+      return true;
+    });
+
+    const count = filtered.length;
+    document.getElementById('results-count').textContent =
+      count === allJobs.length ? `${count} open role${count !== 1 ? 's' : ''}` :
+      `${count} of ${allJobs.length} role${allJobs.length !== 1 ? 's' : ''} match`;
+
+    if (filtered.length === 0) {
+      jobsEl.innerHTML = `<div class="empty-state">No roles match your filters — try broadening your search.</div>`;
       return;
     }
 
-    if (!jobs || jobs.length === 0) {
-      jobsEl.innerHTML = `<div class="empty-state">No open roles right now — check back soon.</div>`;
-      return;
-    }
-
-    jobsEl.innerHTML = jobs.map(job => {
-      const consultantName = job.profiles ? `${job.profiles.first_name} ${job.profiles.last_name}` : 'A consultant';
-      const chips = (job.systems || []).map(s => `<span class="job-chip">${s}</span>`).join('');
-      const metaParts = [job.specialty, job.location, job.day_rate].filter(Boolean);
+    jobsEl.innerHTML = filtered.map(job => {
+      const consultantName = job.profiles ? `${escapeHtml(job.profiles.first_name)} ${escapeHtml(job.profiles.last_name)}` : 'A consultant';
+      const chips = (job.systems || []).map(s => `<span class="job-chip">${escapeHtml(s)}</span>`).join('');
+      const metaParts = [job.specialty, job.location, job.day_rate].filter(Boolean).map(escapeHtml);
 
       let action;
       if (!currentUserId) {
@@ -150,10 +274,10 @@
 
       return `
         <div class="job-card">
-          <div class="job-title">${job.title}</div>
+          <div class="job-title">${escapeHtml(job.title)}</div>
           <div class="job-meta">${consultantName}${metaParts.length ? ' · ' + metaParts.join(' · ') : ''}</div>
           ${chips ? `<div class="job-chips">${chips}</div>` : ''}
-          <div class="job-desc">${job.description || ''}</div>
+          <div class="job-desc">${escapeHtml(job.description || '')}</div>
           ${action}
         </div>
       `;
@@ -214,7 +338,27 @@
       }
     }
 
-    await loadJobs();
+    const { data: jobs, error } = await supabaseClient
+      .from('job_postings')
+      .select('*, profiles(first_name, last_name)')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false });
+
+    document.getElementById('loading').style.display = 'none';
+
+    if (error) {
+      document.getElementById('jobs').innerHTML = `<div class="empty-state">Could not load jobs: ${error.message}</div>`;
+      return;
+    }
+
+    if (!jobs || jobs.length === 0) {
+      document.getElementById('jobs').innerHTML = `<div class="empty-state">No open roles right now — check back soon.</div>`;
+      return;
+    }
+
+    allJobs = jobs;
+    buildFilters();
+    render();
   })();
 
   document.getElementById('logout-btn').addEventListener('click', async () => {
