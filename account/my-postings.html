@@ -76,13 +76,38 @@
   }
   .job-status-badge.open{ background:rgba(63,107,79,0.1); color:#3F6B4F; }
   .job-status-badge.closed{ background:rgba(92,100,112,0.1); color:var(--slate); }
-  .btn-close-job{
+  .job-status-badge.unpublished{ background:rgba(184,146,74,0.12); color:#8F6F36; }
+  .job-card.closed{ opacity:0.65; }
+  .job-card.unpublished{ opacity:0.75; }
+  .card-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .btn-action{
     font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:8px 16px;
     border-radius:7px; border:1.5px solid rgba(27,36,48,0.2); background:none;
-    color:var(--ink); cursor:pointer; margin-top:16px;
+    color:var(--ink); cursor:pointer;
   }
-  .btn-close-job:hover{ background:rgba(27,36,48,0.05); }
-  .job-card.closed{ opacity:0.65; }
+  .btn-action:hover{ background:rgba(27,36,48,0.05); }
+  .btn-action.danger{ border-color:rgba(193,57,60,0.3); color:#a33; }
+  .btn-action.danger:hover{ background:rgba(193,57,60,0.05); }
+  .edit-form{
+    display:none; margin-top:18px; padding-top:18px;
+    border-top:1px solid rgba(27,36,48,0.08);
+  }
+  .edit-form.open{ display:block; }
+  .edit-field{ margin-bottom:14px; }
+  .edit-field label{ display:block; font-size:12px; font-weight:600; margin-bottom:5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em; }
+  .edit-field input, .edit-field textarea{
+    width:100%; padding:10px 13px; font-family:'Inter',sans-serif; font-size:14px;
+    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .edit-field textarea{ resize:vertical; min-height:80px; }
+  .edit-field input:focus, .edit-field textarea:focus{ outline:none; border-color:var(--gold); }
+  .edit-save-row{ display:flex; gap:10px; align-items:center; }
+  .btn-save{
+    font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600; padding:10px 20px;
+    border-radius:8px; border:none; background:var(--ink); color:var(--paper); cursor:pointer;
+  }
+  .btn-save:disabled{ opacity:0.55; cursor:not-allowed; }
+  .edit-status{ font-size:13px; color:var(--green); display:none; }
   .empty-state{ text-align:center; padding:60px 20px; color:var(--slate); font-size:14.5px; }
   #loading{ color:var(--slate); font-size:14.5px; }
 
@@ -118,6 +143,12 @@
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
 <script>
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'my-postings');
     if (!navResult) {
@@ -148,15 +179,41 @@
 
     for (const job of jobs) {
       const card = document.createElement('div');
-      card.className = `job-card${job.status === 'closed' ? ' closed' : ''}`;
+      const statusClass = job.status === 'closed' ? 'closed' : job.status === 'unpublished' ? 'unpublished' : '';
+      card.className = `job-card${statusClass ? ' ' + statusClass : ''}`;
+      card.dataset.jobId = job.id;
       const metaParts = [job.specialty, job.location, job.day_rate].filter(Boolean);
+      const badgeLabel = job.status === 'closed' ? 'Position filled' : job.status === 'unpublished' ? 'Unpublished' : 'Open';
+
+      const activeActions = job.status === 'open' ? `
+        <button class="btn-action btn-edit">Edit</button>
+        <button class="btn-action btn-unpublish">Unpublish</button>
+        <button class="btn-action danger btn-close">Mark as filled</button>
+      ` : job.status === 'unpublished' ? `
+        <button class="btn-action btn-edit">Edit</button>
+        <button class="btn-action btn-republish">Republish</button>
+        <button class="btn-action danger btn-close">Mark as filled</button>
+      ` : '';
+
       card.innerHTML = `
         <div class="job-title">${job.title}</div>
         <div class="job-meta">${metaParts.join(' · ')}</div>
-        <span class="job-status-badge ${job.status === 'closed' ? 'closed' : 'open'}">${job.status === 'closed' ? 'Position filled' : 'Open'}</span>
+        <span class="job-status-badge ${job.status}">${badgeLabel}</span>
         <span class="respondents-label">Respondents</span>
         <div class="respondents-list">Loading…</div>
-        ${job.status === 'open' ? `<button class="btn-close-job" data-job-id="${job.id}">Mark position as filled</button>` : ''}
+        <div class="card-actions">${activeActions}</div>
+        <div class="edit-form">
+          <div class="edit-field"><label>Job title</label><input type="text" class="ef-title" value="${escapeHtml(job.title)}"></div>
+          <div class="edit-field"><label>Specialty</label><input type="text" class="ef-specialty" value="${escapeHtml(job.specialty || '')}"></div>
+          <div class="edit-field"><label>Location</label><input type="text" class="ef-location" value="${escapeHtml(job.location || '')}"></div>
+          <div class="edit-field"><label>Day rate</label><input type="text" class="ef-day-rate" value="${escapeHtml(job.day_rate || '')}"></div>
+          <div class="edit-field"><label>Description</label><textarea class="ef-description">${escapeHtml(job.description || '')}</textarea></div>
+          <div class="edit-save-row">
+            <button class="btn-save btn-save-edit">Save changes</button>
+            <button class="btn-action btn-cancel-edit">Cancel</button>
+            <span class="edit-status">Saved</span>
+          </div>
+        </div>
       `;
       jobsEl.appendChild(card);
 
@@ -189,28 +246,100 @@
         </div>
       `).join('');
     }
+    async function updateJobStatus(jobId, status) {
+      const { error } = await supabaseClient.from('job_postings').update({ status }).eq('id', jobId);
+      return error;
+    }
+
     jobsEl.addEventListener('click', async (e) => {
-      const btn = e.target.closest('.btn-close-job');
-      if (!btn) return;
-      if (!confirm('Mark this position as filled? The listing will be closed and hidden from the job board.')) return;
-      btn.disabled = true;
-      btn.textContent = 'Closing…';
-      const jobId = btn.dataset.jobId;
-      const { error } = await supabaseClient
-        .from('job_postings')
-        .update({ status: 'closed' })
-        .eq('id', jobId);
-      if (error) {
-        btn.disabled = false;
-        btn.textContent = 'Mark position as filled';
-        alert('Could not close listing: ' + error.message);
+      const card = e.target.closest('.job-card');
+      if (!card) return;
+      const jobId = card.dataset.jobId;
+
+      // Edit
+      if (e.target.closest('.btn-edit')) {
+        card.querySelector('.edit-form').classList.toggle('open');
         return;
       }
-      const card = btn.closest('.job-card');
-      card.classList.add('closed');
-      card.querySelector('.job-status-badge').textContent = 'Position filled';
-      card.querySelector('.job-status-badge').className = 'job-status-badge closed';
-      btn.remove();
+
+      // Cancel edit
+      if (e.target.closest('.btn-cancel-edit')) {
+        card.querySelector('.edit-form').classList.remove('open');
+        return;
+      }
+
+      // Save edit
+      if (e.target.closest('.btn-save-edit')) {
+        const btn = e.target.closest('.btn-save-edit');
+        const statusEl = card.querySelector('.edit-status');
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+        const updates = {
+          title: card.querySelector('.ef-title').value.trim(),
+          specialty: card.querySelector('.ef-specialty').value.trim(),
+          location: card.querySelector('.ef-location').value.trim(),
+          day_rate: card.querySelector('.ef-day-rate').value.trim(),
+          description: card.querySelector('.ef-description').value.trim(),
+        };
+        const { error } = await supabaseClient.from('job_postings').update(updates).eq('id', jobId);
+        btn.disabled = false;
+        btn.textContent = 'Save changes';
+        if (error) { alert('Could not save: ' + error.message); return; }
+        card.querySelector('.job-title').textContent = updates.title;
+        const metaParts = [updates.specialty, updates.location, updates.day_rate].filter(Boolean);
+        card.querySelector('.job-meta').textContent = metaParts.join(' · ');
+        statusEl.style.display = 'inline';
+        setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+        return;
+      }
+
+      // Unpublish
+      if (e.target.closest('.btn-unpublish')) {
+        const btn = e.target.closest('.btn-unpublish');
+        btn.disabled = true;
+        const error = await updateJobStatus(jobId, 'unpublished');
+        if (error) { btn.disabled = false; alert('Could not unpublish: ' + error.message); return; }
+        card.classList.remove('open'); card.classList.add('unpublished');
+        card.querySelector('.job-status-badge').textContent = 'Unpublished';
+        card.querySelector('.job-status-badge').className = 'job-status-badge unpublished';
+        card.querySelector('.card-actions').innerHTML = `
+          <button class="btn-action btn-edit">Edit</button>
+          <button class="btn-action btn-republish">Republish</button>
+          <button class="btn-action danger btn-close">Mark as filled</button>
+        `;
+        return;
+      }
+
+      // Republish
+      if (e.target.closest('.btn-republish')) {
+        const btn = e.target.closest('.btn-republish');
+        btn.disabled = true;
+        const error = await updateJobStatus(jobId, 'open');
+        if (error) { btn.disabled = false; alert('Could not republish: ' + error.message); return; }
+        card.classList.remove('unpublished');
+        card.querySelector('.job-status-badge').textContent = 'Open';
+        card.querySelector('.job-status-badge').className = 'job-status-badge open';
+        card.querySelector('.card-actions').innerHTML = `
+          <button class="btn-action btn-edit">Edit</button>
+          <button class="btn-action btn-unpublish">Unpublish</button>
+          <button class="btn-action danger btn-close">Mark as filled</button>
+        `;
+        return;
+      }
+
+      // Close / mark as filled
+      if (e.target.closest('.btn-close')) {
+        if (!confirm('Mark this position as filled? This cannot be undone.')) return;
+        const btn = e.target.closest('.btn-close');
+        btn.disabled = true;
+        const error = await updateJobStatus(jobId, 'closed');
+        if (error) { btn.disabled = false; alert('Could not close listing: ' + error.message); return; }
+        card.classList.remove('unpublished'); card.classList.add('closed');
+        card.querySelector('.job-status-badge').textContent = 'Position filled';
+        card.querySelector('.job-status-badge').className = 'job-status-badge closed';
+        card.querySelector('.card-actions').innerHTML = '';
+        return;
+      }
     });
   })();
 
