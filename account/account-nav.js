@@ -65,16 +65,26 @@ function buildAccountNavHtml(role, activeKey) {
 // 'job-board', or null if this page isn't one of those), and the Supabase
 // client. Returns { session, profile } if logged in, otherwise null —
 // callers can reuse this instead of re-fetching session/profile themselves.
+// Hide the nav immediately to prevent the logged-out links flashing before
+// the session check completes. Revealed in renderAccountNav once the correct
+// links (or the original public links) are ready to show.
+(function () {
+  const nav = document.querySelector('nav.nav-links');
+  if (nav) nav.style.visibility = 'hidden';
+})();
+
 async function renderAccountNav(navEl, supabaseClient, activeKey) {
+  const reveal = () => { navEl.style.visibility = ''; };
+
   const { data: { session } } = await supabaseClient.auth.getSession();
-  if (!session) return null;
+  if (!session) { reveal(); return null; }
 
   const { data: profile } = await supabaseClient
     .from('profiles')
     .select('role')
     .eq('id', session.user.id)
     .single();
-  if (!profile) return null;
+  if (!profile) { reveal(); return null; }
 
   if (profile.role === 'admin') {
     const currentPage = window.location.pathname.split('/').pop() || '';
@@ -86,6 +96,7 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
 
   const { data: isAdmin } = await supabaseClient.rpc('is_admin');
   navEl.innerHTML = buildAccountNavHtml(profile.role, activeKey);
+  reveal();
 
   let unread = null;
   if (profile.role !== 'admin') {
