@@ -227,12 +227,13 @@
     // this secretary yet, create the unlock now (pass-covered, no charge).
     const { data: existingUnlock } = await supabaseClient
       .from('unlocks')
-      .select('id')
+      .select('id, refunded_at')
       .eq('consultant_id', consultantId)
       .eq('secretary_id', secretaryId)
       .maybeSingle();
 
-    let unlocked = !!existingUnlock || navResult.isAdmin;
+    const isRefunded = existingUnlock?.refunded_at != null;
+    let unlocked = (!!existingUnlock && !isRefunded) || navResult.isAdmin;
 
     if (!unlocked && currentUserId === consultantId) {
       const { data: con } = await supabaseClient
@@ -253,6 +254,24 @@
 
     const loading = document.getElementById('loading');
     const content = document.getElementById('content');
+
+    if (isRefunded) {
+      loading.style.display = 'none';
+      content.style.display = 'block';
+      document.getElementById('thread-card').outerHTML = `
+        <div style="background:#fff;border:1px solid rgba(27,36,48,0.08);border-radius:14px;padding:32px 28px;text-align:center;">
+          <div style="font-size:28px;margin-bottom:12px;">🔒</div>
+          <p style="font-weight:600;font-size:15px;margin-bottom:8px;">This conversation has been closed</p>
+          <p style="color:var(--slate);font-size:14px;line-height:1.6;max-width:340px;margin:0 auto 20px;">
+            ${otherName} didn't reply within 14 days, so your £12 has been automatically refunded to your original payment method.
+            Refunds appear within 5–10 business days.
+          </p>
+          <a href="search-secretaries.html" style="display:inline-block;background:var(--ink);color:var(--paper);font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;text-decoration:none;">Browse other secretaries</a>
+        </div>
+      `;
+      document.getElementById('compose-form').style.display = 'none';
+      return;
+    }
 
     if (!unlocked) {
       loading.style.display = 'none';

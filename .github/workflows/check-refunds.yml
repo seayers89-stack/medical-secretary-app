@@ -1,0 +1,25 @@
+name: Check and process automatic refunds
+
+on:
+  schedule:
+    # Run daily at 03:00 UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-refunds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call check-refunds edge function
+        run: |
+          response=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/check-refunds" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+          echo "HTTP status: $response"
+          echo "Response body:"
+          cat /tmp/response.json
+          if [ "$response" != "200" ]; then
+            echo "check-refunds function returned non-200 status"
+            exit 1
+          fi

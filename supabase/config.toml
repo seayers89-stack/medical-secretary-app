@@ -51,5 +51,19 @@ enabled = true
 # caller's token from the real POST request, so it's safe to disable here.
 verify_jwt = false
 
+[functions.create-checkout-session]
+# We verify the caller's JWT ourselves inside the function.
+verify_jwt = false
+
+[functions.stripe-webhook]
+# Stripe sends its own signature header, not a Supabase JWT.
+# Signature is verified inside the function using STRIPE_WEBHOOK_SECRET.
+verify_jwt = false
+
+[functions.check-refunds]
+# Called by GitHub Actions cron with a CRON_SECRET bearer token.
+# No Supabase JWT involved.
+verify_jwt = false
+
 [analytics]
 enabled = false
