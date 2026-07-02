@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Veyn <notifications@veyn.app>",
+        from: "Veyn <notifications@veyn.uk>",
         to: recipient.email,
         subject: `New message from ${senderName} on Veyn`,
         html: `
