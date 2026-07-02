@@ -91,6 +91,28 @@
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
+  .danger-zone{
+    border:1.5px solid rgba(193,68,68,0.25); border-radius:18px;
+    padding:28px 32px; margin-top:8px;
+  }
+  .danger-zone h3{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; color:#a33; margin-bottom:8px; }
+  .danger-zone p{ font-size:14px; color:var(--slate); line-height:1.6; margin-bottom:16px; }
+  .danger-confirm-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+  .danger-confirm-row input{
+    flex:1; min-width:180px; padding:10px 14px; font-family:'Inter',sans-serif; font-size:14px;
+    border:1.5px solid rgba(193,68,68,0.3); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .danger-confirm-row input:focus{ outline:none; border-color:#a33; }
+  .btn-delete{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px; padding:10px 22px;
+    border-radius:8px; cursor:pointer; border:none; background:#C14444; color:#fff;
+    transition:opacity .15s ease;
+  }
+  .btn-delete:disabled{ opacity:0.45; cursor:not-allowed; }
+  .btn-delete:not(:disabled):hover{ opacity:.85; }
+  #delete-status{ display:none; font-size:13px; padding:10px 14px; border-radius:8px; margin-top:4px; }
+  #delete-status.error{ display:block; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
+
 </style>
 </head>
 <body>
@@ -121,6 +143,17 @@
   <p id="loading">Loading your profile…</p>
   <div class="card" id="premium-boost-card" style="display:none;"></div>
   <div class="card" id="profile-card" style="display:none;"></div>
+
+  <div class="danger-zone" id="danger-zone" style="display:none;">
+    <h3>Delete account</h3>
+    <p>This permanently deletes your account and all your data — profile, messages, course progress, and results. This cannot be undone.</p>
+    <p>Type <strong>DELETE</strong> to confirm, then click the button.</p>
+    <div class="danger-confirm-row">
+      <input type="text" id="delete-confirm-input" placeholder="Type DELETE to confirm" autocomplete="off">
+      <button class="btn-delete" id="delete-btn" disabled>Delete my account</button>
+    </div>
+    <p id="delete-status"></p>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -275,6 +308,7 @@
 
     loading.style.display = 'none';
     card.style.display = 'block';
+    document.getElementById('danger-zone').style.display = 'block';
 
     if (profile.role === 'secretary') {
       const { data: results } = await supabaseClient
@@ -290,6 +324,49 @@
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
     window.location.href = 'login.html';
+  });
+
+  // Danger zone — shown after profile loads (so we know user is authenticated)
+  const deleteInput = document.getElementById('delete-confirm-input');
+  const deleteBtn = document.getElementById('delete-btn');
+  const deleteStatus = document.getElementById('delete-status');
+
+  deleteInput.addEventListener('input', () => {
+    deleteBtn.disabled = deleteInput.value.trim() !== 'DELETE';
+  });
+
+  deleteBtn.addEventListener('click', async () => {
+    if (deleteInput.value.trim() !== 'DELETE') return;
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = 'Deleting…';
+    deleteStatus.className = '';
+    deleteStatus.style.display = 'none';
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+
+    const res = await fetch(
+      `${SUPABASE_URL}/functions/v1/delete-account`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': SUPABASE_ANON_KEY,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const msg = await res.text();
+      deleteStatus.textContent = 'Could not delete account: ' + msg;
+      deleteStatus.className = 'error';
+      deleteBtn.disabled = false;
+      deleteBtn.textContent = 'Delete my account';
+      return;
+    }
+
+    await supabaseClient.auth.signOut();
+    window.location.href = '../index.html?account_deleted=1';
   });
 </script>
 
