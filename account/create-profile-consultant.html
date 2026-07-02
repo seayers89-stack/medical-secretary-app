@@ -265,16 +265,22 @@
       return;
     }
 
+    // If email confirmation is on, session is null — save draft and go to confirm page.
+    if (!signUpData.session) {
+      localStorage.setItem('veyn_signup_draft', JSON.stringify({
+        role: 'consultant',
+        firstName, lastName, email,
+        practice, specialty, hospitals: hospitalTags,
+      }));
+      window.location.href = `confirm-email.html?email=${encodeURIComponent(email)}`;
+      return;
+    }
+
     const userId = signUpData.user.id;
 
     const { error: profileError } = await supabaseClient.from('profiles').insert({
-      id: userId,
-      role: 'consultant',
-      first_name: firstName,
-      last_name: lastName,
-      email: email,
+      id: userId, role: 'consultant', first_name: firstName, last_name: lastName, email,
     });
-
     if (profileError) {
       errorBox.textContent = profileError.message;
       errorBox.style.display = 'block';
@@ -289,7 +295,6 @@
       specialty: specialty,
       hospitals: hospitalTags,
     });
-
     if (conProfileError) {
       errorBox.textContent = conProfileError.message;
       errorBox.style.display = 'block';
