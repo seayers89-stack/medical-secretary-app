@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cookie policy — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1B2430; --paper:#F7F4ED; --gold:#B8924A; --slate:#5C6470; --green:#3F6B4F; --white:#FFFFFF; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--paper); color:var(--ink); font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; }
+  a{ color:var(--gold); text-decoration:underline; }
+  a:hover{ color:#d4a95e; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92); backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+
+  .wrap{ max-width:720px; margin:0 auto; padding:64px 32px 120px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:36px; margin-bottom:10px; }
+  .updated{ color:var(--slate); font-size:13px; margin-bottom:40px; }
+
+  h2{ font-family:'Fraunces', serif; font-weight:600; font-size:20px; margin:36px 0 12px; }
+  p{ color:var(--ink); font-size:15px; line-height:1.75; margin-bottom:14px; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; margin-bottom:24px; }
+  th, td{ text-align:left; padding:10px 14px; border-bottom:1px solid rgba(27,36,48,0.1); }
+  th{ font-weight:600; background:rgba(27,36,48,0.04); }
+  .manage-btn{
+    font-family:'Inter', sans-serif; font-size:13.5px; font-weight:600; padding:10px 20px;
+    border-radius:7px; border:1.5px solid var(--ink); background:none; color:var(--ink); cursor:pointer; margin-top:8px;
+  }
+  .manage-btn:hover{ background:rgba(27,36,48,0.05); }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo"><span class="dot"></span>veyn</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Legal</div>
+  <h1>Cookie policy</h1>
+  <p class="updated">Last updated: 2 July 2026</p>
+
+  <p>This policy explains what cookies Veyn uses, why we use them, and how you can control them.</p>
+
+  <h2>What are cookies?</h2>
+  <p>Cookies are small text files placed on your device by a website. They are widely used to make websites work efficiently and to provide information to site owners.</p>
+
+  <h2>What cookies do we use?</h2>
+  <p>Veyn only uses <strong>strictly necessary cookies</strong>. These are essential for the site to function — without them you cannot log in or stay logged in between pages.</p>
+
+  <table>
+    <thead>
+      <tr><th>Cookie name</th><th>Purpose</th><th>Duration</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>sb-&lt;project&gt;-auth-token</td><td>Keeps you logged in (set by Supabase, our authentication provider)</td><td>Session / up to 1 year (if "remember me")</td></tr>
+      <tr><td>veyn_cookie_consent</td><td>Remembers that you have seen and responded to this cookie banner</td><td>Stored in localStorage — no expiry, cleared when you clear site data</td></tr>
+    </tbody>
+  </table>
+
+  <p>We do <strong>not</strong> use any analytics, advertising, or tracking cookies. We do not share cookie data with third parties for marketing purposes.</p>
+
+  <h2>Why we need strictly necessary cookies</h2>
+  <p>Under UK PECR (Privacy and Electronic Communications Regulations), strictly necessary cookies do not require your consent. However, we still want to be transparent about what we set and why.</p>
+
+  <h2>Managing your preferences</h2>
+  <p>You can withdraw your acceptance of non-essential cookies at any time by clicking the button below. Because we currently only use strictly necessary cookies, this has no functional effect — but your preference will be recorded.</p>
+  <button class="manage-btn" id="reset-consent-btn">Reset cookie preferences</button>
+
+  <h2>Changes to this policy</h2>
+  <p>If we start using additional cookies in the future (for example, if we add analytics), we will update this policy and show the consent banner again before setting any new cookies.</p>
+
+  <h2>Contact</h2>
+  <p>If you have questions about this policy, please <a href="account/support.html">contact us via the support page</a>.</p>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Founded by a medical secretary, not a market gap.</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('reset-consent-btn').addEventListener('click', function () {
+    localStorage.removeItem('veyn_cookie_consent');
+    this.textContent = 'Preferences reset — banner will reappear on next page load.';
+    this.disabled = true;
+  });
+</script>
+<script src="cookie-consent.js"></script>
+</body>
+</html>
