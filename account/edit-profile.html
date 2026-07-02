@@ -197,23 +197,17 @@
             <option>Outside UK</option>
           </select>
         </div>
-        <div class="field-row2">
-          <div class="field">
-            <label for="postcode">Postcode</label>
-            <input type="text" id="postcode" placeholder="e.g. SW1A 1AA">
-          </div>
-          <div class="field">
-            <label for="travel-willingness">Willingness to travel</label>
-            <select id="travel-willingness">
-              <option value="">Select</option>
-              <option>Remote only (no travel)</option>
-              <option>Up to 5 miles</option>
-              <option>Up to 10 miles</option>
-              <option>Up to 25 miles</option>
-              <option>Up to 50 miles</option>
-              <option>UK-wide (willing to travel anywhere)</option>
-            </select>
-          </div>
+        <div class="field">
+          <label for="travel-willingness">Willingness to travel</label>
+          <select id="travel-willingness">
+            <option value="">Select</option>
+            <option>Remote only (no travel)</option>
+            <option>Up to 5 miles</option>
+            <option>Up to 10 miles</option>
+            <option>Up to 25 miles</option>
+            <option>Up to 50 miles</option>
+            <option>UK-wide (willing to travel anywhere)</option>
+          </select>
         </div>
 
         <span class="section-label">Experience</span>
@@ -375,7 +369,7 @@
             <label class="chip-toggle"><input type="checkbox" value="Spanish"><span>Spanish</span></label>
             <label class="chip-toggle"><input type="checkbox" value="Arabic"><span>Arabic</span></label>
           </div>
-          <input type="text" id="languages-other" placeholder="Other language(s) — optional" style="margin-top:10px;">
+          <label class="chip-toggle" style="margin-top:10px;"><input type="checkbox" id="languages-other"><span>Other language not listed</span></label>
         </div>
 
         <span class="section-label">Verification</span>
@@ -448,14 +442,6 @@
             <label class="chip-toggle"><input type="checkbox" value="Saturday"><span>Saturday</span></label>
             <label class="chip-toggle"><input type="checkbox" value="Sunday"><span>Sunday</span></label>
           </div>
-        </div>
-        <div class="field toggle-row">
-          <input type="checkbox" id="available-evenings">
-          <label for="available-evenings" style="margin:0;">Available evenings</label>
-        </div>
-        <div class="field toggle-row">
-          <input type="checkbox" id="available-weekends">
-          <label for="available-weekends" style="margin:0;">Available weekends</label>
         </div>
 
         <span class="section-label">Rate</span>
@@ -610,11 +596,7 @@
           const el = document.querySelector(`#daily-availability-row input[value="${v}"]`);
           if (el) el.checked = true;
         });
-        document.getElementById('available-evenings').checked = !!sec.available_evenings;
-        document.getElementById('available-weekends').checked = !!sec.available_weekends;
-
         if (sec.region) document.getElementById('region').value = sec.region;
-        if (sec.postcode) document.getElementById('postcode').value = sec.postcode;
         if (sec.travel_willingness) document.getElementById('travel-willingness').value = sec.travel_willingness;
         if (sec.years_private_practice) document.getElementById('years-private-practice').value = sec.years_private_practice;
         (sec.employment_status || []).forEach(v => {
@@ -637,7 +619,7 @@
           const el = document.querySelector(`#languages-row input[value="${v}"]`);
           if (el) el.checked = true;
         });
-        if (sec.languages_other) document.getElementById('languages-other').value = sec.languages_other;
+        if (sec.languages_other) document.getElementById('languages-other').checked = true;
         document.getElementById('right-to-work').checked = !!sec.right_to_work;
         document.getElementById('has-cv').checked = !!sec.has_cv;
         document.getElementById('has-dbs').checked = !!sec.has_dbs;
@@ -752,7 +734,6 @@
       const experience = document.getElementById('experience').value;
 
       const region = document.getElementById('region').value;
-      const postcode = document.getElementById('postcode').value.trim();
       const travelWillingness = document.getElementById('travel-willingness').value;
       const yearsPrivatePractice = document.getElementById('years-private-practice').value;
       const employmentStatus = Array.from(document.querySelectorAll('#employment-row input:checked')).map(el => el.value);
@@ -760,7 +741,7 @@
       const typingSpeed = document.getElementById('typing-speed').value;
       const englishFluency = document.getElementById('english-fluency').value;
       const languagesSpoken = Array.from(document.querySelectorAll('#languages-row input:checked')).map(el => el.value);
-      const languagesOther = document.getElementById('languages-other').value.trim();
+      const languagesOther = document.getElementById('languages-other').checked;
       const rightToWork = document.getElementById('right-to-work').checked;
       const hasCv = document.getElementById('has-cv').checked;
       const hasDbs = document.getElementById('has-dbs').checked;
@@ -771,8 +752,6 @@
       const availabilityStart = document.getElementById('availability-start').value;
       const available = availabilityStart === 'Available now';
       const dailyAvailability = Array.from(document.querySelectorAll('#daily-availability-row input:checked')).map(el => el.value);
-      const availableEvenings = document.getElementById('available-evenings').checked;
-      const availableWeekends = document.getElementById('available-weekends').checked;
       const rateType = document.querySelector('input[name="rate-type"]:checked').value;
       const hourlyRate = rateType === 'hourly' ? (document.getElementById('hourly-rate').value || null) : null;
       const dayRate = rateType === 'day' ? (document.getElementById('day-rate').value || null) : null;
@@ -783,7 +762,7 @@
         .from('secretary_profiles')
         .update({
           years_experience: experience, systems, specialties, available,
-          region: region || null, postcode: postcode || null,
+          region: region || null,
           travel_willingness: travelWillingness || null,
           years_private_practice: yearsPrivatePractice,
           employment_status: employmentStatus,
@@ -791,7 +770,7 @@
           typing_speed: typingSpeed || null,
           english_fluency: englishFluency,
           languages_spoken: languagesSpoken,
-          languages_other: languagesOther || null,
+          languages_other: languagesOther,
           right_to_work: rightToWork,
           has_cv: hasCv,
           has_dbs: hasDbs,
@@ -801,8 +780,6 @@
           availability_type: availabilityType,
           availability_start: availabilityStart,
           daily_availability: dailyAvailability,
-          available_evenings: availableEvenings,
-          available_weekends: availableWeekends,
           hourly_rate: hourlyRate,
           day_rate: dayRate,
           rate_type: rateType,
