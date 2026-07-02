@@ -69,6 +69,22 @@
   }
   .card.resolved{ opacity:0.55; }
 
+  .support-sub-tabs{ display:flex; gap:8px; margin-bottom:20px; }
+  .support-sub-btn{
+    font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600;
+    padding:8px 18px; border-radius:999px; border:1.5px solid rgba(27,36,48,0.15);
+    background:none; color:var(--slate); cursor:pointer;
+    transition:background .15s, border-color .15s, color .15s;
+  }
+  .support-sub-btn.active{ background:var(--ink); border-color:var(--ink); color:var(--paper); }
+  .support-sub-count{
+    display:inline-block; min-width:18px; height:18px; line-height:18px;
+    border-radius:999px; font-size:10.5px; font-weight:700; text-align:center;
+    padding:0 5px; margin-left:5px;
+    background:rgba(255,255,255,0.2);
+  }
+  .support-sub-btn:not(.active) .support-sub-count{ background:rgba(27,36,48,0.08); color:var(--ink); }
+
   .item-meta{ font-size:12px; color:var(--slate); display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
   .item-meta .tag{
     font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.04em; text-transform:uppercase;
@@ -248,6 +264,10 @@
     </div>
 
     <div class="tab-panel" id="tab-support">
+      <div class="support-sub-tabs">
+        <button class="support-sub-btn active" data-filter="open">Pending <span class="support-sub-count" id="count-open"></span></button>
+        <button class="support-sub-btn" data-filter="resolved">Resolved <span class="support-sub-count" id="count-resolved"></span></button>
+      </div>
       <div id="support-list"></div>
     </div>
 
@@ -910,6 +930,8 @@
   // ── Support tab ───────────────────────────────────────────────────────────
   let adminUserId = null;
   let allSupportThreads = [];
+  let supportProfMap = {};
+  let activeSupportFilter = 'open';
 
   async function loadSupportThreads() {
     const list = document.getElementById('support-list');
@@ -921,22 +943,39 @@
       .order('updated_at', { ascending: false });
 
     if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
-    if (!threads || threads.length === 0) { list.innerHTML = '<div class="empty-state">No support queries yet.</div>'; return; }
 
-    const profileIds = [...new Set(threads.map(t => t.profile_id))];
-    const { data: profs } = await supabaseClient.from('profiles').select('id, first_name, last_name, email').in('id', profileIds);
-    const profMap = {};
-    (profs || []).forEach(p => { profMap[p.id] = p; });
+    const profileIds = [...new Set((threads || []).map(t => t.profile_id))];
+    if (profileIds.length) {
+      const { data: profs } = await supabaseClient.from('profiles').select('id, first_name, last_name, email').in('id', profileIds);
+      supportProfMap = {};
+      (profs || []).forEach(p => { supportProfMap[p.id] = p; });
+    }
 
-    const openCount = threads.filter(t => t.status === 'open').length;
+    const openCount = (threads || []).filter(t => t.status === 'open').length;
     const badge = document.getElementById('support-unread-badge');
-    if (openCount > 0) { badge.textContent = openCount; badge.style.display = 'inline'; }
-    else { badge.style.display = 'none'; }
+    badge.textContent = openCount;
+    badge.style.display = openCount > 0 ? 'inline' : 'none';
 
-    allSupportThreads = threads;
+    document.getElementById('count-open').textContent = openCount;
+    document.getElementById('count-resolved').textContent = (threads || []).filter(t => t.status !== 'open').length;
 
-    list.innerHTML = threads.map(t => {
-      const p = profMap[t.profile_id] || {};
+    allSupportThreads = threads || [];
+    renderSupportList();
+  }
+
+  async function renderSupportList() {
+    const list = document.getElementById('support-list');
+    const filtered = allSupportThreads.filter(t =>
+      activeSupportFilter === 'open' ? t.status === 'open' : t.status !== 'open'
+    );
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state">No ${activeSupportFilter === 'open' ? 'pending' : 'resolved'} tickets.</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(t => {
+      const p = supportProfMap[t.profile_id] || {};
       const name = `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.email || 'Unknown';
       return `
         <div class="card" id="admin-thread-${t.id}" style="margin-bottom:14px;">
@@ -945,7 +984,6 @@
               <div class="staff-name">${escapeHtml(t.subject)}</div>
               <div class="staff-meta">${escapeHtml(name)} · ${formatDate(t.created_at)}</div>
             </div>
-            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; padding:3px 9px; border-radius:999px; font-weight:500; white-space:nowrap; ${t.status === 'open' ? 'background:rgba(63,107,79,0.1); color:var(--green);' : 'background:rgba(92,100,112,0.1); color:var(--slate);'}">${t.status === 'open' ? 'Open' : 'Resolved'}</span>
           </div>
           <div id="admin-msgs-${t.id}" style="display:flex; flex-direction:column; gap:10px; margin:12px 0;"><div class="empty-state" style="padding:4px 0; text-align:left;">Loading…</div></div>
           ${t.status === 'open' ? `
@@ -962,8 +1000,8 @@
       `;
     }).join('');
 
-    for (const t of threads) {
-      await loadAdminMessages(t.id, profMap[t.profile_id]);
+    for (const t of filtered) {
+      await loadAdminMessages(t.id, supportProfMap[t.profile_id]);
     }
 
     list.querySelectorAll('[data-admin-reply]').forEach(btn => {
@@ -980,7 +1018,7 @@
         statusEl.style.display = 'none';
         btn.disabled = false;
         await supabaseClient.from('support_threads').update({ updated_at: new Date().toISOString() }).eq('id', threadId);
-        await loadAdminMessages(threadId, allSupportThreads.find(t => t.id === threadId));
+        await loadAdminMessages(threadId, supportProfMap[threadId]);
       });
     });
 
@@ -992,6 +1030,15 @@
       });
     });
   }
+
+  document.querySelectorAll('.support-sub-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.support-sub-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeSupportFilter = btn.dataset.filter;
+      renderSupportList();
+    });
+  });
 
   async function loadAdminMessages(threadId, userProfile) {
     const el = document.getElementById(`admin-msgs-${threadId}`);
