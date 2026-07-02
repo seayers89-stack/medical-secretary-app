@@ -213,7 +213,7 @@
       { label: 'Work mode',       done: (sec.work_mode || []).length > 0 },
       { label: 'Availability',    done: (sec.availability_type || []).length > 0 },
       { label: 'Rate',            done: sec.hourly_rate != null || sec.day_rate != null || sec.percentage_rate != null },
-      { label: 'Typing speed',    done: sec.typing_wpm_verified != null || !!(sec.typing_speed) },
+      { label: 'Typing speed',    done: sec.typing_wpm_verified != null || (!!sec.typing_speed && sec.typing_speed !== 'Unknown') },
     ];
 
     const doneCount = ITEMS.filter(i => i.done).length;
