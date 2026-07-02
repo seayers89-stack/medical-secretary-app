@@ -232,7 +232,7 @@
       .eq('secretary_id', secretaryId)
       .maybeSingle();
 
-    let unlocked = !!existingUnlock;
+    let unlocked = !!existingUnlock || navResult.isAdmin;
 
     if (!unlocked && currentUserId === consultantId) {
       const { data: con } = await supabaseClient

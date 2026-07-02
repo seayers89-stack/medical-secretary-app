@@ -178,11 +178,18 @@
           return;
         }
 
-        await supabaseClient.from('unlocks').insert({
+        const { error: unlockError } = await supabaseClient.from('unlocks').insert({
           consultant_id: consultantId,
           secretary_id: currentUserId,
           price_paid: 0,
         });
+
+        if (unlockError && unlockError.code !== '23505') {
+          alert('Could not open thread: ' + unlockError.message);
+          btn.disabled = false;
+          btn.textContent = 'Respond';
+          return;
+        }
 
         window.location.href = `thread.html?consultant_id=${consultantId}&secretary_id=${currentUserId}`;
       });

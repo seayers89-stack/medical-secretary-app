@@ -118,7 +118,7 @@
 <script src="specialist-courses-data.js"></script>
 <script>
   (async () => {
-    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, null);
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'academy');
     const loading = document.getElementById('loading');
     const list = document.getElementById('course-list');
 
@@ -126,7 +126,7 @@
       window.location.href = 'login.html';
       return;
     }
-    if (navResult.profile.role !== 'secretary') {
+    if (!navResult.isAdmin && navResult.profile.role !== 'secretary') {
       loading.textContent = 'Specialist courses are available to secretary accounts.';
       return;
     }

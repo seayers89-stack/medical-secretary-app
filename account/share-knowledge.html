@@ -250,7 +250,7 @@
   }
 
   (async () => {
-    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, null);
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'academy');
     const loading = document.getElementById('loading');
 
     if (!navResult) {

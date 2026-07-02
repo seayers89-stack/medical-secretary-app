@@ -283,12 +283,20 @@
       return;
     }
 
-    await supabaseClient.from('consultant_profiles').insert({
+    const { error: conProfileError } = await supabaseClient.from('consultant_profiles').insert({
       profile_id: userId,
       practice_name: practice,
       specialty: specialty,
       hospitals: hospitalTags,
     });
+
+    if (conProfileError) {
+      errorBox.textContent = conProfileError.message;
+      errorBox.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create my profile';
+      return;
+    }
 
     window.location.href = 'profile.html';
   });

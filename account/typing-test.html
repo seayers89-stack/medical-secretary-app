@@ -246,7 +246,8 @@
 
   async function startTest() {
     if (!(await checkAttemptLimit())) return;
-    await supabaseClient.from('typing_test_attempts').insert({ profile_id: userId });
+    const { error: attemptError } = await supabaseClient.from('typing_test_attempts').insert({ profile_id: userId });
+    if (attemptError) { console.warn('Could not log attempt:', attemptError.message); }
 
     PASSAGE = PASSAGES[Math.floor(Math.random() * PASSAGES.length)];
 
