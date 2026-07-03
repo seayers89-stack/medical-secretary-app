@@ -130,14 +130,12 @@
   .template-btn.copied{ border-color:var(--green); color:var(--green); }
 
   #insurer-search, #gp-search, #gp-town-filter, #hospital-search, #hospital-area-filter,
-  #consultant-search, #consultant-specialty-filter, #consultant-hospital-filter,
   #billing-search, #billing-chapter-filter, #billing-section-filter{
     width:100%; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
     border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
     margin-bottom:18px;
   }
-  #gp-town-filter, #hospital-area-filter, #consultant-specialty-filter, #billing-chapter-filter, #billing-section-filter{ margin-bottom:0; cursor:pointer; }
-  #consultant-hospital-filter{ margin-bottom:0; }
+  #gp-town-filter, #hospital-area-filter, #billing-chapter-filter, #billing-section-filter{ margin-bottom:0; cursor:pointer; }
   #insurer-search:focus, #gp-search:focus, #gp-town-filter:focus, #hospital-search:focus, #hospital-area-filter:focus,
   #consultant-search:focus, #consultant-specialty-filter:focus, #consultant-hospital-filter:focus,
   #billing-search:focus, #billing-chapter-filter:focus, #billing-section-filter:focus{ outline:none; border-color:var(--gold); }
@@ -217,7 +215,6 @@
       <button class="tab-btn" data-tab="info">Business info</button>
       <button class="tab-btn" data-tab="templates">Templates</button>
       <button class="tab-btn" data-tab="contacts">Contacts</button>
-      <button class="tab-btn" data-tab="consultants">Consultant search</button>
       <button class="tab-btn" data-tab="billing">Billing codes</button>
     </div>
 
@@ -412,29 +409,6 @@
     </div>
     </div>
 
-    <div class="tab-panel" id="tab-consultants">
-      <div class="guide-card" id="consultant-search-card">
-        <span class="guide-label">Self-reported by consultants on Veyn</span>
-        <h2>Consultant search</h2>
-        <p>Search consultants on Veyn by name, specialty, or hospital. Hospitals are entered by the consultant themselves — click one to look it up directly.</p>
-        <input type="text" id="consultant-search" placeholder="Search by consultant name…" autocomplete="off">
-        <div class="field-row2" style="display:flex; gap:14px; margin-top:14px;">
-          <div class="field" style="flex:1;">
-            <label for="consultant-specialty-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Specialty</label>
-            <select id="consultant-specialty-filter">
-              <option value="">Any specialty</option>
-            </select>
-          </div>
-          <div class="field" style="flex:1;">
-            <label for="consultant-hospital-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Hospital</label>
-            <input type="text" id="consultant-hospital-filter" placeholder="e.g. Spire">
-          </div>
-        </div>
-        <p id="consultant-loading" style="font-size:13px; color:var(--slate); margin-top:14px;">Loading consultants…</p>
-        <div id="consultant-results"></div>
-      </div>
-    </div>
-
     <div class="tab-panel" id="tab-billing">
       <div class="guide-card" id="billing-codes-card">
         <span class="guide-label">CCSD fee schedule</span>
@@ -490,13 +464,6 @@
     document.getElementById('page-content').style.display = 'block';
     updateCalculator();
 
-    if (navResult.profile.role === 'consultant') {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      document.querySelector('[data-tab="consultants"]').classList.add('active');
-      document.getElementById('tab-consultants').classList.add('active');
-      loadConsultants();
-    }
   })();
 
   function updateCalculator() {
@@ -722,7 +689,6 @@ This is a plain-English starting template, not a substitute for legal advice —
       btn.classList.add('active');
       document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
       if (btn.dataset.tab === 'contacts') loadGpData();
-      if (btn.dataset.tab === 'consultants') loadConsultants();
     });
   });
 
@@ -828,106 +794,6 @@ This is a plain-English starting template, not a substitute for legal advice —
   document.getElementById('billing-section-filter').addEventListener('change', filterBillingCodes);
   renderBillingCodes(BILLING_CODES, 200);
   loadHealixFees();
-
-  const SPECIALTIES = [
-    'Aesthetic medicine', 'Cardiology', 'Dermatology', 'Endocrinology', 'ENT', 'Fertility',
-    'Gastroenterology', 'General medicine', 'General surgery', 'Gynaecology', 'Neurology',
-    'Oncology', 'Ophthalmology', 'Orthopaedics', 'Paediatrics', 'Pain management',
-    'Plastic surgery', 'Psychiatry', 'Respiratory medicine', 'Rheumatology', 'Urology',
-  ];
-  SPECIALTIES.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    document.getElementById('consultant-specialty-filter').appendChild(opt);
-  });
-
-  let consultants = null;
-  let consultantsPromise = null;
-
-  function loadConsultants() {
-    if (consultantsPromise) return consultantsPromise;
-    consultantsPromise = supabaseClient
-      .from('consultant_profiles')
-      .select('profile_id, practice_name, specialty, hospitals, profiles(first_name, last_name, bio)')
-      .then(async ({ data, error }) => {
-        document.getElementById('consultant-loading').style.display = 'none';
-        if (error) {
-          document.getElementById('consultant-loading').textContent = 'Could not load consultants.';
-          document.getElementById('consultant-loading').style.display = 'block';
-          return;
-        }
-        consultants = data || [];
-
-        const { data: ratingsData } = await supabaseClient.from('ratings').select('consultant_id, rating, rater_id');
-        const ratingsByConsultant = {};
-        (ratingsData || []).forEach(r => {
-          if (r.rater_id === r.consultant_id) return;
-          if (!ratingsByConsultant[r.consultant_id]) ratingsByConsultant[r.consultant_id] = [];
-          ratingsByConsultant[r.consultant_id].push(r.rating);
-        });
-        consultants.forEach(c => {
-          const ratings = ratingsByConsultant[c.profile_id];
-          c.ratingResult = ratings && ratings.length > 0
-            ? { avg: ratings.reduce((s, r) => s + r, 0) / ratings.length, count: ratings.length }
-            : null;
-        });
-
-        renderConsultants(consultants);
-      });
-    return consultantsPromise;
-  }
-
-  function hospitalLinkHtml(hospitalName) {
-    const match = HOSPITALS.find(h => h.name.toLowerCase() === hospitalName.toLowerCase());
-    const url = match && match.website
-      ? (match.website.startsWith('http') ? match.website : `https://${match.website}`)
-      : `https://www.google.com/search?q=${encodeURIComponent(hospitalName)}`;
-    return `<a class="hospital-link" href="${url}" target="_blank" rel="noopener">${hospitalName}</a>`;
-  }
-
-  function renderConsultants(list) {
-    const resultsEl = document.getElementById('consultant-results');
-    if (list.length === 0) {
-      resultsEl.innerHTML = `<div class="insurer-empty">No consultants match that search.</div>`;
-      return;
-    }
-    resultsEl.innerHTML = list.map(c => {
-      const name = c.profiles ? `${c.profiles.first_name} ${c.profiles.last_name}` : 'Consultant';
-      const hospitals = c.hospitals || [];
-      const ratingLabel = formatRating(c.ratingResult);
-      return `
-        <div class="insurer-card">
-          <h3>${name}</h3>
-          <span class="insurer-type">${c.specialty || 'Specialty not set'}</span>
-          ${ratingLabel ? `<div class="insurer-row"><span>Rating</span><span>${ratingLabel}</span></div>` : ''}
-          ${c.practice_name ? `<div class="insurer-row"><span>Practice</span><span>${c.practice_name}</span></div>` : ''}
-          ${hospitals.length > 0 ? `<div class="insurer-row"><span>Hospitals</span><span>${hospitals.map(hospitalLinkHtml).join(', ')}</span></div>` : ''}
-          ${c.profiles?.bio ? `<p style="font-size:13.5px; line-height:1.6; color:var(--slate); margin-top:10px;">${escapeHtml(c.profiles.bio)}</p>` : ''}
-        </div>
-      `;
-    }).join('');
-  }
-
-  function filterConsultants() {
-    if (!consultants) return;
-    const query = document.getElementById('consultant-search').value.trim().toLowerCase();
-    const specialty = document.getElementById('consultant-specialty-filter').value;
-    const hospitalQuery = document.getElementById('consultant-hospital-filter').value.trim().toLowerCase();
-
-    const filtered = consultants.filter(c => {
-      const name = c.profiles ? `${c.profiles.first_name} ${c.profiles.last_name}`.toLowerCase() : '';
-      if (query && !name.includes(query)) return false;
-      if (specialty && c.specialty !== specialty) return false;
-      if (hospitalQuery && !(c.hospitals || []).some(h => h.toLowerCase().includes(hospitalQuery))) return false;
-      return true;
-    });
-    renderConsultants(filtered);
-  }
-
-  document.getElementById('consultant-search').addEventListener('input', filterConsultants);
-  document.getElementById('consultant-specialty-filter').addEventListener('change', filterConsultants);
-  document.getElementById('consultant-hospital-filter').addEventListener('input', filterConsultants);
 
   let gpPractices = null;
   let gpDataPromise = null;
