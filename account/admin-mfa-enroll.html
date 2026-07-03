@@ -67,10 +67,7 @@
     const { data: { user } } = await db.auth.getUser();
     if (!user) { window.location.href = 'login.html'; return; }
 
-    const { data: isAdmin } = await db.rpc('is_admin');
-    if (!isAdmin) { window.location.href = 'login.html'; return; }
-
-    // Check if MFA already enrolled and verified — if so, go straight to admin
+    // If already MFA-verified, go straight to admin
     const { data: aal } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aal?.currentLevel === 'aal2') {
       window.location.href = 'admin.html';

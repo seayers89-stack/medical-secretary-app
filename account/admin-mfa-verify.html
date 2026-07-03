@@ -55,6 +55,10 @@
     const { data: { user } } = await db.auth.getUser();
     if (!user) { window.location.href = 'login.html'; return; }
 
+    // If already MFA-verified, go straight to admin
+    const { data: aal } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.currentLevel === 'aal2') { window.location.href = 'admin.html'; return; }
+
     // Get the enrolled TOTP factor
     const { data: factors } = await db.auth.mfa.listFactors();
     const totp = factors?.totp?.find(f => f.status === 'verified');
