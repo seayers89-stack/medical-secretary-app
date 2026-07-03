@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>Two-factor authentication — Veyn Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1B2430; --paper:#F7F4ED; --gold:#B8924A; --slate:#5C6470; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px; }
+  .card{ background:#fff; border-radius:16px; padding:48px; max-width:400px; width:100%; box-shadow:0 4px 24px rgba(27,36,48,0.08); }
+  .logo{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; display:flex; align-items:center; gap:8px; margin-bottom:32px; color:var(--ink); }
+  .logo .dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
+  h1{ font-family:'Fraunces',serif; font-weight:600; font-size:24px; margin-bottom:10px; }
+  p{ font-size:14px; color:var(--slate); line-height:1.65; margin-bottom:24px; }
+  label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
+  input{ width:100%; padding:11px 14px; border:1.5px solid rgba(27,36,48,0.18); border-radius:8px; font-size:20px; font-family:'IBM Plex Mono',monospace; letter-spacing:0.2em; outline:none; transition:border-color 0.15s; text-align:center; }
+  input:focus{ border-color:var(--gold); }
+  .btn{ width:100%; padding:13px; background:var(--ink); color:#fff; font-size:15px; font-weight:600; border:none; border-radius:9px; cursor:pointer; margin-top:16px; font-family:'Inter',sans-serif; transition:opacity 0.15s; }
+  .btn:hover{ opacity:0.85; }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  .error{ color:#c0392b; font-size:13px; margin-top:10px; display:none; }
+  .signout{ margin-top:20px; text-align:center; font-size:13px; color:var(--slate); }
+  .signout a{ color:var(--gold); cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo"><span class="dot"></span>veyn</div>
+  <div class="eyebrow">Admin security</div>
+  <h1>Two-factor authentication</h1>
+  <p>Enter the 6-digit code from your authenticator app to continue.</p>
+
+  <label for="totp-code">Verification code</label>
+  <input type="text" id="totp-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+  <button class="btn" id="verify-btn">Continue to admin</button>
+  <div class="error" id="error-msg"></div>
+
+  <div class="signout">Not you? <a id="signout-link">Sign out</a></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script>
+  const SUPABASE_URL = 'https://kdknadmgbiebyuqwigfi.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtka25hZG1nYmllYnl1cXdpZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NjA1MDUsImV4cCI6MjA2MTMzNjUwNX0.M4YVSKhTANiKPFGLmLjHFUH1U5VGMwm8KeMMzTi0bqU';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let factorId = null;
+
+  (async () => {
+    const { data: { user } } = await db.auth.getUser();
+    if (!user) { window.location.href = 'login.html'; return; }
+
+    // Get the enrolled TOTP factor
+    const { data: factors } = await db.auth.mfa.listFactors();
+    const totp = factors?.totp?.find(f => f.status === 'verified');
+    if (!totp) {
+      // No verified factor — send to enrolment
+      window.location.href = 'admin-mfa-enroll.html';
+      return;
+    }
+    factorId = totp.id;
+    document.getElementById('totp-code').focus();
+  })();
+
+  async function verify() {
+    const code = document.getElementById('totp-code').value.replace(/\s/g, '');
+    const btn = document.getElementById('verify-btn');
+    const err = document.getElementById('error-msg');
+    err.style.display = 'none';
+
+    if (!/^\d{6}$/.test(code)) {
+      err.textContent = 'Enter the 6-digit code from your authenticator app.';
+      err.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verifying…';
+
+    const { data: challenge, error: challengeErr } = await db.auth.mfa.challenge({ factorId });
+    if (challengeErr) {
+      err.textContent = challengeErr.message;
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Continue to admin';
+      return;
+    }
+
+    const { error: verifyErr } = await db.auth.mfa.verify({
+      factorId,
+      challengeId: challenge.id,
+      code,
+    });
+
+    if (verifyErr) {
+      err.textContent = 'Incorrect code — please try again.';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Continue to admin';
+      document.getElementById('totp-code').value = '';
+      document.getElementById('totp-code').focus();
+      return;
+    }
+
+    window.location.href = 'admin.html';
+  }
+
+  document.getElementById('verify-btn').addEventListener('click', verify);
+  document.getElementById('totp-code').addEventListener('keydown', e => {
+    if (e.key === 'Enter') verify();
+  });
+
+  document.getElementById('signout-link').addEventListener('click', async () => {
+    await db.auth.signOut();
+    window.location.href = 'login.html';
+  });
+</script>
+</body>
+</html>

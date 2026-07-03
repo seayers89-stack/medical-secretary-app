@@ -854,6 +854,18 @@
       return;
     }
 
+    // Enforce MFA for admin accounts
+    const { data: aal } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
+      window.location.href = 'admin-mfa-verify.html';
+      return;
+    }
+    if (aal?.nextLevel === 'aal1' && aal?.currentLevel === 'aal1') {
+      // MFA not yet enrolled — send to setup
+      window.location.href = 'admin-mfa-enroll.html';
+      return;
+    }
+
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
 
