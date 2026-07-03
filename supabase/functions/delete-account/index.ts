@@ -15,6 +15,8 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
+  const reqId = req.headers.get("X-Request-ID") || crypto.randomUUID();
+  console.log(`[${reqId}] delete-account called`);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

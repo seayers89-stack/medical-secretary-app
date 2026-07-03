@@ -21,7 +21,9 @@ const PASS_PLANS: Record<string, { label: string; amount: number; days: number }
 }
 
 serve(async (req) => {
+  const reqId = req.headers.get('X-Request-ID') || crypto.randomUUID()
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  console.log(`[${reqId}] create-checkout-session called`)
 
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) return new Response('Unauthorized', { status: 401, headers: CORS })

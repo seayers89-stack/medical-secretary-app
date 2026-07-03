@@ -29,6 +29,8 @@ function jsonResponse(body: unknown, status: number) {
 }
 
 Deno.serve(async (req) => {
+  const reqId = req.headers.get("X-Request-ID") || crypto.randomUUID();
+  console.log(`[${reqId}] admin-invite called`);
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }

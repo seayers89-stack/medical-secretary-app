@@ -8,6 +8,8 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 serve(async (req) => {
+  const reqId = req.headers.get('X-Request-ID') || crypto.randomUUID()
+  console.log(`[${reqId}] stripe-webhook called`)
   const signature = req.headers.get('stripe-signature')
   if (!signature) return new Response('No signature', { status: 400 })
 
@@ -18,6 +20,12 @@ serve(async (req) => {
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message)
     return new Response(`Webhook error: ${err.message}`, { status: 400 })
+  }
+
+  // Reject events older than 5 minutes to prevent replay attacks
+  if (Math.abs(Date.now() - event.created * 1000) > 300_000) {
+    console.warn(`Rejected stale webhook event ${event.id} created at ${event.created}`)
+    return new Response('Event too old', { status: 400 })
   }
 
   if (event.type !== 'checkout.session.completed') {
