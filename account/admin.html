@@ -193,6 +193,28 @@
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
+  /* MFA overlay */
+  #mfa-overlay{
+    position:fixed; inset:0; background:rgba(247,244,237,0.97); z-index:999;
+    display:flex; align-items:center; justify-content:center; padding:32px;
+  }
+  .mfa-card{
+    background:#fff; border-radius:16px; padding:48px; max-width:420px; width:100%;
+    box-shadow:0 4px 24px rgba(27,36,48,0.1);
+  }
+  .mfa-card .eyebrow{ margin-bottom:10px; }
+  .mfa-card h2{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; margin-bottom:10px; }
+  .mfa-card p{ font-size:14px; color:var(--slate); line-height:1.65; margin-bottom:20px; }
+  #qr-wrap{ text-align:center; margin:20px 0; }
+  #qr-wrap img{ width:170px; height:170px; border:1px solid rgba(27,36,48,0.1); border-radius:8px; padding:8px; }
+  .mfa-secret{ background:rgba(27,36,48,0.04); border-radius:8px; padding:10px 14px; font-family:'IBM Plex Mono',monospace; font-size:12px; word-break:break-all; text-align:center; margin-bottom:20px; }
+  .mfa-card label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
+  .mfa-card input{ width:100%; padding:11px 14px; border:1.5px solid rgba(27,36,48,0.18); border-radius:8px; font-size:20px; font-family:'IBM Plex Mono',monospace; letter-spacing:0.2em; outline:none; text-align:center; }
+  .mfa-card input:focus{ border-color:var(--gold); }
+  .mfa-btn{ width:100%; padding:13px; background:var(--ink); color:#fff; font-size:15px; font-weight:600; border:none; border-radius:9px; cursor:pointer; margin-top:14px; font-family:'Inter',sans-serif; }
+  .mfa-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  .mfa-error{ color:#c0392b; font-size:13px; margin-top:10px; display:none; }
+
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
   .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
 
@@ -214,6 +236,34 @@
   <div class="eyebrow">Admin</div>
   <h1>Moderation &amp; submissions</h1>
   <p class="sub">Reported community content, "share your knowledge" responses, and user-submitted ideas. Staff only.</p>
+
+  <!-- MFA overlay — shown before admin content if MFA needed -->
+  <div id="mfa-overlay" style="display:none;">
+    <div class="mfa-card">
+      <div class="eyebrow">Admin security</div>
+      <!-- Enrol view -->
+      <div id="mfa-enroll-view">
+        <h2>Set up two-factor authentication</h2>
+        <p>Admin accounts require 2FA. Scan the QR code with Google Authenticator, Authy, or 1Password, then enter the 6-digit code to confirm.</p>
+        <div id="qr-wrap"><img id="qr-img" src="" alt="Authenticator QR code"></div>
+        <p style="font-size:12px; text-align:center; margin-bottom:6px;">Can't scan? Enter this key manually:</p>
+        <div class="mfa-secret" id="mfa-secret"></div>
+        <label for="enroll-code">Verification code</label>
+        <input type="text" id="enroll-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+        <button class="mfa-btn" id="enroll-btn">Confirm and activate 2FA</button>
+        <div class="mfa-error" id="enroll-error"></div>
+      </div>
+      <!-- Verify view -->
+      <div id="mfa-verify-view" style="display:none;">
+        <h2>Two-factor authentication</h2>
+        <p>Enter the 6-digit code from your authenticator app to continue.</p>
+        <label for="verify-code">Verification code</label>
+        <input type="text" id="verify-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+        <button class="mfa-btn" id="verify-btn">Continue to admin</button>
+        <div class="mfa-error" id="verify-error"></div>
+      </div>
+    </div>
+  </div>
 
   <p id="loading">Loading…</p>
   <div id="denied" class="denied-state" style="display:none;">You don't have access to this area.</div>
@@ -837,6 +887,74 @@
     await loadStaffList();
   });
 
+  async function showMfaOverlay(aal) {
+    const overlay = document.getElementById('mfa-overlay');
+    overlay.style.display = 'flex';
+
+    const { data: factors } = await supabaseClient.auth.mfa.listFactors();
+    const enrolled = factors?.totp?.find(f => f.status === 'verified');
+
+    if (!enrolled) {
+      // No factor yet — show enrol view
+      const { data: enrolData, error: enrolErr } = await supabaseClient.auth.mfa.enroll({ factorType: 'totp', issuer: 'Veyn Admin' });
+      if (enrolErr) { document.getElementById('enroll-error').textContent = enrolErr.message; document.getElementById('enroll-error').style.display = 'block'; return; }
+      document.getElementById('qr-img').src = enrolData.totp.qr_code;
+      document.getElementById('mfa-secret').textContent = enrolData.totp.secret;
+      document.getElementById('mfa-enroll-view').style.display = 'block';
+      document.getElementById('enroll-code').focus();
+
+      document.getElementById('enroll-btn').onclick = async () => {
+        const code = document.getElementById('enroll-code').value.replace(/\s/g, '');
+        const err = document.getElementById('enroll-error');
+        err.style.display = 'none';
+        if (!/^\d{6}$/.test(code)) { err.textContent = 'Enter the 6-digit code from your authenticator app.'; err.style.display = 'block'; return; }
+        document.getElementById('enroll-btn').disabled = true;
+        document.getElementById('enroll-btn').textContent = 'Verifying…';
+        const { data: challenge, error: cErr } = await supabaseClient.auth.mfa.challenge({ factorId: enrolData.id });
+        if (cErr) { err.textContent = cErr.message; err.style.display = 'block'; document.getElementById('enroll-btn').disabled = false; document.getElementById('enroll-btn').textContent = 'Confirm and activate 2FA'; return; }
+        const { error: vErr } = await supabaseClient.auth.mfa.verify({ factorId: enrolData.id, challengeId: challenge.id, code });
+        if (vErr) { err.textContent = 'Incorrect code — please try again.'; err.style.display = 'block'; document.getElementById('enroll-btn').disabled = false; document.getElementById('enroll-btn').textContent = 'Confirm and activate 2FA'; document.getElementById('enroll-code').value = ''; return; }
+        overlay.style.display = 'none';
+        document.getElementById('page-content').style.display = 'block';
+        await loadAdminContent();
+      };
+      document.getElementById('enroll-code').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('enroll-btn').click(); });
+
+    } else {
+      // Factor enrolled, needs verification this session
+      document.getElementById('mfa-enroll-view').style.display = 'none';
+      document.getElementById('mfa-verify-view').style.display = 'block';
+      document.getElementById('verify-code').focus();
+
+      document.getElementById('verify-btn').onclick = async () => {
+        const code = document.getElementById('verify-code').value.replace(/\s/g, '');
+        const err = document.getElementById('verify-error');
+        err.style.display = 'none';
+        if (!/^\d{6}$/.test(code)) { err.textContent = 'Enter the 6-digit code from your authenticator app.'; err.style.display = 'block'; return; }
+        document.getElementById('verify-btn').disabled = true;
+        document.getElementById('verify-btn').textContent = 'Verifying…';
+        const { data: challenge, error: cErr } = await supabaseClient.auth.mfa.challenge({ factorId: enrolled.id });
+        if (cErr) { err.textContent = cErr.message; err.style.display = 'block'; document.getElementById('verify-btn').disabled = false; document.getElementById('verify-btn').textContent = 'Continue to admin'; return; }
+        const { error: vErr } = await supabaseClient.auth.mfa.verify({ factorId: enrolled.id, challengeId: challenge.id, code });
+        if (vErr) { err.textContent = 'Incorrect code — please try again.'; err.style.display = 'block'; document.getElementById('verify-btn').disabled = false; document.getElementById('verify-btn').textContent = 'Continue to admin'; document.getElementById('verify-code').value = ''; return; }
+        overlay.style.display = 'none';
+        document.getElementById('page-content').style.display = 'block';
+        await loadAdminContent();
+      };
+      document.getElementById('verify-code').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('verify-btn').click(); });
+    }
+  }
+
+  async function loadAdminContent() {
+    await loadReports();
+    await loadKnowledgeSubmissions();
+    await loadIdeasAdmin();
+    await loadHealixSyncStatus();
+    await loadSecretaries();
+    await loadConsultants();
+    await loadSupportThreads();
+  }
+
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'admin');
     const loading = document.getElementById('loading');
@@ -856,13 +974,9 @@
 
     // Enforce MFA for admin accounts
     const { data: aal } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
-      window.location.href = 'admin-mfa-verify.html';
-      return;
-    }
-    if (aal?.nextLevel === 'aal1' && aal?.currentLevel === 'aal1') {
-      // MFA not yet enrolled — send to setup
-      window.location.href = 'admin-mfa-enroll.html';
+    if (aal && aal.currentLevel !== 'aal2') {
+      loading.style.display = 'none';
+      await showMfaOverlay(aal);
       return;
     }
 
@@ -871,13 +985,7 @@
 
     adminUserId = navResult.session.user.id;
 
-    await loadReports();
-    await loadKnowledgeSubmissions();
-    await loadIdeasAdmin();
-    await loadHealixSyncStatus();
-    await loadSecretaries();
-    await loadConsultants();
-    await loadSupportThreads();
+    await loadAdminContent();
 
     const { data: isSuperAdmin } = await supabaseClient.rpc('is_super_admin');
     if (isSuperAdmin) {
