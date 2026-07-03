@@ -9,8 +9,9 @@ const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://www.veyn.uk'
 
 const CORS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://www.veyn.uk',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 const PASS_PLANS: Record<string, { label: string; amount: number; days: number }> = {

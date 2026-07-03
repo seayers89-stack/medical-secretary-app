@@ -14,8 +14,9 @@ const HEALIX_API = "https://hsp.healix.com/HFS/GetFilteredHFS";
 const PAGE_SIZE = 200;
 
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://www.veyn.uk",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 async function fetchPage(page: number) {

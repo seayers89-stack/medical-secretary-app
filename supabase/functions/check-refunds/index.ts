@@ -83,12 +83,16 @@ serve(async (req) => {
       .eq('id', unlock.id)
 
     // Send explanation email to the consultant via Resend
+    const esc = (s: string) => String(s || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
+
     const consultantProfile = Array.isArray(unlock.profiles) ? unlock.profiles[0] : unlock.profiles
     const secretaryProfile = Array.isArray(unlock.secretary) ? unlock.secretary[0] : unlock.secretary
     const consultantEmail = consultantProfile?.email
-    const consultantName = consultantProfile?.first_name || 'there'
+    const consultantName = esc(consultantProfile?.first_name || 'there')
     const secretaryName = secretaryProfile
-      ? `${secretaryProfile.first_name} ${secretaryProfile.last_name}`
+      ? `${esc(secretaryProfile.first_name)} ${esc(secretaryProfile.last_name)}`
       : 'the secretary'
     const unlockedDate = new Date(unlock.created_at).toLocaleDateString('en-GB', {
       day: 'numeric', month: 'long', year: 'numeric',

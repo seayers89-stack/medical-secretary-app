@@ -155,9 +155,10 @@
       unreadCounts[key] = (unreadCounts[key] || 0) + 1;
     });
 
+    const escHtml = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
     threadsEl.innerHTML = unlocks.map(u => {
       const otherId = u[otherColumn];
-      const name = nameById[otherId] || 'Unknown';
+      const name = escHtml(nameById[otherId] || 'Unknown');
       const key = `${u.consultant_id}_${u.secretary_id}`;
       const unreadCount = unreadCounts[key] || 0;
       const badge = unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : '';

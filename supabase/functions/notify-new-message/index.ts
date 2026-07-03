@@ -41,9 +41,16 @@ Deno.serve(async (req) => {
       .eq("id", message.sender_id)
       .single();
 
-    const senderName = sender ? `${sender.first_name} ${sender.last_name}` : "Someone";
+    const esc = (s: string) => String(s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
+
+    const senderName = sender ? `${esc(sender.first_name)} ${esc(sender.last_name)}` : "Someone";
+    const recipientName = esc(recipient.first_name || "there");
     const threadUrl = `${SITE_URL}/account/thread.html?consultant_id=${message.consultant_id}&secretary_id=${message.secretary_id}`;
-    const preview = String(message.body).slice(0, 200);
+    const rawBody = String(message.body || "");
+    const preview = esc(rawBody.slice(0, 200));
+    const truncated = rawBody.length > 200;
 
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -56,10 +63,10 @@ Deno.serve(async (req) => {
         to: recipient.email,
         subject: `New message from ${senderName} on Veyn`,
         html: `
-          <p>Hi ${recipient.first_name},</p>
+          <p>Hi ${recipientName},</p>
           <p><strong>${senderName}</strong> sent you a message on Veyn:</p>
           <blockquote style="border-left:3px solid #B8924A;margin:16px 0;padding:8px 16px;color:#1B2430;">
-            ${preview}${message.body.length > 200 ? "…" : ""}
+            ${preview}${truncated ? "…" : ""}
           </blockquote>
           <p><a href="${threadUrl}">Reply on Veyn →</a></p>
         `,
@@ -67,12 +74,13 @@ Deno.serve(async (req) => {
     });
 
     if (!emailRes.ok) {
-      const errText = await emailRes.text();
-      return new Response(`Resend error: ${errText}`, { status: 502 });
+      console.error("Resend error:", await emailRes.text());
+      return new Response("Failed to send notification email", { status: 502 });
     }
 
     return new Response("ok", { status: 200 });
   } catch (err) {
-    return new Response(`Function error: ${err.message}`, { status: 500 });
+    console.error("Function error:", err);
+    return new Response("Internal error", { status: 500 });
   }
 });

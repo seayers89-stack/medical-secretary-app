@@ -43,31 +43,35 @@ serve(async (req) => {
       })
 
     } else if (type === 'pass') {
-      const days = parseInt(meta.days)
+      const days = parseInt(meta.days, 10)
+      if (isNaN(days) || days < 1 || days > 365) throw new Error('Invalid pass duration')
       const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
       await db.from('consultant_profiles')
         .update({ pass_type: meta.plan, pass_expires_at: expires })
         .eq('profile_id', user_id)
 
     } else if (type === 'job_posting') {
+      // Atomically claim the draft (DELETE + RETURNING) to prevent replay processing
       const { data: saved } = await db
         .from('pending_job_drafts')
-        .select('draft')
+        .delete()
         .eq('id', meta.draft_id)
+        .select('draft')
         .single()
       if (saved?.draft) {
         const d = saved.draft
+        if (!d.title || typeof d.title !== 'string' || d.title.length > 500) throw new Error('Invalid job title')
+        if (d.day_rate !== undefined && (typeof d.day_rate !== 'number' || d.day_rate < 0 || d.day_rate > 100000)) throw new Error('Invalid day rate')
         await db.from('job_postings').insert({
           consultant_id: user_id,
-          title: d.title,
+          title: String(d.title).slice(0, 500),
           specialty: d.specialty,
-          systems: d.systems,
+          systems: Array.isArray(d.systems) ? d.systems : [],
           location: d.location,
           day_rate: d.day_rate,
-          description: d.description,
+          description: d.description ? String(d.description).slice(0, 5000) : null,
           status: 'open',
         })
-        await db.from('pending_job_drafts').delete().eq('id', meta.draft_id)
       }
 
     } else if (type === 'premium_boost') {
@@ -77,10 +81,12 @@ serve(async (req) => {
         .eq('profile_id', user_id)
 
     } else if (type === 'specialist_course') {
+      const price = parseFloat(meta.price)
+      if (isNaN(price) || price <= 0 || price > 1000) throw new Error('Invalid course price')
       await db.from('specialist_course_purchases').insert({
         profile_id: user_id,
         course_slug: meta.slug,
-        price_paid: parseFloat(meta.price),
+        price_paid: price,
       })
 
     } else if (type === 'specialist_bundle') {
