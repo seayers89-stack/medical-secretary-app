@@ -149,6 +149,20 @@
   }
   .completeness-cta:hover{ background:rgba(184,146,74,0.08); }
 
+  .data-zone{
+    border:1.5px solid rgba(27,36,48,0.12); border-radius:18px;
+    padding:28px 32px; margin-top:8px;
+  }
+  .data-zone h3{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; margin-bottom:8px; }
+  .data-zone p{ font-size:14px; color:var(--slate); line-height:1.6; margin-bottom:16px; }
+  .btn-export{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px; padding:10px 22px;
+    border-radius:8px; cursor:pointer; border:1.5px solid rgba(27,36,48,0.2); background:none; color:var(--ink);
+    transition:border-color .15s ease;
+  }
+  .btn-export:hover{ border-color:var(--gold); color:#8F6F36; }
+  .btn-export:disabled{ opacity:0.45; cursor:not-allowed; }
+
   .danger-zone{
     border:1.5px solid rgba(193,68,68,0.25); border-radius:18px;
     padding:28px 32px; margin-top:8px;
@@ -203,6 +217,12 @@
   <div id="completeness-card" style="display:none;"></div>
   <div class="card" id="premium-boost-card" style="display:none;"></div>
   <div class="card" id="profile-card" style="display:none;"></div>
+
+  <div class="data-zone" id="data-zone" style="display:none;">
+    <h3>Download my data</h3>
+    <p>Download a copy of all personal data Veyn holds about you — your profile, messages, purchases, and activity. This is your right under UK GDPR Article 15.</p>
+    <button class="btn-export" id="export-btn">Download my data</button>
+  </div>
 
   <div class="danger-zone" id="danger-zone" style="display:none;">
     <h3>Delete account</h3>
@@ -461,6 +481,7 @@
 
     loading.style.display = 'none';
     card.style.display = 'block';
+    document.getElementById('data-zone').style.display = 'block';
     document.getElementById('danger-zone').style.display = 'block';
 
     if (profile.role === 'secretary') {
@@ -520,6 +541,163 @@
 
     await supabaseClient.auth.signOut();
     window.location.href = '../index.html?account_deleted=1';
+  });
+
+  document.getElementById('export-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('export-btn');
+    btn.disabled = true;
+    btn.textContent = 'Preparing download…';
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+    const userId = session.user.id;
+    const db = supabaseClient;
+
+    const [
+      { data: profile },
+      { data: secProfile },
+      { data: conProfile },
+      { data: sentMessages },
+      { data: receivedMessages },
+      { data: unlocks },
+      { data: profileViews },
+      { data: ratingsGiven },
+      { data: ratingsReceived },
+      { data: coursePurchases },
+      { data: jobPostings },
+    ] = await Promise.all([
+      db.from('profiles').select('*').eq('id', userId).single(),
+      db.from('secretary_profiles').select('*').eq('profile_id', userId).maybeSingle(),
+      db.from('consultant_profiles').select('*').eq('profile_id', userId).maybeSingle(),
+      db.from('messages').select('*').eq('sender_id', userId).order('created_at'),
+      db.from('messages').select('*').neq('sender_id', userId).or(`consultant_id.eq.${userId},secretary_id.eq.${userId}`).order('created_at'),
+      db.from('unlocks').select('*').or(`consultant_id.eq.${userId},secretary_id.eq.${userId}`).order('created_at'),
+      db.from('profile_views').select('id, secretary_id, viewed_at').eq('secretary_id', userId).order('viewed_at'),
+      db.from('ratings').select('*').eq('rater_id', userId).order('created_at'),
+      db.from('ratings').select('*').eq('consultant_id', userId).order('created_at'),
+      db.from('specialist_course_purchases').select('*').eq('profile_id', userId).order('created_at'),
+      db.from('job_postings').select('*').eq('consultant_id', userId).order('created_at'),
+    ]);
+
+    const fmt = v => v == null ? '—' : String(v);
+    const fmtDate = v => v ? new Date(v).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    const section = (title, lines) => `\n${'='.repeat(60)}\n${title}\n${'='.repeat(60)}\n${lines.join('\n')}\n`;
+
+    const lines = [];
+    lines.push('VEYN — PERSONAL DATA EXPORT');
+    lines.push(`Generated: ${fmtDate(new Date().toISOString())}`);
+    lines.push(`This file contains all personal data Veyn (VeynUK Ltd) holds about you.`);
+    lines.push(`For questions contact infoveynuk@gmail.com`);
+
+    // Account
+    lines.push(section('ACCOUNT', [
+      `Name:         ${fmt(profile?.first_name)} ${fmt(profile?.last_name)}`,
+      `Email:        ${fmt(profile?.email)}`,
+      `Role:         ${fmt(profile?.role)}`,
+      `Account created: ${fmtDate(profile?.created_at)}`,
+      `Last active:  ${fmtDate(profile?.last_active_at)}`,
+      `Bio:          ${fmt(profile?.bio)}`,
+    ]));
+
+    // Secretary profile
+    if (secProfile) {
+      lines.push(section('SECRETARY PROFILE', [
+        `Region:       ${fmt(secProfile.region)}`,
+        `Day rate min: ${secProfile.day_rate_min != null ? '£' + secProfile.day_rate_min : '—'}`,
+        `Day rate max: ${secProfile.day_rate_max != null ? '£' + secProfile.day_rate_max : '—'}`,
+        `Specialties:  ${fmt((secProfile.specialties || []).join(', '))}`,
+        `Systems:      ${fmt((secProfile.systems_used || []).join(', '))}`,
+        `Languages:    ${fmt([...(secProfile.languages_spoken || []), secProfile.languages_other ? 'Other' : null].filter(Boolean).join(', '))}`,
+        `Travel willing: ${secProfile.willing_to_travel ? 'Yes' : 'No'}`,
+        `Available:    ${secProfile.available ? 'Yes' : 'No'}`,
+        `Premium boost active: ${secProfile.premium_active ? 'Yes' : 'No'}`,
+        `Premium expires: ${fmtDate(secProfile.premium_expires_at)}`,
+        `Right to work: ${secProfile.right_to_work ? 'Yes' : 'No'}`,
+        `Has CV:       ${secProfile.has_cv ? 'Yes' : 'No'}`,
+        `Has DBS:      ${secProfile.has_dbs ? 'Yes' : 'No'}`,
+        `DBS level:    ${fmt(secProfile.dbs_level)}`,
+        `References:   ${secProfile.can_provide_references ? 'Yes' : 'No'}`,
+      ]));
+    }
+
+    // Consultant profile
+    if (conProfile) {
+      lines.push(section('CONSULTANT PROFILE', [
+        `Practice name: ${fmt(conProfile.practice_name)}`,
+        `Specialty:    ${fmt(conProfile.specialty)}`,
+        `Hospitals:    ${fmt((conProfile.hospitals || []).join(', '))}`,
+        `Pass type:    ${fmt(conProfile.pass_type)}`,
+        `Pass expires: ${fmtDate(conProfile.pass_expires_at)}`,
+      ]));
+    }
+
+    // Messages
+    const allMessages = [...(sentMessages || []), ...(receivedMessages || [])]
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    if (allMessages.length > 0) {
+      lines.push(section('MESSAGES', allMessages.map(m =>
+        `[${fmtDate(m.created_at)}] ${m.sender_id === userId ? 'You' : 'Other'}: ${fmt(m.body)}`
+      )));
+    } else {
+      lines.push(section('MESSAGES', ['No messages.']));
+    }
+
+    // Unlocks
+    if ((unlocks || []).length > 0) {
+      lines.push(section('CONTACT UNLOCKS', unlocks.map(u =>
+        `[${fmtDate(u.created_at)}] ${u.consultant_id === userId ? 'You unlocked secretary' : 'Consultant unlocked you'} — £${fmt(u.price_paid)}${u.refunded_at ? ` (refunded ${fmtDate(u.refunded_at)})` : ''}`
+      )));
+    } else {
+      lines.push(section('CONTACT UNLOCKS', ['No unlocks.']));
+    }
+
+    // Profile views (secretaries only)
+    if ((profileViews || []).length > 0) {
+      lines.push(section('PROFILE VIEWS (your profile was viewed)', profileViews.map(v =>
+        `[${fmtDate(v.viewed_at)}] Profile view recorded`
+      )));
+    }
+
+    // Ratings
+    if ((ratingsGiven || []).length > 0) {
+      lines.push(section('RATINGS YOU GAVE', ratingsGiven.map(r =>
+        `[${fmtDate(r.created_at)}] ${r.rating}/5 stars`
+      )));
+    }
+    if ((ratingsReceived || []).length > 0) {
+      lines.push(section('RATINGS YOU RECEIVED', ratingsReceived.map(r =>
+        `[${fmtDate(r.created_at)}] ${r.rating}/5 stars`
+      )));
+    }
+
+    // Course purchases
+    if ((coursePurchases || []).length > 0) {
+      lines.push(section('SPECIALIST COURSE PURCHASES', coursePurchases.map(p =>
+        `[${fmtDate(p.created_at)}] ${fmt(p.course_slug)} — £${fmt(p.price_paid)}`
+      )));
+    }
+
+    // Job postings
+    if ((jobPostings || []).length > 0) {
+      lines.push(section('JOB POSTINGS', jobPostings.map(j =>
+        `[${fmtDate(j.created_at)}] ${fmt(j.title)} — ${fmt(j.status)}\n  Specialty: ${fmt(j.specialty)}\n  Location: ${fmt(j.location)}\n  Day rate: ${j.day_rate ? '£' + j.day_rate : '—'}`
+      )));
+    }
+
+    lines.push('\n' + '='.repeat(60));
+    lines.push('End of data export — VeynUK Ltd, ICO registration C1973825');
+    lines.push('='.repeat(60));
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `veyn-my-data-${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    btn.disabled = false;
+    btn.textContent = 'Download my data';
   });
 </script>
 
