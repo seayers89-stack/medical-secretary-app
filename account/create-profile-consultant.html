@@ -190,6 +190,21 @@
         <input type="text" id="hospital-tag-input" placeholder="Type a hospital name and press Enter">
         <p style="font-size:12px; color:var(--slate); margin-top:6px;">Add as many as apply — you can always update this later.</p>
       </div>
+      <div style="margin:20px 0 4px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; align-items:flex-start; gap:10px;">
+          <input type="checkbox" id="agree-terms" style="margin-top:3px; flex-shrink:0;">
+          <label for="agree-terms" style="font-size:13.5px; color:var(--ink); line-height:1.55; cursor:pointer;">
+            I agree to Veyn's <a href="../veyn-terms.html" target="_blank" style="color:var(--gold);">Terms of Service</a> and <a href="../veyn-privacy.html" target="_blank" style="color:var(--gold);">Privacy Policy</a>
+          </label>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:10px;">
+          <input type="checkbox" id="agree-age" style="margin-top:3px; flex-shrink:0;">
+          <label for="agree-age" style="font-size:13.5px; color:var(--ink); line-height:1.55; cursor:pointer;">
+            I confirm I am 18 years of age or older
+          </label>
+        </div>
+      </div>
+
       <button type="submit" class="btn btn-primary" id="submit-btn">Create my profile</button>
     </form>
 
@@ -241,6 +256,18 @@
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorBox.style.display = 'none';
+
+    if (!document.getElementById('agree-terms').checked) {
+      errorBox.textContent = 'Please agree to the Terms of Service and Privacy Policy to continue.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if (!document.getElementById('agree-age').checked) {
+      errorBox.textContent = 'Please confirm you are 18 or older to continue.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = 'Creating your profile…';
 
