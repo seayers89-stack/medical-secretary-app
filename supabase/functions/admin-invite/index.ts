@@ -1,11 +1,11 @@
-// Veyn: invites a new admin account by email. Admin accounts are a
+﻿// Veyn: invites a new admin account by email. Admin accounts are a
 // distinct role (profiles.role = 'admin') created only through this
 // function — never via the normal client-side signup pages — so the
 // service_role key never touches the browser. Same shape as
 // sync-healix-fees: a service-role client plus a JWT-based caller check.
 //
 // Bootstrap: if no admin account exists yet, the auth check is skipped for
-// exactly one email (infoveynuk@gmail.com), so the very first superadmin
+// exactly one email (hello@veyn.uk), so the very first superadmin
 // can be seeded without a chicken-and-egg "you need an admin to create an
 // admin" problem. The moment that row exists, this path closes itself.
 
@@ -13,7 +13,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const BOOTSTRAP_SUPERADMIN_EMAIL = "infoveynuk@gmail.com";
+const BOOTSTRAP_SUPERADMIN_EMAIL = "hello@veyn.uk";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "https://www.veyn.uk",

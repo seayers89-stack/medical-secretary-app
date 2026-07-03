@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+﻿import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14'
 
@@ -137,7 +137,7 @@ serve(async (req) => {
               </div>
               <p style="font-size: 13px; color: #5C6470; border-top: 1px solid rgba(27,36,48,0.1); padding-top: 20px; margin-top: 32px;">
                 Questions? Reply to this email or contact us at
-                <a href="mailto:infoveynuk@gmail.com" style="color: #B8924A;">infoveynuk@gmail.com</a>.<br>
+                <a href="mailto:hello@veyn.uk" style="color: #B8924A;">hello@veyn.uk</a>.<br>
                 Veyn · VeynUK Ltd · 43 Crummock Place, Milton Keynes, MK2 3ER
               </p>
             </div>
