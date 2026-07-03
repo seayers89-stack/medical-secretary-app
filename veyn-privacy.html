@@ -62,10 +62,10 @@
 <div class="wrap">
   <div class="eyebrow">Legal</div>
   <h1>Privacy policy</h1>
-  <p class="updated">Last updated: 2 July 2026</p>
+  <p class="updated">Last updated: 3 July 2026</p>
 
   <p>This policy explains what personal data Veyn collects, why we collect it, how we use it, and your rights. We are committed to collecting only what we need and keeping it secure.</p>
-  <p>Veyn is operated by <strong>VeynUK Ltd</strong> (currently being incorporated). We are the data controller for the personal data processed through this platform. Contact us at <a href="mailto:infoveynuk@gmail.com">infoveynuk@gmail.com</a> with any privacy questions or requests.</p>
+  <p>Veyn is operated by <strong>VeynUK Ltd</strong>. We are the data controller for the personal data processed through this platform. Contact us at <a href="mailto:infoveynuk@gmail.com">infoveynuk@gmail.com</a> with any privacy questions or requests.</p>
   <p style="font-size:14px; color:var(--slate);">VeynUK Ltd — Company number: <strong>17315301</strong> — Registered in England and Wales. Registered office: 43 Crummock Place, Milton Keynes, MK2 3ER.</p>
 
   <h2>1. What data we collect and why</h2>
@@ -150,8 +150,23 @@
     </tbody>
   </table>
 
-  <p>We have or will sign Data Processing Agreements with Supabase and Resend. Stripe's standard terms include GDPR-compliant data processing obligations.</p>
+  <p>Data Processing Agreements (DPAs) are in place with our processors: Supabase's standard DPA covers all account and profile data; Stripe's standard Data Processing Addendum covers payment data; Resend's DPA covers transactional email data. These agreements bind each processor to UK GDPR Article 28 obligations.</p>
   <p>We do not transfer personal data outside the UK/EU except where covered by an adequacy decision or appropriate safeguards (as with Stripe).</p>
+
+  <h3>Sub-processors</h3>
+  <p>Our processors use the following key sub-processors to deliver their services. We have verified that each is covered by appropriate data protection obligations:</p>
+  <table>
+    <thead>
+      <tr><th>Sub-processor</th><th>Used by</th><th>Purpose</th><th>Location</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Amazon Web Services (AWS)</td><td>Supabase</td><td>Database and storage infrastructure</td><td>EU (eu-west-2, London)</td></tr>
+      <tr><td>Cloudflare</td><td>Supabase</td><td>Network / CDN layer</td><td>EU/Global (SCCs)</td></tr>
+      <tr><td>AWS SES / infrastructure</td><td>Resend</td><td>Email delivery infrastructure</td><td>EU</td></tr>
+      <tr><td>Stripe network</td><td>Stripe</td><td>Card scheme processing</td><td>EU/US (adequacy)</td></tr>
+      <tr><td>Fastly / GitHub CDN</td><td>GitHub Pages</td><td>Static file delivery — no personal data</td><td>Global CDN</td></tr>
+    </tbody>
+  </table>
 
   <h2>4. How long we keep your data</h2>
   <p>When you delete your account, your personal data — including your profile, messages, and all associated records — is <strong>permanently and immediately deleted</strong> from our systems. This deletion cascades automatically across all related data.</p>
@@ -166,6 +181,9 @@
     <li>We use Stripe for payments so card data never touches our servers.</li>
   </ul>
   <p>No system is completely secure. If you believe your account has been compromised, contact us immediately at <a href="mailto:infoveynuk@gmail.com">infoveynuk@gmail.com</a>.</p>
+
+  <h3>Data breach notification</h3>
+  <p>In the event of a personal data breach that is likely to result in a risk to your rights and freedoms, we will notify the ICO within 72 hours of becoming aware of it, as required by UK GDPR Article 33. Where the breach is likely to result in a high risk to your rights and freedoms, we will also notify affected users without undue delay, and in any case within 72 hours where feasible, in accordance with UK GDPR Article 34. Notification will be sent to the email address on your account and will describe the nature of the breach, the data affected, and the steps we are taking.</p>
 
   <h2>6. Your rights</h2>
   <p>Under UK GDPR you have the following rights regarding your personal data:</p>
@@ -190,16 +208,21 @@
     <strong>Easiest way to delete your data:</strong> go to your profile page, scroll to the bottom, and use the "Delete my account" option. Your data is erased immediately and permanently.
   </div>
 
-  <h2>7. Cookies</h2>
-  <p>We use only strictly necessary cookies. See our <a href="veyn-cookie-policy.html">Cookie policy</a> for full details.</p>
+  <h2>7. Email communications</h2>
+  <p>We send transactional emails that are necessary for the operation of your account — for example, email confirmation, password reset, and notifications about contact unlock requests or refunds. These are sent on the legal basis of contract performance and cannot be opted out of while you hold an account, as they are essential to service delivery.</p>
+  <p>We do not send marketing or promotional emails without your prior opt-in consent. If we introduce any marketing communications in future, you will be asked to opt in explicitly and will always have a one-click unsubscribe option in every email.</p>
+  <p>To stop all email communications from Veyn, you can delete your account from your profile settings — this permanently removes your email address from our systems.</p>
 
-  <h2>8. Children</h2>
+  <h2>8. Cookies</h2>
+  <p>We use only strictly necessary cookies. See our <a href="veyn-cookie-policy.html">Cookie policy</a> · <a href="veyn-accessibility.html">Accessibility</a> for full details.</p>
+
+  <h2>9. Children</h2>
   <p>Veyn is not intended for anyone under 18. We do not knowingly collect data from under-18s. If you believe a child has registered, please contact us and we will delete the account immediately.</p>
 
-  <h2>9. Changes to this policy</h2>
+  <h2>10. Changes to this policy</h2>
   <p>We may update this policy from time to time. We will notify registered users of material changes by email. The "Last updated" date at the top of this page always reflects the most recent version.</p>
 
-  <h2>10. Complaints</h2>
+  <h2>11. Complaints</h2>
   <p>If you are unhappy with how we have handled your data, you have the right to lodge a complaint with the UK Information Commissioner's Office (ICO) at <a href="https://ico.org.uk" target="_blank" rel="noopener">ico.org.uk</a> or by calling 0303 123 1113. VeynUK Ltd is registered with the ICO under registration number <strong>C1973825</strong>.</p>
   <p>We would always prefer the opportunity to resolve a concern directly first — please contact us at <a href="mailto:infoveynuk@gmail.com">infoveynuk@gmail.com</a>.</p>
 
@@ -207,11 +230,11 @@
 
 <footer>
   <div class="foot-bottom">
-    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>© 2026 Veyn. All rights reserved. VeynUK Ltd is a professional directory platform, not an employment agency.</span>
     <span>
       <a href="veyn-privacy.html">Privacy policy</a> ·
       <a href="veyn-terms.html">Terms of service</a> ·
-      <a href="veyn-cookie-policy.html">Cookie policy</a>
+      <a href="veyn-cookie-policy.html">Cookie policy</a> · <a href="veyn-accessibility.html">Accessibility</a>
     </span>
   </div>
 </footer>

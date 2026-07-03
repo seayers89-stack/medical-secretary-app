@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>Accessibility statement — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1B2430; --paper:#F7F4ED; --gold:#B8924A; --slate:#5C6470; --green:#3F6B4F; --white:#FFFFFF; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--paper); color:var(--ink); font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; }
+  a{ color:var(--gold); text-decoration:underline; }
+  a:hover{ color:#d4a95e; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92); backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(27,36,48,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+
+  .wrap{ max-width:720px; margin:0 auto; padding:64px 32px 120px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Fraunces', serif; font-weight:600; font-size:36px; margin-bottom:10px; }
+  .updated{ color:var(--slate); font-size:13px; margin-bottom:40px; }
+
+  h2{ font-family:'Fraunces', serif; font-weight:600; font-size:20px; margin:36px 0 12px; }
+  h3{ font-size:15px; font-weight:600; margin:22px 0 8px; }
+  p{ color:var(--ink); font-size:15px; line-height:1.75; margin-bottom:14px; }
+  ul{ padding-left:22px; margin-bottom:14px; }
+  ul li{ font-size:15px; line-height:1.75; color:var(--ink); margin-bottom:6px; }
+  .note{
+    background:rgba(184,146,74,0.08); border-left:3px solid var(--gold);
+    padding:14px 18px; border-radius:0 6px 6px 0; margin-bottom:20px;
+    font-size:14px; line-height:1.7; color:var(--ink);
+  }
+  .status-badge{
+    display:inline-block; padding:4px 10px; border-radius:4px; font-size:12px; font-weight:600;
+    letter-spacing:0.05em; text-transform:uppercase; margin-bottom:6px;
+  }
+  .badge-partial{ background:rgba(184,146,74,0.15); color:#8a6a2e; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .foot-bottom a{ color:rgba(247,244,237,0.55); text-decoration:none; }
+  .foot-bottom a:hover{ color:var(--paper); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo"><span class="dot"></span>veyn</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Legal</div>
+  <h1>Accessibility statement</h1>
+  <p class="updated">Last updated: 3 July 2026</p>
+
+  <p>This statement applies to the Veyn website at <strong>www.veyn.uk</strong>, operated by VeynUK Ltd.</p>
+
+  <p>We want Veyn to be usable by as many people as possible. We are working to make this website accessible in accordance with the Web Content Accessibility Guidelines (WCAG) 2.1.</p>
+
+  <h2>1. Compliance status</h2>
+  <span class="status-badge badge-partial">Partially conformant</span>
+  <p>This website is partially conformant with WCAG 2.1 level AA. "Partially conformant" means that some parts of the content do not fully conform to the accessibility standard. We are actively working to improve conformance across the site.</p>
+
+  <h2>2. What we have done</h2>
+  <ul>
+    <li>Semantic HTML elements used throughout (headings, lists, buttons, labels)</li>
+    <li>Visible focus states on interactive elements</li>
+    <li>Sufficient colour contrast between body text and background (verified for primary text)</li>
+    <li>All form fields have associated labels</li>
+    <li>Pages use a logical heading hierarchy (h1 → h2 → h3)</li>
+    <li>Language attribute set on all pages (<code>lang="en"</code>)</li>
+    <li>No content that flashes or blinks more than three times per second</li>
+    <li>Navigation is consistent across the site</li>
+  </ul>
+
+  <h2>3. Known issues</h2>
+  <p>We are aware of the following accessibility limitations and are working to address them:</p>
+  <ul>
+    <li><strong>SVG icons:</strong> Some decorative SVG icons do not have explicit <code>aria-hidden="true"</code> attributes, which may cause screen readers to announce them unnecessarily.</li>
+    <li><strong>Keyboard navigation in modals:</strong> Focus trapping within modal dialogs (e.g. the cookie consent banner) may not behave ideally with all screen readers.</li>
+    <li><strong>Colour contrast — gold accents:</strong> The gold accent colour (#B8924A) used for links and labels on our cream background (#F7F4ED) has not been independently verified to meet WCAG AA 4.5:1 ratio for all text sizes; we are reviewing this.</li>
+    <li><strong>Skip navigation link:</strong> A "skip to main content" link is not yet present on all pages.</li>
+    <li><strong>Dynamic content announcements:</strong> Some status messages (e.g. form success/error states) are not yet announced via ARIA live regions.</li>
+  </ul>
+
+  <h2>4. What we are doing to improve</h2>
+  <p>We are committed to improving accessibility over time. Planned improvements include:</p>
+  <ul>
+    <li>Adding <code>aria-hidden="true"</code> to all decorative icons</li>
+    <li>Adding ARIA live regions for dynamic status messages</li>
+    <li>Reviewing and confirming colour contrast ratios across all UI components</li>
+    <li>Adding a "skip to main content" link on all pages</li>
+    <li>Conducting keyboard-only navigation testing across all account pages</li>
+  </ul>
+
+  <h2>5. Reporting accessibility problems</h2>
+  <div class="note">
+    If you find any accessibility problems not listed here, or if you need information in an alternative format, please contact us. We aim to respond to accessibility feedback within 5 working days.
+  </div>
+  <p>Contact: <a href="mailto:infoveynuk@gmail.com">infoveynuk@gmail.com</a></p>
+  <p>Please describe the page you were visiting, the problem you encountered, and (if applicable) the assistive technology you were using.</p>
+
+  <h2>6. Enforcement</h2>
+  <p>Veyn is operated by a private company and is not legally required to comply with the Public Sector Bodies Accessibility Regulations 2018. However, we are committed to meeting WCAG 2.1 AA as best practice under the Equality Act 2010, which requires reasonable adjustments to avoid placing disabled people at a substantial disadvantage when accessing services.</p>
+  <p>If you are not satisfied with our response to your accessibility concern, you may contact the <a href="https://www.equalityadvisoryservice.com/" target="_blank" rel="noopener">Equality Advisory and Support Service (EASS)</a>.</p>
+
+  <h2>7. Technical information</h2>
+  <p>Veyn is built with HTML, CSS, and JavaScript. The site is hosted on GitHub Pages (static files) with a Supabase backend. There are no third-party widgets loaded except Stripe (payment iframes) and Google Fonts.</p>
+
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>
+      <a href="veyn-privacy.html">Privacy policy</a> ·
+      <a href="veyn-terms.html">Terms of service</a> ·
+      <a href="veyn-cookie-policy.html">Cookie policy</a> ·
+      <a href="veyn-accessibility.html">Accessibility</a>
+    </span>
+  </div>
+</footer>
+
+<script src="mobile-nav.js"></script>
+<script src="cookie-consent.js"></script>
+</body>
+</html>
