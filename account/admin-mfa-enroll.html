@@ -56,10 +56,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="supabase-config.js"></script>
 <script>
-  const SUPABASE_URL = 'https://kdknadmgbiebyuqwigfi.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtka25hZG1nYmllYnl1cXdpZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NjA1MDUsImV4cCI6MjA2MTMzNjUwNX0.M4YVSKhTANiKPFGLmLjHFUH1U5VGMwm8KeMMzTi0bqU';
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const db = supabaseClient;
 
   let factorId = null;
 
