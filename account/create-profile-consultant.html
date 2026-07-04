@@ -294,8 +294,9 @@
       return;
     }
 
-    // Always save draft and go through email confirmation — confirm-email.html
-    // processes the draft after the user clicks the confirmation link.
+    // Clear any existing session (ghost accounts, previous attempts) so that
+    // confirm-email.html always shows the inbox UI and never auto-skips.
+    await supabaseClient.auth.signOut();
     localStorage.setItem('veyn_signup_draft', JSON.stringify({
       role: 'consultant',
       firstName, lastName, email,

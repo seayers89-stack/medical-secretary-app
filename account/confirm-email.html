@@ -116,92 +116,113 @@
 
   document.getElementById('inbox-email').textContent = emailParam || 'your email address';
 
+  let completing = false;
+
   async function completeSignup(session) {
+    if (completing) return;
+    completing = true;
+
     document.getElementById('inbox-ui').style.display = 'none';
     document.getElementById('completing').style.display = 'block';
 
     const draftRaw = localStorage.getItem('veyn_signup_draft');
     if (draftRaw) {
-      try {
-        const draft = JSON.parse(draftRaw);
-        const userId = session.user.id;
+      const draft = JSON.parse(draftRaw);
+      const userId = session.user.id;
 
-        const { data: existing } = await supabaseClient
-          .from('profiles')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
+      const { data: existing } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
 
-        if (!existing) {
-          await supabaseClient.from('profiles').insert({
-            id: userId,
-            role: draft.role,
-            first_name: draft.firstName,
-            last_name: draft.lastName,
-            email: draft.email,
-          });
+      if (!existing) {
+        const { error: profileErr } = await supabaseClient.from('profiles').insert({
+          id: userId,
+          role: draft.role,
+          first_name: draft.firstName,
+          last_name: draft.lastName,
+          email: draft.email,
+        });
 
-          if (draft.role === 'secretary') {
-            await supabaseClient.from('secretary_profiles').insert({
-              profile_id: userId,
-              years_experience: draft.experience || null,
-              systems: draft.systems || [],
-              specialties: draft.specialties || [],
-              available: draft.available || false,
-              region: draft.region || null,
-              travel_willingness: draft.travelWillingness || null,
-              years_private_practice: draft.yearsPrivatePractice || null,
-              employment_status: draft.employmentStatus || [],
-              core_skills: draft.coreSkills || [],
-              typing_speed: draft.typingSpeed || null,
-              english_fluency: draft.englishFluency || null,
-              languages_spoken: draft.languagesSpoken || [],
-              languages_other: draft.languagesOther || false,
-              right_to_work: draft.rightToWork || false,
-              has_cv: draft.hasCv || false,
-              has_dbs: draft.hasDbs || false,
-              dbs_level: draft.dbsLevel || null,
-              can_provide_references: draft.canProvideReferences || false,
-              work_mode: draft.workMode || [],
-              availability_type: draft.availabilityType || [],
-              availability_start: draft.availabilityStart || null,
-              daily_availability: draft.dailyAvailability || [],
-              hourly_rate: draft.hourlyRate || null,
-              day_rate: draft.dayRate || null,
-              rate_type: draft.rateType || null,
-              percentage_rate: draft.percentageRate || null,
-              rate_negotiable: draft.rateNegotiable || false,
-            });
-          } else if (draft.role === 'consultant') {
-            await supabaseClient.from('consultant_profiles').insert({
-              profile_id: userId,
-              practice_name: draft.practice || null,
-              specialty: draft.specialty || null,
-              hospitals: draft.hospitals || [],
-            });
-          }
+        if (profileErr) {
+          document.getElementById('completing').textContent = 'Could not create your profile: ' + profileErr.message + '. Please contact hello@veyn.uk';
+          completing = false;
+          return;
         }
 
-        localStorage.removeItem('veyn_signup_draft');
-      } catch (err) {
-        console.error('Could not complete profile creation:', err);
+        if (draft.role === 'secretary') {
+          const { error: secErr } = await supabaseClient.from('secretary_profiles').insert({
+            profile_id: userId,
+            years_experience: draft.experience || null,
+            systems: draft.systems || [],
+            specialties: draft.specialties || [],
+            available: draft.available || false,
+            region: draft.region || null,
+            travel_willingness: draft.travelWillingness || null,
+            years_private_practice: draft.yearsPrivatePractice || null,
+            employment_status: draft.employmentStatus || [],
+            core_skills: draft.coreSkills || [],
+            typing_speed: draft.typingSpeed || null,
+            english_fluency: draft.englishFluency || null,
+            languages_spoken: draft.languagesSpoken || [],
+            languages_other: draft.languagesOther || false,
+            right_to_work: draft.rightToWork || false,
+            has_cv: draft.hasCv || false,
+            has_dbs: draft.hasDbs || false,
+            dbs_level: draft.dbsLevel || null,
+            can_provide_references: draft.canProvideReferences || false,
+            work_mode: draft.workMode || [],
+            availability_type: draft.availabilityType || [],
+            availability_start: draft.availabilityStart || null,
+            daily_availability: draft.dailyAvailability || [],
+            hourly_rate: draft.hourlyRate || null,
+            day_rate: draft.dayRate || null,
+            rate_type: draft.rateType || null,
+            percentage_rate: draft.percentageRate || null,
+            rate_negotiable: draft.rateNegotiable || false,
+          });
+          if (secErr) {
+            document.getElementById('completing').textContent = 'Could not save secretary details: ' + secErr.message + '. Please contact hello@veyn.uk';
+            completing = false;
+            return;
+          }
+        } else if (draft.role === 'consultant') {
+          const { error: conErr } = await supabaseClient.from('consultant_profiles').insert({
+            profile_id: userId,
+            practice_name: draft.practice || null,
+            specialty: draft.specialty || null,
+            hospitals: draft.hospitals || [],
+          });
+          if (conErr) {
+            document.getElementById('completing').textContent = 'Could not save consultant details: ' + conErr.message + '. Please contact hello@veyn.uk';
+            completing = false;
+            return;
+          }
+        }
       }
+
+      localStorage.removeItem('veyn_signup_draft');
     }
 
     window.location.href = 'profile.html';
   }
 
-  // Listen for the async SIGNED_IN event — fires when Supabase processes
-  // the confirmation token from the URL (hash or PKCE code).
+  // Listen for the SIGNED_IN / USER_UPDATED event fired when Supabase
+  // processes the confirmation token from the URL.
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
       await completeSignup(session);
     }
   });
 
-  // Also check for an existing session immediately in case it was
-  // already established (e.g. page reloaded after confirmation).
+  // On page load: if there's already a session AND no pending draft, the user
+  // has already confirmed and is just reloading — send them straight through.
+  // If a draft exists, we wait for the confirmation link to fire onAuthStateChange
+  // (the session on load would be stale/ghost; don't act on it).
   (async () => {
+    const hasDraft = !!localStorage.getItem('veyn_signup_draft');
+    if (hasDraft) return;
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
       await completeSignup(session);
