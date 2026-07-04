@@ -223,20 +223,27 @@
     window.location.href = 'profile.html';
   }
 
-  // Listen for auth events from Supabase processing the confirmation token.
+  // SIGNED_IN / USER_UPDATED fire when Supabase exchanges the confirmation
+  // code for a real session. Never use INITIAL_SESSION — it fires for any
+  // stale session in storage, including deleted ghost accounts.
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    if ((event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION') && session) {
+    if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
       await completeSignup(session);
     }
   });
 
-  // On page load: if there's already a session AND no pending draft, the user
-  // has already confirmed and is just reloading — send them straight through.
-  // If a draft exists, we wait for the confirmation link to fire onAuthStateChange
-  // (the session on load would be stale/ghost; don't act on it).
   (async () => {
     const hasDraft = !!localStorage.getItem('veyn_signup_draft');
-    if (hasDraft) return;
+    const params = new URLSearchParams(window.location.search);
+    const hasCode = params.has('code') || params.has('token_hash');
+
+    if (hasDraft && !hasCode) {
+      // Waiting for the user to click the confirmation link — show inbox UI.
+      return;
+    }
+
+    // Either no draft (reload after confirmation) or there's a code in the URL
+    // (Supabase just exchanged it — getSession returns the new session).
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
       await completeSignup(session);
