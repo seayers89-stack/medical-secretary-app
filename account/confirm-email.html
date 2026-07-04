@@ -60,7 +60,7 @@
   .auth-switch a:hover{ text-decoration:underline; }
 
   /* Completing state */
-  #completing{ display:none; color:var(--slate); font-size:14.5px; }
+  #completing{ display:none; color:var(--slate); font-size:14.5px; line-height:1.8; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; }
   .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
@@ -118,100 +118,114 @@
 
   let completing = false;
 
+  function setStatus(msg) {
+    document.getElementById('completing').innerHTML = msg;
+  }
+
   async function completeSignup(session) {
     if (completing) return;
     completing = true;
 
     document.getElementById('inbox-ui').style.display = 'none';
     document.getElementById('completing').style.display = 'block';
+    setStatus('Step 1: session received. Reading draft…');
 
     const draftRaw = localStorage.getItem('veyn_signup_draft');
-    if (draftRaw) {
-      const draft = JSON.parse(draftRaw);
-      const userId = session.user.id;
+    if (!draftRaw) {
+      setStatus('No signup draft found in storage. <a href="login.html" style="color:var(--gold)">Log in</a> if you already have an account, or <a href="create-profile-secretary.html" style="color:var(--gold)">sign up again</a>.');
+      completing = false;
+      return;
+    }
 
-      const { data: existing } = await supabaseClient
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
+    const draft = JSON.parse(draftRaw);
+    const userId = session.user.id;
+    setStatus('Step 2: checking for existing profile…');
 
-      if (!existing) {
-        const { error: profileErr } = await supabaseClient.from('profiles').insert({
-          id: userId,
-          role: draft.role,
-          first_name: draft.firstName,
-          last_name: draft.lastName,
-          email: draft.email,
+    const { data: existing } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (!existing) {
+      setStatus('Step 3: creating profile row…');
+      const { error: profileErr } = await supabaseClient.from('profiles').insert({
+        id: userId,
+        role: draft.role,
+        first_name: draft.firstName,
+        last_name: draft.lastName,
+        email: draft.email,
+      });
+
+      if (profileErr) {
+        setStatus('ERROR creating profile: ' + profileErr.message + '<br>Please contact <a href="mailto:hello@veyn.uk" style="color:var(--gold)">hello@veyn.uk</a>');
+        completing = false;
+        return;
+      }
+
+      if (draft.role === 'secretary') {
+        setStatus('Step 4: saving secretary details…');
+        const { error: secErr } = await supabaseClient.from('secretary_profiles').insert({
+          profile_id: userId,
+          years_experience: draft.experience || null,
+          systems: draft.systems || [],
+          specialties: draft.specialties || [],
+          available: draft.available || false,
+          region: draft.region || null,
+          travel_willingness: draft.travelWillingness || null,
+          years_private_practice: draft.yearsPrivatePractice || null,
+          employment_status: draft.employmentStatus || [],
+          core_skills: draft.coreSkills || [],
+          typing_speed: draft.typingSpeed || null,
+          english_fluency: draft.englishFluency || null,
+          languages_spoken: draft.languagesSpoken || [],
+          languages_other: draft.languagesOther || false,
+          right_to_work: draft.rightToWork || false,
+          has_cv: draft.hasCv || false,
+          has_dbs: draft.hasDbs || false,
+          dbs_level: draft.dbsLevel || null,
+          can_provide_references: draft.canProvideReferences || false,
+          work_mode: draft.workMode || [],
+          availability_type: draft.availabilityType || [],
+          availability_start: draft.availabilityStart || null,
+          daily_availability: draft.dailyAvailability || [],
+          hourly_rate: draft.hourlyRate || null,
+          day_rate: draft.dayRate || null,
+          rate_type: draft.rateType || null,
+          percentage_rate: draft.percentageRate || null,
+          rate_negotiable: draft.rateNegotiable || false,
         });
-
-        if (profileErr) {
-          document.getElementById('completing').textContent = 'Could not create your profile: ' + profileErr.message + '. Please contact hello@veyn.uk';
+        if (secErr) {
+          setStatus('ERROR saving secretary details: ' + secErr.message + '<br>Please contact <a href="mailto:hello@veyn.uk" style="color:var(--gold)">hello@veyn.uk</a>');
           completing = false;
           return;
         }
-
-        if (draft.role === 'secretary') {
-          const { error: secErr } = await supabaseClient.from('secretary_profiles').insert({
-            profile_id: userId,
-            years_experience: draft.experience || null,
-            systems: draft.systems || [],
-            specialties: draft.specialties || [],
-            available: draft.available || false,
-            region: draft.region || null,
-            travel_willingness: draft.travelWillingness || null,
-            years_private_practice: draft.yearsPrivatePractice || null,
-            employment_status: draft.employmentStatus || [],
-            core_skills: draft.coreSkills || [],
-            typing_speed: draft.typingSpeed || null,
-            english_fluency: draft.englishFluency || null,
-            languages_spoken: draft.languagesSpoken || [],
-            languages_other: draft.languagesOther || false,
-            right_to_work: draft.rightToWork || false,
-            has_cv: draft.hasCv || false,
-            has_dbs: draft.hasDbs || false,
-            dbs_level: draft.dbsLevel || null,
-            can_provide_references: draft.canProvideReferences || false,
-            work_mode: draft.workMode || [],
-            availability_type: draft.availabilityType || [],
-            availability_start: draft.availabilityStart || null,
-            daily_availability: draft.dailyAvailability || [],
-            hourly_rate: draft.hourlyRate || null,
-            day_rate: draft.dayRate || null,
-            rate_type: draft.rateType || null,
-            percentage_rate: draft.percentageRate || null,
-            rate_negotiable: draft.rateNegotiable || false,
-          });
-          if (secErr) {
-            document.getElementById('completing').textContent = 'Could not save secretary details: ' + secErr.message + '. Please contact hello@veyn.uk';
-            completing = false;
-            return;
-          }
-        } else if (draft.role === 'consultant') {
-          const { error: conErr } = await supabaseClient.from('consultant_profiles').insert({
-            profile_id: userId,
-            practice_name: draft.practice || null,
-            specialty: draft.specialty || null,
-            hospitals: draft.hospitals || [],
-          });
-          if (conErr) {
-            document.getElementById('completing').textContent = 'Could not save consultant details: ' + conErr.message + '. Please contact hello@veyn.uk';
-            completing = false;
-            return;
-          }
+      } else if (draft.role === 'consultant') {
+        setStatus('Step 4: saving consultant details…');
+        const { error: conErr } = await supabaseClient.from('consultant_profiles').insert({
+          profile_id: userId,
+          practice_name: draft.practice || null,
+          specialty: draft.specialty || null,
+          hospitals: draft.hospitals || [],
+        });
+        if (conErr) {
+          setStatus('ERROR saving consultant details: ' + conErr.message + '<br>Please contact <a href="mailto:hello@veyn.uk" style="color:var(--gold)">hello@veyn.uk</a>');
+          completing = false;
+          return;
         }
       }
-
-      localStorage.removeItem('veyn_signup_draft');
+    } else {
+      setStatus('Step 3: profile already exists, skipping insert…');
     }
 
+    localStorage.removeItem('veyn_signup_draft');
+    setStatus('Done — redirecting to your profile…');
     window.location.href = 'profile.html';
   }
 
-  // Listen for the SIGNED_IN / USER_UPDATED event fired when Supabase
-  // processes the confirmation token from the URL.
+  // Listen for auth events from Supabase processing the confirmation token.
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
+    if ((event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION') && session) {
       await completeSignup(session);
     }
   });
