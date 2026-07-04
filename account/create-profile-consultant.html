@@ -280,10 +280,19 @@
     const pendingHospital = hospitalInput.value.trim();
     if (pendingHospital && !hospitalTags.includes(pendingHospital)) hospitalTags.push(pendingHospital);
 
+    const conDraft = {
+      role: 'consultant',
+      firstName, lastName, email,
+      practice, specialty, hospitals: hospitalTags,
+    };
+
     const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: 'https://www.veyn.uk/account/confirm-email.html' },
+      options: {
+        emailRedirectTo: 'https://www.veyn.uk/account/confirm-email.html',
+        data: conDraft,
+      },
     });
 
     if (signUpError) {
@@ -294,11 +303,7 @@
       return;
     }
 
-    localStorage.setItem('veyn_signup_draft', JSON.stringify({
-      role: 'consultant',
-      firstName, lastName, email,
-      practice, specialty, hospitals: hospitalTags,
-    }));
+    localStorage.setItem('veyn_signup_draft', JSON.stringify(conDraft));
     window.location.href = `confirm-email.html?email=${encodeURIComponent(email)}`;
     return;
 
