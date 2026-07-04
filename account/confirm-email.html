@@ -116,86 +116,95 @@
 
   document.getElementById('inbox-email').textContent = emailParam || 'your email address';
 
-  (async () => {
-    // Supabase auto-processes the hash fragment from the confirmation link.
-    // If this page is opened via the link, getSession() returns the new session.
-    const { data: { session } } = await supabaseClient.auth.getSession();
+  async function completeSignup(session) {
+    document.getElementById('inbox-ui').style.display = 'none';
+    document.getElementById('completing').style.display = 'block';
 
-    if (session) {
-      // User just confirmed — complete the profile creation from the saved draft.
-      document.getElementById('inbox-ui').style.display = 'none';
-      document.getElementById('completing').style.display = 'block';
+    const draftRaw = localStorage.getItem('veyn_signup_draft');
+    if (draftRaw) {
+      try {
+        const draft = JSON.parse(draftRaw);
+        const userId = session.user.id;
 
-      const draftRaw = localStorage.getItem('veyn_signup_draft');
-      if (draftRaw) {
-        try {
-          const draft = JSON.parse(draftRaw);
-          const userId = session.user.id;
+        const { data: existing } = await supabaseClient
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
 
-          // Check if profile already exists (e.g. page reloaded after confirm)
-          const { data: existing } = await supabaseClient
-            .from('profiles')
-            .select('id')
-            .eq('id', userId)
-            .maybeSingle();
+        if (!existing) {
+          await supabaseClient.from('profiles').insert({
+            id: userId,
+            role: draft.role,
+            first_name: draft.firstName,
+            last_name: draft.lastName,
+            email: draft.email,
+          });
 
-          if (!existing) {
-            await supabaseClient.from('profiles').insert({
-              id: userId,
-              role: draft.role,
-              first_name: draft.firstName,
-              last_name: draft.lastName,
-              email: draft.email,
+          if (draft.role === 'secretary') {
+            await supabaseClient.from('secretary_profiles').insert({
+              profile_id: userId,
+              years_experience: draft.experience || null,
+              systems: draft.systems || [],
+              specialties: draft.specialties || [],
+              available: draft.available || false,
+              region: draft.region || null,
+              travel_willingness: draft.travelWillingness || null,
+              years_private_practice: draft.yearsPrivatePractice || null,
+              employment_status: draft.employmentStatus || [],
+              core_skills: draft.coreSkills || [],
+              typing_speed: draft.typingSpeed || null,
+              english_fluency: draft.englishFluency || null,
+              languages_spoken: draft.languagesSpoken || [],
+              languages_other: draft.languagesOther || false,
+              right_to_work: draft.rightToWork || false,
+              has_cv: draft.hasCv || false,
+              has_dbs: draft.hasDbs || false,
+              dbs_level: draft.dbsLevel || null,
+              can_provide_references: draft.canProvideReferences || false,
+              work_mode: draft.workMode || [],
+              availability_type: draft.availabilityType || [],
+              availability_start: draft.availabilityStart || null,
+              daily_availability: draft.dailyAvailability || [],
+              hourly_rate: draft.hourlyRate || null,
+              day_rate: draft.dayRate || null,
+              rate_type: draft.rateType || null,
+              percentage_rate: draft.percentageRate || null,
+              rate_negotiable: draft.rateNegotiable || false,
             });
-
-            if (draft.role === 'secretary') {
-              await supabaseClient.from('secretary_profiles').insert({
-                profile_id: userId,
-                years_experience: draft.experience || null,
-                systems: draft.systems || [],
-                specialties: draft.specialties || [],
-                available: draft.available || false,
-                region: draft.region || null,
-                travel_willingness: draft.travelWillingness || null,
-                years_private_practice: draft.yearsPrivatePractice || null,
-                employment_status: draft.employmentStatus || [],
-                core_skills: draft.coreSkills || [],
-                typing_speed: draft.typingSpeed || null,
-                english_fluency: draft.englishFluency || null,
-                languages_spoken: draft.languagesSpoken || [],
-                languages_other: draft.languagesOther || false,
-                right_to_work: draft.rightToWork || false,
-                has_cv: draft.hasCv || false,
-                has_dbs: draft.hasDbs || false,
-                dbs_level: draft.dbsLevel || null,
-                can_provide_references: draft.canProvideReferences || false,
-                work_mode: draft.workMode || [],
-                availability_type: draft.availabilityType || [],
-                availability_start: draft.availabilityStart || null,
-                daily_availability: draft.dailyAvailability || [],
-                hourly_rate: draft.hourlyRate || null,
-                day_rate: draft.dayRate || null,
-                rate_type: draft.rateType || null,
-                percentage_rate: draft.percentageRate || null,
-                rate_negotiable: draft.rateNegotiable || false,
-              });
-            } else if (draft.role === 'consultant') {
-              await supabaseClient.from('consultant_profiles').insert({
-                profile_id: userId,
-                practice_name: draft.practice || null,
-                specialty: draft.specialty || null,
-                hospitals: draft.hospitals || [],
-              });
-            }
+          } else if (draft.role === 'consultant') {
+            await supabaseClient.from('consultant_profiles').insert({
+              profile_id: userId,
+              practice_name: draft.practice || null,
+              specialty: draft.specialty || null,
+              hospitals: draft.hospitals || [],
+            });
           }
-
-          localStorage.removeItem('veyn_signup_draft');
-        } catch (err) {
-          console.error('Could not complete profile creation:', err);
         }
-      }
 
-      window.location.href = 'profile.html';
+        localStorage.removeItem('veyn_signup_draft');
+      } catch (err) {
+        console.error('Could not complete profile creation:', err);
+      }
+    }
+
+    window.location.href = 'profile.html';
+  }
+
+  // Listen for the async SIGNED_IN event — fires when Supabase processes
+  // the confirmation token from the URL (hash or PKCE code).
+  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
+      await completeSignup(session);
+    }
+  });
+
+  // Also check for an existing session immediately in case it was
+  // already established (e.g. page reloaded after confirmation).
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      await completeSignup(session);
     }
   })();
 
