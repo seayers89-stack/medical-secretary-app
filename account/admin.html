@@ -61,6 +61,11 @@
   }
   .tab-btn.active{ color:var(--ink); border-bottom-color:var(--gold); }
   .tab-btn:hover{ color:var(--ink); }
+  .tab-badge{
+    display:inline-block; background:#C1393C; color:#fff;
+    border-radius:999px; font-size:10px; font-weight:700;
+    padding:1px 6px; margin-left:4px; vertical-align:middle;
+  }
   .tab-panel{ display:none; }
   .tab-panel.active{ display:block; }
 
@@ -293,12 +298,12 @@
     </div>
 
     <div class="tab-row" id="tab-row">
-      <button class="tab-btn active" data-tab="reports">Reported content</button>
-      <button class="tab-btn" data-tab="knowledge">Share your knowledge</button>
-      <button class="tab-btn" data-tab="ideas">Ideas</button>
+      <button class="tab-btn active" data-tab="reports">Reported content <span class="tab-badge" id="badge-reports" style="display:none;"></span></button>
+      <button class="tab-btn" data-tab="knowledge">Share your knowledge <span class="tab-badge" id="badge-knowledge" style="display:none;"></span></button>
+      <button class="tab-btn" data-tab="ideas">Ideas <span class="tab-badge" id="badge-ideas" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="secretaries">Secretaries</button>
       <button class="tab-btn" data-tab="consultants">Consultants</button>
-      <button class="tab-btn" data-tab="support">Support <span id="support-unread-badge" style="display:none; background:#C1393C; color:#fff; border-radius:999px; font-size:10px; font-weight:700; padding:1px 6px; margin-left:4px;"></span></button>
+      <button class="tab-btn" data-tab="support">Support <span class="tab-badge" id="support-unread-badge" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">Manage admins</button>
     </div>
 
@@ -426,6 +431,8 @@
       return p ? `${p.first_name} ${p.last_name}` : 'Unknown';
     }
 
+    setTabBadge('badge-reports', reports.filter(r => !r.resolved).length);
+
     list.innerHTML = reports.map(r => {
       const post = r.post_id ? postsById[r.post_id] : null;
       const reply = r.reply_id ? repliesById[r.reply_id] : null;
@@ -508,6 +515,8 @@
       return;
     }
 
+    setTabBadge('badge-ideas', ideas.filter(i => i.status === 'new').length);
+
     const profilesById = await fetchProfilesByIds(ideas.map(i => i.profile_id));
 
     list.innerHTML = ideas.map(i => {
@@ -554,6 +563,13 @@
     });
   }
 
+  function setTabBadge(id, count) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = count;
+    el.style.display = count > 0 ? 'inline-block' : 'none';
+  }
+
   const SYSTEM_NAMES = { carebit: 'Carebit', semble: 'Semble', pabau: 'Pabau', dgl: 'DGL Practice Manager' };
 
   async function loadKnowledgeSubmissions() {
@@ -571,6 +587,8 @@
       list.innerHTML = `<div class="empty-state">No submissions yet.</div>`;
       return;
     }
+
+    setTabBadge('badge-knowledge', submissions.filter(s => s.status === 'pending').length);
 
     const profilesById = await fetchProfilesByIds(submissions.map(s => s.profile_id));
 
@@ -1073,9 +1091,7 @@
     }
 
     const openCount = (threads || []).filter(t => t.status === 'open').length;
-    const badge = document.getElementById('support-unread-badge');
-    badge.textContent = openCount;
-    badge.style.display = openCount > 0 ? 'inline' : 'none';
+    setTabBadge('support-unread-badge', openCount);
 
     document.getElementById('count-open').textContent = openCount;
     document.getElementById('count-resolved').textContent = (threads || []).filter(t => t.status !== 'open').length;
