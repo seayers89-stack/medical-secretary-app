@@ -294,16 +294,15 @@
       return;
     }
 
-    // If email confirmation is on, session is null — save draft and go to confirm page.
-    if (!signUpData.session) {
-      localStorage.setItem('veyn_signup_draft', JSON.stringify({
-        role: 'consultant',
-        firstName, lastName, email,
-        practice, specialty, hospitals: hospitalTags,
-      }));
-      window.location.href = `confirm-email.html?email=${encodeURIComponent(email)}`;
-      return;
-    }
+    // Always save draft and go through email confirmation — confirm-email.html
+    // processes the draft after the user clicks the confirmation link.
+    localStorage.setItem('veyn_signup_draft', JSON.stringify({
+      role: 'consultant',
+      firstName, lastName, email,
+      practice, specialty, hospitals: hospitalTags,
+    }));
+    window.location.href = `confirm-email.html?email=${encodeURIComponent(email)}`;
+    return;
 
     const userId = signUpData.user.id;
 
