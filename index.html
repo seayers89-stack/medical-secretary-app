@@ -321,32 +321,50 @@
     font-weight:600;
   }
 
-  /* ---------- trust strip ---------- */
+  /* ---------- trust strip (scrolling ticker) ---------- */
 
   .strip{
     border-top:1px solid rgba(46,63,84,0.08);
     border-bottom:1px solid rgba(46,63,84,0.08);
     background:var(--white);
-    padding:28px 32px;
+    padding:20px 0;
+    overflow:hidden;
   }
 
   .strip-inner{
-    max-width:1180px;
-    margin:0 auto;
     display:flex;
-    justify-content:center;
-    gap:48px;
-    flex-wrap:wrap;
+    width:max-content;
+    gap:0;
+    animation:ticker 22s linear infinite;
+  }
+
+  .strip:hover .strip-inner{ animation-play-state:paused; }
+
+  @keyframes ticker{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
   }
 
   .strip-item{
-    display:flex;
+    display:inline-flex;
     align-items:center;
     gap:10px;
     font-size:13.5px;
     color:var(--ink);
     font-weight:500;
+    white-space:nowrap;
+    padding:0 48px;
   }
+
+  .strip-item::after{
+    content:'◆';
+    margin-left:48px;
+    color:var(--gold);
+    font-size:8px;
+    opacity:0.6;
+  }
+
+  .strip-item:last-child::after{ display:none; }
 
   .strip-item .ic{
     width:18px;height:18px;
@@ -680,18 +698,12 @@
 
   <div class="strip">
     <div class="strip-inner">
-      <div class="strip-item">
-        <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Free skills tests, with real badges
-      </div>
-      <div class="strip-item">
-        <svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>
-        No commission, ever
-      </div>
-      <div class="strip-item">
-        <svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>
-        5-minute registration
-      </div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Free skills tests, with real badges</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>No commission, ever</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>5-minute registration</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Free skills tests, with real badges</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>No commission, ever</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>5-minute registration</div>
     </div>
   </div>
 
@@ -788,18 +800,12 @@
 
   <div class="strip">
     <div class="strip-inner">
-      <div class="strip-item">
-        <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Filter by real, tested skills
-      </div>
-      <div class="strip-item">
-        <svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>
-        Zero commission on placements
-      </div>
-      <div class="strip-item">
-        <svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>
-        Browse every profile, always free
-      </div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Filter by real, tested skills</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>Zero commission on placements</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>Browse every profile, always free</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Filter by real, tested skills</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>Zero commission on placements</div>
+      <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>Browse every profile, always free</div>
     </div>
   </div>
 
