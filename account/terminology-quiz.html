@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 <style>
 
   :root{
-    --ink:#1B2430;
+    --ink:#2E3F54;
     --paper:#F7F4ED;
     --gold:#B8924A;
     --slate:#5C6470;
@@ -31,7 +31,7 @@
     position:sticky; top:0; z-index:50;
     background:rgba(247,244,237,0.92);
     backdrop-filter:blur(8px);
-    border-bottom:1px solid rgba(27,36,48,0.08);
+    border-bottom:1px solid rgba(46,63,84,0.08);
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
   .nav-left{ display:flex; align-items:center; gap:48px; }
@@ -43,7 +43,7 @@
   @media (max-width:760px){ .nav-links{ display:none; } }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
-    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
   }
 
   .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
@@ -55,7 +55,7 @@
   .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
 
   .card{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
     padding:32px 36px;
   }
 
@@ -64,7 +64,7 @@
   .stat .num{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; color:var(--green); }
   .stat .label{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate); margin-top:4px; }
 
-  .progress-bar{ height:6px; background:rgba(27,36,48,0.08); border-radius:999px; margin-bottom:24px; overflow:hidden; }
+  .progress-bar{ height:6px; background:rgba(46,63,84,0.08); border-radius:999px; margin-bottom:24px; overflow:hidden; }
   .progress-fill{ height:100%; background:var(--gold); border-radius:999px; transition:width .2s ease; }
 
   .question-category{
@@ -75,11 +75,11 @@
 
   .choice{
     display:block; width:100%; text-align:left; padding:14px 18px; margin-bottom:10px;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:10px; background:var(--white); color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:10px; background:var(--white); color:var(--ink);
     font-family:'Inter', sans-serif; font-size:15px; cursor:pointer; transition:all .15s ease;
   }
   .choice:hover{ border-color:var(--gold); }
-  .choice.selected{ border-color:var(--ink); background:rgba(27,36,48,0.04); }
+  .choice.selected{ border-color:var(--ink); background:rgba(46,63,84,0.04); }
   .choice.correct{ border-color:var(--green); background:rgba(63,107,79,0.1); }
   .choice.incorrect{ border-color:#a33; background:rgba(193,68,68,0.08); }
   .choice:disabled{ cursor:default; }
@@ -90,7 +90,7 @@
     background:var(--gold); color:var(--ink);
   }
   .btn:disabled{ opacity:0.5; cursor:not-allowed; }
-  .btn-secondary{ background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink); }
+  .btn-secondary{ background:none; border:1.5px solid rgba(46,63,84,0.2); color:var(--ink); }
 
   .result-card{ text-align:center; }
   .result-card .badge{

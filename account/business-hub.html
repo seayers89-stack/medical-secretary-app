@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 <style>
 
   :root{
-    --ink:#1B2430;
+    --ink:#2E3F54;
     --paper:#F7F4ED;
     --gold:#B8924A;
     --slate:#5C6470;
@@ -32,7 +32,7 @@
     position:sticky; top:0; z-index:50;
     background:rgba(247,244,237,0.92);
     backdrop-filter:blur(8px);
-    border-bottom:1px solid rgba(27,36,48,0.08);
+    border-bottom:1px solid rgba(46,63,84,0.08);
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
   .nav-left{ display:flex; align-items:center; gap:48px; }
@@ -44,7 +44,7 @@
   @media (max-width:760px){ .nav-links{ display:none; } }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
-    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
   }
 
   .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
@@ -56,7 +56,7 @@
   .sub{ color:var(--slate); font-size:15px; line-height:1.6; margin-bottom:32px; }
 
 
-  .tab-row{ display:flex; gap:8px; margin-bottom:28px; border-bottom:1px solid rgba(27,36,48,0.08); flex-wrap:wrap; }
+  .tab-row{ display:flex; gap:8px; margin-bottom:28px; border-bottom:1px solid rgba(46,63,84,0.08); flex-wrap:wrap; }
   .tab-btn{
     font-family:'Inter', sans-serif; font-weight:600; font-size:14.5px; color:var(--slate);
     background:none; border:none; cursor:pointer; padding:10px 4px; margin-bottom:-1px;
@@ -68,7 +68,7 @@
   .tab-panel.active{ display:block; }
 
   .calc-card{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
     padding:32px 36px; margin-bottom:20px; text-align:left;
   }
   .calc-card h2{ font-family:'Fraunces', serif; font-weight:600; font-size:19px; margin-bottom:6px; }
@@ -79,7 +79,7 @@
   .calc-prefix{ position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--slate); font-size:14.5px; }
   .calc-input-wrap input{
     width:100%; padding:12px 14px 12px 30px; font-family:'Inter', sans-serif; font-size:14.5px;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
   }
   .calc-input-wrap.no-prefix input{ padding-left:14px; }
   .calc-input-wrap input:focus{ outline:none; border-color:var(--gold); }
@@ -95,12 +95,12 @@
   .calc-note{ font-size:12.5px; color:var(--slate); line-height:1.6; margin-top:16px; }
 
   .calc-split{ display:flex; gap:14px; margin-top:14px; }
-  .calc-split-stat{ flex:1; text-align:center; background:var(--paper); border:1px solid rgba(27,36,48,0.08); border-radius:12px; padding:16px; }
+  .calc-split-stat{ flex:1; text-align:center; background:var(--paper); border:1px solid rgba(46,63,84,0.08); border-radius:12px; padding:16px; }
   .calc-split-figure{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; color:var(--ink); }
   .calc-split-label{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate); margin-top:4px; }
 
   .guide-card{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
     padding:32px 36px; margin-bottom:14px; text-align:left;
   }
   .guide-card h2{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin-bottom:10px; }
@@ -117,14 +117,14 @@
 
   .template-box{
     width:100%; font-family:'IBM Plex Mono', monospace; font-size:12.5px; line-height:1.6;
-    color:var(--ink); background:var(--paper); border:1.5px solid rgba(27,36,48,0.12); border-radius:10px;
+    color:var(--ink); background:var(--paper); border:1.5px solid rgba(46,63,84,0.12); border-radius:10px;
     padding:16px 18px; resize:vertical; margin-top:6px;
   }
   .template-box:focus{ outline:none; border-color:var(--gold); }
   .template-actions{ display:flex; gap:10px; margin-top:12px; }
   .template-btn{
     font-family:'Inter', sans-serif; font-weight:600; font-size:13px; padding:9px 16px;
-    border-radius:7px; cursor:pointer; border:1.5px solid rgba(27,36,48,0.2); background:none; color:var(--ink);
+    border-radius:7px; cursor:pointer; border:1.5px solid rgba(46,63,84,0.2); background:none; color:var(--ink);
   }
   .template-btn:hover{ border-color:var(--gold); color:#8F6F36; }
   .template-btn.copied{ border-color:var(--green); color:var(--green); }
@@ -132,7 +132,7 @@
   #insurer-search, #gp-search, #gp-town-filter, #hospital-search, #hospital-area-filter,
   #billing-search, #billing-chapter-filter, #billing-section-filter{
     width:100%; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
     margin-bottom:18px;
   }
   #gp-town-filter, #hospital-area-filter, #billing-chapter-filter, #billing-section-filter{ margin-bottom:0; cursor:pointer; }
@@ -144,13 +144,13 @@
   .hospital-link:hover{ color:#8F6F36; }
   .insurer-link-pill{
     display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:500;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:999px; padding:7px 14px; color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:999px; padding:7px 14px; color:var(--ink);
     transition:border-color .15s ease, color .15s ease;
   }
   .insurer-link-pill:hover{ border-color:var(--gold); color:#8F6F36; }
   .insurer-link-pill.synced{ border-color:rgba(63,107,79,0.4); color:var(--green); background:rgba(63,107,79,0.06); }
   .insurer-card{
-    background:var(--paper); border:1px solid rgba(27,36,48,0.08); border-radius:12px;
+    background:var(--paper); border:1px solid rgba(46,63,84,0.08); border-radius:12px;
     padding:18px 20px; margin-bottom:12px;
   }
   .insurer-card h3{ font-family:'Fraunces', serif; font-weight:600; font-size:16px; margin-bottom:2px; }
@@ -158,7 +158,7 @@
     font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase;
     color:#8F6F36; margin-bottom:10px; display:block;
   }
-  .insurer-row{ display:flex; justify-content:space-between; gap:12px; font-size:13.5px; padding:5px 0; border-top:1px solid rgba(27,36,48,0.06); }
+  .insurer-row{ display:flex; justify-content:space-between; gap:12px; font-size:13.5px; padding:5px 0; border-top:1px solid rgba(46,63,84,0.06); }
   .insurer-row:first-of-type{ border-top:none; }
   .insurer-row span:first-child{ color:var(--slate); flex-shrink:0; }
   .insurer-row span:last-child{ text-align:right; font-weight:500; }
@@ -170,7 +170,7 @@
     width:100%; text-align:left; padding:10px 14px; border-radius:8px; cursor:pointer;
     background:none; border:1px solid transparent; font-family:'Inter', sans-serif; color:var(--ink);
   }
-  .insurer-suggestion:hover{ background:var(--paper); border-color:rgba(27,36,48,0.08); }
+  .insurer-suggestion:hover{ background:var(--paper); border-color:rgba(46,63,84,0.08); }
   .insurer-suggestion .suggestion-name{ font-weight:600; font-size:14px; }
   .insurer-suggestion .suggestion-type{ font-size:12px; color:var(--slate); }
 

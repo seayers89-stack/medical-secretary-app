@@ -190,14 +190,14 @@ function confirmIfUnavailable(sec, proceedFn) {
   if (!isSecretaryUnavailable(sec)) { proceedFn(); return; }
 
   const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(27,36,48,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(46,63,84,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;';
   overlay.innerHTML = `
     <div style="background:#F7F4ED; border-radius:14px; padding:28px; max-width:380px; width:100%; font-family:'Inter', sans-serif; box-shadow:0 20px 60px rgba(0,0,0,0.25);">
-      <h3 style="font-family:'Fraunces', serif; font-size:19px; margin:0 0 10px; color:#1B2430;">This secretary is set as not available</h3>
+      <h3 style="font-family:'Fraunces', serif; font-size:19px; margin:0 0 10px; color:#2E3F54;">This secretary is set as not available</h3>
       <p style="font-size:14px; color:#5C6470; line-height:1.55; margin:0 0 22px;">They've marked their profile as not currently taking on new consultants. Are you sure you want to continue?</p>
       <div style="display:flex; gap:10px; justify-content:flex-end;">
-        <button type="button" id="avail-confirm-cancel" style="padding:10px 16px; border-radius:8px; border:1px solid rgba(27,36,48,0.15); background:#fff; color:#1B2430; font-size:13.5px; cursor:pointer;">Cancel</button>
-        <button type="button" id="avail-confirm-continue" style="padding:10px 16px; border-radius:8px; border:none; background:#1B2430; color:#F7F4ED; font-size:13.5px; cursor:pointer; font-weight:600;">Continue anyway</button>
+        <button type="button" id="avail-confirm-cancel" style="padding:10px 16px; border-radius:8px; border:1px solid rgba(46,63,84,0.15); background:#fff; color:#2E3F54; font-size:13.5px; cursor:pointer;">Cancel</button>
+        <button type="button" id="avail-confirm-continue" style="padding:10px 16px; border-radius:8px; border:none; background:#2E3F54; color:#F7F4ED; font-size:13.5px; cursor:pointer; font-weight:600;">Continue anyway</button>
       </div>
     </div>
   `;

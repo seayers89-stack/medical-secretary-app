@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#1B2430; --paper:#F7F4ED; --gold:#B8924A; --slate:#5C6470; --green:#3F6B4F; --white:#FFFFFF; }
+  :root{ --ink:#2E3F54; --paper:#F7F4ED; --gold:#B8924A; --slate:#5C6470; --green:#3F6B4F; --white:#FFFFFF; }
   *{ box-sizing:border-box; margin:0; padding:0; }
   body{ background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
   a{ color:inherit; text-decoration:none; }
@@ -16,7 +16,7 @@
   header{
     position:sticky; top:0; z-index:50;
     background:rgba(247,244,237,0.92); backdrop-filter:blur(8px);
-    border-bottom:1px solid rgba(27,36,48,0.08);
+    border-bottom:1px solid rgba(46,63,84,0.08);
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
   .logo{ font-family:'Fraunces',serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
@@ -25,7 +25,7 @@
   .auth-wrap{ display:flex; align-items:center; justify-content:center; padding:80px 32px 100px; min-height:60vh; }
   .auth-card{
     width:100%; max-width:420px; background:var(--white);
-    border:1px solid rgba(27,36,48,0.08); border-radius:20px; padding:44px 40px; text-align:center;
+    border:1px solid rgba(46,63,84,0.08); border-radius:20px; padding:44px 40px; text-align:center;
   }
 
   .inbox-icon{
@@ -47,13 +47,13 @@
   }
   .btn:disabled{ opacity:0.55; cursor:not-allowed; }
   .btn-ghost{
-    background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink); margin-top:10px;
+    background:none; border:1.5px solid rgba(46,63,84,0.2); color:var(--ink); margin-top:10px;
   }
 
   #resend-status{ font-size:13px; color:var(--green); margin-top:14px; display:none; }
   #resend-timer{ font-size:13px; color:var(--slate); margin-top:10px; }
 
-  .divider{ border:none; border-top:1px solid rgba(27,36,48,0.08); margin:24px 0; }
+  .divider{ border:none; border-top:1px solid rgba(46,63,84,0.08); margin:24px 0; }
 
   .auth-switch{ font-size:13.5px; color:var(--slate); }
   .auth-switch a{ color:var(--gold); font-weight:600; }

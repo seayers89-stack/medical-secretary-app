@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -8,20 +8,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#1B2430; --paper:#F7F4ED; --gold:#B8924A; --slate:#5C6470; --green:#3F6B4F; }
+  :root{ --ink:#2E3F54; --paper:#F7F4ED; --gold:#B8924A; --slate:#5C6470; --green:#3F6B4F; }
   *{ box-sizing:border-box; margin:0; padding:0; }
   body{ background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px; }
-  .card{ background:#fff; border-radius:16px; padding:48px; max-width:440px; width:100%; box-shadow:0 4px 24px rgba(27,36,48,0.08); }
+  .card{ background:#fff; border-radius:16px; padding:48px; max-width:440px; width:100%; box-shadow:0 4px 24px rgba(46,63,84,0.08); }
   .logo{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; display:flex; align-items:center; gap:8px; margin-bottom:32px; color:var(--ink); }
   .logo .dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); display:inline-block; }
   .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
   h1{ font-family:'Fraunces',serif; font-weight:600; font-size:24px; margin-bottom:10px; }
   p{ font-size:14px; color:var(--slate); line-height:1.65; margin-bottom:20px; }
   #qr-wrap{ text-align:center; margin:24px 0; }
-  #qr-wrap img{ width:180px; height:180px; border:1px solid rgba(27,36,48,0.1); border-radius:8px; padding:8px; background:#fff; }
-  .secret-wrap{ background:rgba(27,36,48,0.04); border-radius:8px; padding:12px 16px; font-family:'IBM Plex Mono',monospace; font-size:13px; word-break:break-all; text-align:center; margin-bottom:24px; color:var(--ink); }
+  #qr-wrap img{ width:180px; height:180px; border:1px solid rgba(46,63,84,0.1); border-radius:8px; padding:8px; background:#fff; }
+  .secret-wrap{ background:rgba(46,63,84,0.04); border-radius:8px; padding:12px 16px; font-family:'IBM Plex Mono',monospace; font-size:13px; word-break:break-all; text-align:center; margin-bottom:24px; color:var(--ink); }
   label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
-  input{ width:100%; padding:11px 14px; border:1.5px solid rgba(27,36,48,0.18); border-radius:8px; font-size:15px; font-family:'IBM Plex Mono',monospace; letter-spacing:0.1em; outline:none; transition:border-color 0.15s; text-align:center; }
+  input{ width:100%; padding:11px 14px; border:1.5px solid rgba(46,63,84,0.18); border-radius:8px; font-size:15px; font-family:'IBM Plex Mono',monospace; letter-spacing:0.1em; outline:none; transition:border-color 0.15s; text-align:center; }
   input:focus{ border-color:var(--gold); }
   .btn{ width:100%; padding:13px; background:var(--ink); color:#fff; font-size:15px; font-weight:600; border:none; border-radius:9px; cursor:pointer; margin-top:16px; font-family:'Inter',sans-serif; transition:opacity 0.15s; }
   .btn:hover{ opacity:0.85; }

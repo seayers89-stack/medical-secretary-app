@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -8,12 +8,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#1B2430; --paper:#F7F4ED; --gold:#B8924A; --slate:#5C6470; --green:#3F6B4F; --white:#FFFFFF; }
+  :root{ --ink:#2E3F54; --paper:#F7F4ED; --gold:#B8924A; --slate:#5C6470; --green:#3F6B4F; --white:#FFFFFF; }
   *{ box-sizing:border-box; margin:0; padding:0; }
   body{ background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
   a{ color:inherit; text-decoration:none; }
 
-  header{ position:sticky; top:0; z-index:50; background:rgba(247,244,237,0.92); backdrop-filter:blur(8px); border-bottom:1px solid rgba(27,36,48,0.08); }
+  header{ position:sticky; top:0; z-index:50; background:rgba(247,244,237,0.92); backdrop-filter:blur(8px); border-bottom:1px solid rgba(46,63,84,0.08); }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
   .nav-left{ display:flex; align-items:center; gap:48px; }
   .logo{ font-family:'Fraunces',serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
@@ -22,14 +22,14 @@
   .nav-links a{ color:var(--slate); }
   .nav-links a:hover{ color:var(--ink); }
   .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
-  .btn-login{ font-family:'Inter',sans-serif; font-size:14px; font-weight:600; color:var(--ink); border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none; }
+  .btn-login{ font-family:'Inter',sans-serif; font-size:14px; font-weight:600; color:var(--ink); border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none; }
 
   .wrap{ max-width:720px; margin:0 auto; padding:48px 32px 100px; }
   .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
   h1{ font-family:'Fraunces',serif; font-weight:600; font-size:30px; margin-bottom:10px; }
   .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
 
-  .card{ background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:14px; padding:24px 26px; margin-bottom:16px; }
+  .card{ background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:14px; padding:24px 26px; margin-bottom:16px; }
   .card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:6px; }
   .thread-subject{ font-weight:600; font-size:15px; }
   .thread-meta{ font-size:12.5px; color:var(--slate); margin-bottom:14px; }
@@ -46,7 +46,7 @@
 
   .reply-form textarea{
     width:100%; padding:11px 14px; font-family:'Inter',sans-serif; font-size:14px;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper);
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper);
     color:var(--ink); resize:vertical; min-height:80px;
   }
   .reply-form textarea:focus{ outline:none; border-color:var(--gold); }
@@ -55,7 +55,7 @@
   .field label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
   .field input, .field textarea{
     width:100%; padding:11px 14px; font-family:'Inter',sans-serif; font-size:14px;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
   }
   .field textarea{ resize:vertical; min-height:100px; }
   .field input:focus, .field textarea:focus{ outline:none; border-color:var(--gold); }
@@ -64,17 +64,17 @@
   .btn:hover{ transform:translateY(-1px); }
   .btn:disabled{ opacity:0.55; cursor:not-allowed; transform:none; }
   .btn-primary{ background:var(--ink); color:var(--paper); }
-  .btn-outline{ background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink); }
+  .btn-outline{ background:none; border:1.5px solid rgba(46,63,84,0.2); color:var(--ink); }
   .btn-row{ display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap; }
 
-  .support-tab-row{ display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid rgba(27,36,48,0.08); }
+  .support-tab-row{ display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid rgba(46,63,84,0.08); }
   .support-tab-btn{ font-family:'Inter',sans-serif; font-size:14px; font-weight:500; color:var(--slate); background:none; border:none; padding:10px 18px 12px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; }
   .support-tab-btn:hover{ color:var(--ink); }
   .support-tab-btn.active{ color:var(--ink); font-weight:600; border-bottom-color:var(--gold); }
   .support-tab-panel{ display:none; }
   .support-tab-panel.active{ display:block; }
 
-  .new-thread-card{ background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:14px; padding:24px 26px; margin-bottom:28px; }
+  .new-thread-card{ background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:14px; padding:24px 26px; margin-bottom:28px; }
   .new-thread-card h2{ font-family:'Fraunces',serif; font-size:18px; margin-bottom:16px; }
 
   .status-msg{ font-size:13px; margin-top:8px; display:none; }
@@ -107,7 +107,7 @@
 
     <div class="support-tab-row">
       <button class="support-tab-btn active" data-tab="new-query">New query</button>
-      <button class="support-tab-btn" data-tab="previous-tickets">Previous tickets <span id="tickets-count" style="display:none; background:rgba(27,36,48,0.1); color:var(--slate); border-radius:999px; font-size:10.5px; font-weight:700; padding:1px 7px; margin-left:4px;"></span></button>
+      <button class="support-tab-btn" data-tab="previous-tickets">Previous tickets <span id="tickets-count" style="display:none; background:rgba(46,63,84,0.1); color:var(--slate); border-radius:999px; font-size:10.5px; font-weight:700; padding:1px 7px; margin-left:4px;"></span></button>
     </div>
 
     <div class="support-tab-panel active" id="tab-new-query">

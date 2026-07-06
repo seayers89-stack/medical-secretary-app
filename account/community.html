@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 <style>
 
   :root{
-    --ink:#1B2430;
+    --ink:#2E3F54;
     --paper:#F7F4ED;
     --gold:#B8924A;
     --slate:#5C6470;
@@ -31,7 +31,7 @@
     position:sticky; top:0; z-index:50;
     background:rgba(247,244,237,0.92);
     backdrop-filter:blur(8px);
-    border-bottom:1px solid rgba(27,36,48,0.08);
+    border-bottom:1px solid rgba(46,63,84,0.08);
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
   .nav-left{ display:flex; align-items:center; gap:48px; }
@@ -43,7 +43,7 @@
   @media (max-width:760px){ .nav-links{ display:none; } }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
-    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
   }
 
   .wrap{ max-width:720px; margin:0 auto; padding:48px 32px 100px; }
@@ -55,7 +55,7 @@
   .sub{ color:var(--slate); font-size:15px; line-height:1.6; margin-bottom:32px; }
 
   .card{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
     padding:28px 32px; margin-bottom:16px;
   }
 
@@ -74,7 +74,7 @@
   .field label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--ink); }
   .field input, .field select, .field textarea{
     width:100%; padding:11px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
   }
   .field textarea{ resize:vertical; min-height:100px; }
   .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--gold); }
@@ -84,12 +84,12 @@
     border-radius:8px; cursor:pointer; border:none; background:var(--gold); color:var(--ink);
   }
   .btn:disabled{ opacity:0.6; cursor:not-allowed; }
-  .btn-secondary{ background:none; border:1.5px solid rgba(27,36,48,0.2); color:var(--ink); margin-left:8px; }
+  .btn-secondary{ background:none; border:1.5px solid rgba(46,63,84,0.2); color:var(--ink); margin-left:8px; }
 
   .filter-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
   .filter-chip{
     font-size:13px; font-weight:600; padding:7px 14px; border-radius:999px;
-    border:1.5px solid rgba(27,36,48,0.15); background:var(--white); color:var(--ink); cursor:pointer;
+    border:1.5px solid rgba(46,63,84,0.15); background:var(--white); color:var(--ink); cursor:pointer;
   }
   .filter-chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
 

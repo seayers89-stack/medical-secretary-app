@@ -20,8 +20,8 @@
         .nav-links.mobile-open{
           display:flex !important; flex-direction:column; gap:4px !important;
           position:absolute; top:100%; left:0; right:0; background:var(--paper, #F7F4ED);
-          border-bottom:1px solid rgba(27,36,48,0.08); padding:12px 32px 16px;
-          box-shadow:0 8px 16px -8px rgba(27,36,48,0.15);
+          border-bottom:1px solid rgba(46,63,84,0.08); padding:12px 32px 16px;
+          box-shadow:0 8px 16px -8px rgba(46,63,84,0.15);
         }
         .nav-links.mobile-open a{ padding:10px 0; }
         .nav{ position:relative; }
@@ -32,7 +32,7 @@
     const toggle = document.createElement('button');
     toggle.id = 'mobile-nav-toggle';
     toggle.setAttribute('aria-label', 'Toggle menu');
-    toggle.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="#1B2430" stroke-width="2" stroke-linecap="round"/></svg>`;
+    toggle.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="#2E3F54" stroke-width="2" stroke-linecap="round"/></svg>`;
     navLeft.appendChild(toggle);
 
     toggle.addEventListener('click', () => {

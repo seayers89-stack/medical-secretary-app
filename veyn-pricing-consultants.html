@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 <style>
 
   :root{
-    --ink:#1B2430;
+    --ink:#2E3F54;
     --paper:#F7F4ED;
     --gold:#B8924A;
     --gold-soft:#E7D9BC;
@@ -35,7 +35,7 @@
     position:sticky; top:0; z-index:50;
     background:rgba(247,244,237,0.92);
     backdrop-filter:blur(8px);
-    border-bottom:1px solid rgba(27,36,48,0.08);
+    border-bottom:1px solid rgba(46,63,84,0.08);
   }
   .nav{
     display:flex; align-items:center; justify-content:space-between;
@@ -52,17 +52,17 @@
   .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--ink); padding-bottom:2px; }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
-    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px;
     transition:border-color .2s ease, background .2s ease; white-space:nowrap;
   }
-  .btn-login:hover{ border-color:var(--ink); background:rgba(27,36,48,0.04); }
+  .btn-login:hover{ border-color:var(--ink); background:rgba(46,63,84,0.04); }
   @media (max-width:760px){ .nav-links{ display:none; } }
 
   .hero{ padding:64px 32px 48px; text-align:center; }
   .eyebrow{
     display:inline-flex; align-items:center; gap:8px;
     font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
-    color:var(--ink); background:rgba(27,36,48,0.06); border:1px solid rgba(27,36,48,0.18);
+    color:var(--ink); background:rgba(46,63,84,0.06); border:1px solid rgba(46,63,84,0.18);
     padding:7px 16px; border-radius:999px; margin-bottom:28px;
   }
   .eyebrow .sq{ width:6px;height:6px; background:var(--green); border-radius:50%; display:inline-block; }
@@ -85,7 +85,7 @@
   .price-grid{ display:flex; flex-wrap:wrap; gap:20px; }
   .price-grid > .price-card{ flex:1 1 260px; min-width:0; }
   @media (max-width:860px){ .price-grid > .price-card{ flex:1 1 100%; } }
-  .price-card{ border:1.5px solid rgba(27,36,48,0.1); border-radius:16px; padding:30px 26px; background:var(--white); position:relative; }
+  .price-card{ border:1.5px solid rgba(46,63,84,0.1); border-radius:16px; padding:30px 26px; background:var(--white); position:relative; }
   .price-card.feat{ border-color:var(--gold); box-shadow:0 16px 32px -16px rgba(184,146,74,0.35); }
   .price-card .tag{
     position:absolute; top:-11px; left:26px; background:var(--gold); color:var(--ink);
@@ -106,12 +106,12 @@
     display:inline-block;
   }
   .btn:hover{ transform:translateY(-1px); }
-  .btn-primary{ background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(27,36,48,0.5); }
-  .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(27,36,48,0.6); }
+  .btn-primary{ background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(46,63,84,0.5); }
+  .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(46,63,84,0.6); }
 
   .always-free{
     display:flex; justify-content:center; gap:48px; flex-wrap:wrap;
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:16px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:16px;
     padding:28px 32px; max-width:820px; margin:0 auto;
   }
   .af-item{ display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--ink); font-weight:500; }
@@ -223,11 +223,11 @@
 <section class="block" style="padding-top:0;">
   <div class="always-free">
     <div class="af-item">
-      <svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#1B2430" stroke-width="1.8"/><path d="M21 21l-4.3-4.3" stroke="#1B2430" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#2E3F54" stroke-width="1.8"/><path d="M21 21l-4.3-4.3" stroke="#2E3F54" stroke-width="1.8" stroke-linecap="round"/></svg>
       Browse every profile, always free
     </div>
     <div class="af-item">
-      <svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#1B2430" stroke-width="1.8"/><path d="M3 9h18" stroke="#1B2430" stroke-width="1.8"/></svg>
+      <svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.8"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.8"/></svg>
       Zero commission on any placement
     </div>
     <div class="af-item">

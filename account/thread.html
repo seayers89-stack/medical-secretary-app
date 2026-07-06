@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 <style>
 
   :root{
-    --ink:#1B2430;
+    --ink:#2E3F54;
     --paper:#F7F4ED;
     --gold:#B8924A;
     --slate:#5C6470;
@@ -31,7 +31,7 @@
     position:sticky; top:0; z-index:50;
     background:rgba(247,244,237,0.92);
     backdrop-filter:blur(8px);
-    border-bottom:1px solid rgba(27,36,48,0.08);
+    border-bottom:1px solid rgba(46,63,84,0.08);
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
   .nav-left{ display:flex; align-items:center; gap:48px; }
@@ -43,7 +43,7 @@
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
-    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px;
   }
 
   .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
@@ -55,14 +55,14 @@
   .sub{ color:var(--slate); font-size:14px; line-height:1.6; margin-bottom:28px; }
 
   .thread-card{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
     padding:20px 24px; margin-bottom:20px; min-height:280px; display:flex; flex-direction:column; gap:12px;
   }
   .bubble{
     max-width:80%; padding:11px 16px; border-radius:14px; font-size:14px; line-height:1.5;
   }
   .bubble.me{ align-self:flex-end; background:var(--ink); color:var(--paper); }
-  .bubble.them{ align-self:flex-start; background:var(--paper); border:1px solid rgba(27,36,48,0.08); }
+  .bubble.them{ align-self:flex-start; background:var(--paper); border:1px solid rgba(46,63,84,0.08); }
   .bubble-meta{ font-size:11px; opacity:0.6; margin-top:4px; }
 
   .empty-thread{ color:var(--slate); font-size:14px; text-align:center; margin:auto; }
@@ -70,7 +70,7 @@
   .compose{ display:flex; gap:10px; }
   .compose textarea{
     flex:1; resize:none; padding:12px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:10px; background:var(--white); color:var(--ink); height:48px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:10px; background:var(--white); color:var(--ink); height:48px;
   }
   .compose textarea:focus{ outline:none; border-color:var(--gold); }
   .send-btn{
@@ -86,7 +86,7 @@
   .blocked-note a{ font-weight:600; text-decoration:underline; }
 
   .rating-card{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:18px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
     padding:18px 24px; margin-top:16px; display:flex; align-items:center; justify-content:space-between;
     gap:14px; flex-wrap:wrap;
   }
@@ -94,7 +94,7 @@
   .star-row{ display:flex; gap:4px; }
   .star-btn{
     background:none; border:none; cursor:pointer; font-size:24px; line-height:1; padding:2px;
-    color:rgba(27,36,48,0.2);
+    color:rgba(46,63,84,0.2);
   }
   .star-btn.filled{ color:var(--gold); }
   .star-btn:hover{ color:var(--gold); }
@@ -260,7 +260,7 @@
       loading.style.display = 'none';
       content.style.display = 'block';
       document.getElementById('thread-card').outerHTML = `
-        <div style="background:#fff;border:1px solid rgba(27,36,48,0.08);border-radius:14px;padding:32px 28px;text-align:center;">
+        <div style="background:#fff;border:1px solid rgba(46,63,84,0.08);border-radius:14px;padding:32px 28px;text-align:center;">
           <div style="font-size:28px;margin-bottom:12px;">🔒</div>
           <p style="font-weight:600;font-size:15px;margin-bottom:8px;">This conversation has been closed</p>
           <p style="color:var(--slate);font-size:14px;line-height:1.6;max-width:340px;margin:0 auto 20px;">

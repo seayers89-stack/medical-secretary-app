@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 <style>
 
   :root{
-    --ink:#1B2430;
+    --ink:#2E3F54;
     --paper:#F7F4ED;
     --gold:#B8924A;
     --slate:#5C6470;
@@ -31,7 +31,7 @@
     position:sticky; top:0; z-index:50;
     background:rgba(247,244,237,0.92);
     backdrop-filter:blur(8px);
-    border-bottom:1px solid rgba(27,36,48,0.08);
+    border-bottom:1px solid rgba(46,63,84,0.08);
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
   .nav-left{ display:flex; align-items:center; gap:48px; }
@@ -43,7 +43,7 @@
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
-    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px;
   }
 
   .wrap{ max-width:760px; margin:0 auto; padding:48px 32px 100px; }
@@ -55,7 +55,7 @@
   .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
 
   .job-card{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:16px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:16px;
     padding:24px 26px; margin-bottom:14px;
   }
   .job-title{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin-bottom:4px; }
@@ -66,7 +66,7 @@
   }
   .respondent-row{
     display:flex; justify-content:space-between; align-items:center; padding:10px 0;
-    border-top:1px solid rgba(27,36,48,0.06); font-size:14px;
+    border-top:1px solid rgba(46,63,84,0.06); font-size:14px;
   }
   .respondent-row:first-of-type{ border-top:none; }
   .open-thread{ font-size:13px; font-weight:600; color:var(--gold); }
@@ -83,22 +83,22 @@
   .card-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
   .btn-action{
     font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:8px 16px;
-    border-radius:7px; border:1.5px solid rgba(27,36,48,0.2); background:none;
+    border-radius:7px; border:1.5px solid rgba(46,63,84,0.2); background:none;
     color:var(--ink); cursor:pointer;
   }
-  .btn-action:hover{ background:rgba(27,36,48,0.05); }
+  .btn-action:hover{ background:rgba(46,63,84,0.05); }
   .btn-action.danger{ border-color:rgba(193,57,60,0.3); color:#a33; }
   .btn-action.danger:hover{ background:rgba(193,57,60,0.05); }
   .edit-form{
     display:none; margin-top:18px; padding-top:18px;
-    border-top:1px solid rgba(27,36,48,0.08);
+    border-top:1px solid rgba(46,63,84,0.08);
   }
   .edit-form.open{ display:block; }
   .edit-field{ margin-bottom:14px; }
   .edit-field label{ display:block; font-size:12px; font-weight:600; margin-bottom:5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em; }
   .edit-field input, .edit-field textarea{
     width:100%; padding:10px 13px; font-family:'Inter',sans-serif; font-size:14px;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
   }
   .edit-field textarea{ resize:vertical; min-height:80px; }
   .edit-field input:focus, .edit-field textarea:focus{ outline:none; border-color:var(--gold); }

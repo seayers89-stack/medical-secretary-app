@@ -6,10 +6,10 @@
   style.textContent = [
     '#veyn-cookie-banner{',
       'position:fixed;bottom:0;left:0;right:0;z-index:9999;',
-      'background:#1B2430;color:rgba(247,244,237,0.9);',
+      'background:#2E3F54;color:rgba(247,244,237,0.9);',
       'padding:18px 32px;',
       'display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;',
-      'box-shadow:0 -4px 24px rgba(27,36,48,0.18);',
+      'box-shadow:0 -4px 24px rgba(46,63,84,0.18);',
       'font-family:"Inter",sans-serif;font-size:14px;line-height:1.5;',
       'transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);',
     '}',
@@ -24,7 +24,7 @@
       'transition:opacity .15s ease;',
     '}',
     '.veyn-cookie-btn:hover{opacity:.85;}',
-    '.veyn-cookie-btn.accept{background:#B8924A;color:#1B2430;}',
+    '.veyn-cookie-btn.accept{background:#B8924A;color:#2E3F54;}',
     '.veyn-cookie-btn.decline{background:transparent;color:rgba(247,244,237,0.7);border:1.5px solid rgba(247,244,237,0.2);}',
   ].join('');
   document.head.appendChild(style);

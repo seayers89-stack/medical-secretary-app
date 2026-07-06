@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 <style>
 
   :root{
-    --ink:#1B2430;
+    --ink:#2E3F54;
     --paper:#F7F4ED;
     --gold:#B8924A;
     --slate:#5C6470;
@@ -31,7 +31,7 @@
     position:sticky; top:0; z-index:50;
     background:rgba(247,244,237,0.92);
     backdrop-filter:blur(8px);
-    border-bottom:1px solid rgba(27,36,48,0.08);
+    border-bottom:1px solid rgba(46,63,84,0.08);
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
   .nav-left{ display:flex; align-items:center; gap:48px; }
@@ -43,7 +43,7 @@
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
   .btn-login{
     font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
-    border:1.5px solid rgba(27,36,48,0.2); padding:9px 20px; border-radius:7px;
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px;
   }
 
   .wrap{ max-width:760px; margin:0 auto; padding:48px 32px 100px; }
@@ -55,7 +55,7 @@
   .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
 
   .job-card{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:16px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:16px;
     padding:24px 26px; margin-bottom:14px;
   }
   .job-title{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin-bottom:6px; }
@@ -63,7 +63,7 @@
   .job-desc{ font-size:14px; line-height:1.6; color:var(--ink); margin-bottom:16px; }
   .job-chips{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
   .job-chip{
-    font-size:12px; padding:5px 12px; border-radius:999px; border:1px solid rgba(27,36,48,0.15); color:var(--slate);
+    font-size:12px; padding:5px 12px; border-radius:999px; border:1px solid rgba(46,63,84,0.15); color:var(--slate);
   }
   .respond-btn{
     font-family:'Inter', sans-serif; font-weight:600; font-size:13.5px; padding:9px 18px;
@@ -77,14 +77,14 @@
 
   /* Filters */
   .filter-bar{
-    background:var(--white); border:1px solid rgba(27,36,48,0.08); border-radius:14px;
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:14px;
     padding:20px 22px; margin-bottom:22px;
   }
   .filter-row{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
   .filter-row:last-child{ margin-bottom:0; }
   .filter-select, .filter-input{
     font-family:'Inter',sans-serif; font-size:13.5px; padding:9px 13px;
-    border:1.5px solid rgba(27,36,48,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
     flex:1; min-width:160px;
   }
   .filter-select:focus, .filter-input:focus{ outline:none; border-color:var(--gold); }
@@ -95,7 +95,7 @@
   .chip-row{ display:flex; gap:7px; flex-wrap:wrap; }
   .chip{
     font-size:12.5px; padding:6px 13px; border-radius:999px;
-    border:1.5px solid rgba(27,36,48,0.15); color:var(--slate); cursor:pointer;
+    border:1.5px solid rgba(46,63,84,0.15); color:var(--slate); cursor:pointer;
     transition:background .15s ease, border-color .15s ease, color .15s ease; user-select:none;
   }
   .chip.active{ background:var(--ink); border-color:var(--ink); color:var(--paper); }
