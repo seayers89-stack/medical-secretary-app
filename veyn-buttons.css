@@ -9,6 +9,30 @@ body {
     repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(184,146,74,0.13) 39px, rgba(184,146,74,0.13) 40px);
 }
 
+/* ── Dark header (matches footer) ──────────────────────────────────────────
+   Override the per-page inline header styles so all pages stay in sync
+   ────────────────────────────────────────────────────────────────────────── */
+header {
+  background: #2E3F54 !important;
+  backdrop-filter: none !important;
+  border-bottom: 1px solid rgba(247,244,237,0.1) !important;
+}
+.logo { color: #F7F4ED !important; }
+.nav-links a { color: rgba(247,244,237,0.65) !important; }
+.nav-links a:hover { color: #F7F4ED !important; border-bottom-color: #B8924A !important; }
+.nav-links a.active { color: #F7F4ED !important; border-bottom-color: #B8924A !important; }
+.btn-login {
+  border-color: rgba(247,244,237,0.7) !important;
+  color: #F7F4ED !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.btn-login:hover {
+  background: rgba(247,244,237,0.1) !important;
+  color: #F7F4ED !important;
+  box-shadow: none !important;
+}
+
 /* ── Typewriter key buttons ─────────────────────────────────────────────────
    Ring  = equal coloured border all round
    Dome  = ivory (#F0EDE3) button face
