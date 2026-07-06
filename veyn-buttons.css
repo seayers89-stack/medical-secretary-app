@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
 
 /* ── Typewriter key buttons ─────────────────────────────────────────────────
-   Ring  = coloured border
+   Ring  = equal coloured border all round
    Dome  = ivory (#F0EDE3) button face
-   Depth = box-shadow drop below the ring
+   Depth = soft symmetric drop shadow only (no offset that fakes a thick bottom)
    ────────────────────────────────────────────────────────────────────────── */
 
 .btn,
@@ -31,14 +31,14 @@
 .btn {
   font-size: 14.5px;
   padding: 11px 28px;
-  box-shadow: 0 5px 0 rgba(27,36,48,0.55), 0 7px 14px rgba(27,36,48,0.18);
+  box-shadow: 0 2px 8px rgba(27,36,48,0.18);
 }
 
 .row-actions button {
   font-size: 12.5px;
   padding: 7px 16px;
   border-width: 3px;
-  box-shadow: 0 3px 0 rgba(27,36,48,0.5), 0 5px 10px rgba(27,36,48,0.15);
+  box-shadow: 0 2px 6px rgba(27,36,48,0.14);
 }
 
 /* ── Hover / press states ── */
@@ -48,60 +48,60 @@
 }
 
 .btn:hover {
-  box-shadow: 0 7px 0 rgba(27,36,48,0.55), 0 9px 18px rgba(27,36,48,0.22);
+  box-shadow: 0 4px 14px rgba(27,36,48,0.22);
 }
 
 .row-actions button:hover {
-  box-shadow: 0 5px 0 rgba(27,36,48,0.5), 0 7px 12px rgba(27,36,48,0.18);
+  box-shadow: 0 4px 10px rgba(27,36,48,0.18);
 }
 
 .btn:active,
 .row-actions button:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 rgba(27,36,48,0.4), 0 2px 6px rgba(27,36,48,0.12);
+  transform: translateY(1px);
+  box-shadow: 0 1px 4px rgba(27,36,48,0.12);
 }
 
 /* ── Primary (dark ink ring) ── */
 .btn-primary {
   border-color: #1B2430;
   color: #1B2430;
-  box-shadow: 0 5px 0 #080c11, 0 7px 14px rgba(27,36,48,0.3);
+  box-shadow: 0 2px 10px rgba(27,36,48,0.25);
 }
 .btn-primary:hover {
-  box-shadow: 0 7px 0 #080c11, 0 9px 18px rgba(27,36,48,0.35);
+  box-shadow: 0 4px 16px rgba(27,36,48,0.3);
   color: #1B2430;
 }
 .btn-primary:active {
-  box-shadow: 0 1px 0 #080c11, 0 3px 8px rgba(27,36,48,0.2);
+  box-shadow: 0 1px 6px rgba(27,36,48,0.18);
 }
 
 /* ── Ghost (slate ring) ── */
 .btn-ghost {
-  border-color: rgba(27,36,48,0.35);
+  border-color: rgba(27,36,48,0.3);
   color: #5C6470;
-  box-shadow: 0 4px 0 rgba(27,36,48,0.25), 0 6px 12px rgba(27,36,48,0.1);
+  box-shadow: 0 2px 8px rgba(27,36,48,0.1);
 }
 .btn-ghost:hover {
   border-color: #1B2430;
   color: #1B2430;
-  box-shadow: 0 6px 0 rgba(27,36,48,0.3), 0 8px 14px rgba(27,36,48,0.14);
+  box-shadow: 0 4px 12px rgba(27,36,48,0.14);
 }
 .btn-ghost:active {
-  box-shadow: 0 1px 0 rgba(27,36,48,0.2), 0 2px 6px rgba(27,36,48,0.08);
+  box-shadow: 0 1px 4px rgba(27,36,48,0.08);
 }
 
 /* ── Gold ring ── */
 .btn-gold {
   border-color: #B8924A;
   color: #8a6a30;
-  box-shadow: 0 5px 0 #7a5e2a, 0 7px 14px rgba(184,146,74,0.3);
+  box-shadow: 0 2px 10px rgba(184,146,74,0.25);
 }
 .btn-gold:hover {
-  box-shadow: 0 7px 0 #7a5e2a, 0 9px 18px rgba(184,146,74,0.35);
+  box-shadow: 0 4px 16px rgba(184,146,74,0.32);
   color: #7a5e2a;
 }
 .btn-gold:active {
-  box-shadow: 0 1px 0 #7a5e2a, 0 3px 8px rgba(184,146,74,0.2);
+  box-shadow: 0 1px 6px rgba(184,146,74,0.18);
 }
 
 /* ── Row-action variants (admin / moderation) ── */
@@ -114,20 +114,20 @@
 .row-actions button[class*="danger"] {
   border-color: #a33;
   color: #a33;
-  box-shadow: 0 3px 0 #5a1a1a, 0 5px 10px rgba(170,51,51,0.2);
+  box-shadow: 0 2px 8px rgba(170,51,51,0.18);
 }
 .row-actions button.danger:hover {
-  box-shadow: 0 5px 0 #5a1a1a, 0 7px 12px rgba(170,51,51,0.25);
+  box-shadow: 0 4px 12px rgba(170,51,51,0.25);
 }
 
 .row-actions button.success,
 .row-actions button[class*="success"] {
   border-color: #3F6B4F;
   color: #3F6B4F;
-  box-shadow: 0 3px 0 #20382a, 0 5px 10px rgba(63,107,79,0.2);
+  box-shadow: 0 2px 8px rgba(63,107,79,0.18);
 }
 .row-actions button.success:hover {
-  box-shadow: 0 5px 0 #20382a, 0 7px 12px rgba(63,107,79,0.25);
+  box-shadow: 0 4px 12px rgba(63,107,79,0.25);
 }
 
 .row-actions button:disabled {
@@ -146,7 +146,7 @@
   background: #F0EDE3;
   color: #1B2430;
   cursor: pointer;
-  box-shadow: 0 3px 0 #080c11, 0 5px 10px rgba(27,36,48,0.2);
+  box-shadow: 0 2px 8px rgba(27,36,48,0.18);
   transition: transform 0.08s ease, box-shadow 0.08s ease;
   text-decoration: none;
   display: inline-flex;
@@ -154,32 +154,32 @@
 }
 .btn-login:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 0 #080c11, 0 7px 12px rgba(27,36,48,0.25);
+  box-shadow: 0 4px 12px rgba(27,36,48,0.24);
   color: #1B2430;
 }
 .btn-login:active {
   transform: translateY(1px);
-  box-shadow: 0 1px 0 #080c11, 0 2px 6px rgba(27,36,48,0.15);
+  box-shadow: 0 1px 4px rgba(27,36,48,0.14);
 }
 
-/* ── Support sub-tabs (keep as tabs, not keys) ── */
+/* ── Support sub-tabs ── */
 .support-sub-btn {
   border-width: 2px;
   border-color: rgba(27,36,48,0.15);
   font-size: 12.5px;
   padding: 6px 14px;
-  box-shadow: 0 2px 0 rgba(27,36,48,0.3), 0 3px 8px rgba(27,36,48,0.1);
+  box-shadow: 0 2px 6px rgba(27,36,48,0.1);
 }
 .support-sub-btn.active {
   border-color: #1B2430;
   background: #1B2430;
   color: #F7F4ED;
-  box-shadow: 0 1px 0 #080c11, 0 2px 6px rgba(27,36,48,0.2);
+  box-shadow: 0 1px 4px rgba(27,36,48,0.2);
 }
 .support-sub-btn:not(.active):hover {
   border-color: #1B2430;
   transform: translateY(-1px);
-  box-shadow: 0 3px 0 rgba(27,36,48,0.35), 0 5px 10px rgba(27,36,48,0.12);
+  box-shadow: 0 3px 8px rgba(27,36,48,0.14);
 }
 
 /* ── Tab buttons stay flat (not key-shaped) ── */
@@ -213,9 +213,9 @@
 #invite-btn {
   border-color: #3F6B4F;
   color: #3F6B4F;
-  box-shadow: 0 3px 0 #20382a, 0 5px 10px rgba(63,107,79,0.2);
+  box-shadow: 0 2px 8px rgba(63,107,79,0.18);
 }
 #healix-sync-btn:hover,
 #invite-btn:hover {
-  box-shadow: 0 5px 0 #20382a, 0 7px 12px rgba(63,107,79,0.25);
+  box-shadow: 0 4px 12px rgba(63,107,79,0.25);
 }
