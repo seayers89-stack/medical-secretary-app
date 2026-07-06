@@ -6,7 +6,7 @@
 <title>Specialist course flashcards — Veyn Academy</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&display=swap" rel="stylesheet">
 <style>
 
   :root{
@@ -22,7 +22,7 @@
   body{
     background:var(--paper);
     color:var(--ink);
-    font-family:'Inter', sans-serif;
+    font-family:'Special Elite', cursive;
     -webkit-font-smoothing:antialiased;
   }
   a{ color:inherit; text-decoration:none; }
@@ -37,13 +37,13 @@
   .logo{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
   .btn-login{
-    font-family:'Inter', sans-serif; font-size:14px; font-weight:600; color:var(--ink);
+    font-family:'Special Elite', cursive; font-size:14px; font-weight:600; color:var(--ink);
     border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
   }
 
   .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
   .eyebrow{
-    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
     color:var(--gold); margin-bottom:14px;
   }
   h1{ font-family:'Fraunces', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
@@ -55,7 +55,7 @@
   }
 
   .btn{
-    font-family:'Inter', sans-serif; font-weight:600; font-size:15px; padding:14px 28px;
+    font-family:'Special Elite', cursive; font-weight:600; font-size:15px; padding:14px 28px;
     border-radius:8px; cursor:pointer; border:none; width:100%; text-align:center; margin-top:8px;
     background:var(--gold); color:var(--ink);
   }
@@ -66,7 +66,7 @@
 
   .deck-meta{
     display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;
-    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate);
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate);
   }
   .progress-bar{ height:5px; background:rgba(46,63,84,0.08); border-radius:999px; margin-bottom:24px; overflow:hidden; }
   .progress-fill{ height:100%; background:var(--gold); border-radius:999px; transition:width .2s ease; }
@@ -78,12 +78,12 @@
   }
   .flashcard.flipped{ border-color:var(--gold); background:var(--white); }
   .flashcard .term{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; }
-  .flashcard .meaning{ font-family:'Inter', sans-serif; font-weight:600; font-size:18px; }
-  .flashcard .flip-hint{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate); margin-top:20px; }
+  .flashcard .meaning{ font-family:'Special Elite', cursive; font-weight:600; font-size:18px; }
+  .flashcard .flip-hint{ font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate); margin-top:20px; }
 
   .rate-row{ display:flex; gap:12px; margin-bottom:14px; }
   .rate-btn{
-    flex:1; font-family:'Inter', sans-serif; font-weight:600; font-size:14.5px; padding:13px 18px;
+    flex:1; font-family:'Special Elite', cursive; font-weight:600; font-size:14.5px; padding:13px 18px;
     border-radius:8px; cursor:pointer; border:1.5px solid rgba(46,63,84,0.15); background:var(--white); color:var(--ink);
   }
   .rate-btn.know:hover{ border-color:var(--green); color:var(--green); }
@@ -92,7 +92,7 @@
 
   .nav-row{ display:flex; gap:10px; }
   .nav-btn{
-    flex:1; font-family:'Inter', sans-serif; font-weight:600; font-size:13.5px; padding:11px 16px;
+    flex:1; font-family:'Special Elite', cursive; font-weight:600; font-size:13.5px; padding:11px 16px;
     border-radius:8px; cursor:pointer; border:1.5px solid rgba(46,63,84,0.15); background:none; color:var(--ink);
   }
   .nav-btn:disabled{ opacity:0.35; cursor:not-allowed; }
@@ -101,7 +101,7 @@
   .summary-stat{ flex:1; text-align:center; background:var(--paper); border-radius:12px; padding:18px; }
   .summary-stat .num{ font-family:'Fraunces', serif; font-weight:600; font-size:28px; color:var(--ink); }
   .summary-stat .num.known{ color:var(--green); }
-  .summary-stat .label{ font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate); margin-top:4px; }
+  .summary-stat .label{ font-family:'Special Elite', cursive; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate); margin-top:4px; }
   .summary-text{ color:var(--slate); font-size:14px; line-height:1.6; text-align:center; margin-bottom:8px; }
 
   .quiz-note{
