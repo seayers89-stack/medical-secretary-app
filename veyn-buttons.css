@@ -244,6 +244,48 @@ header .nav-links.mobile-open a:hover { color: #2E3F54 !important; }
   transform: none;
 }
 
+/* ── Scrolling strip ── */
+.strip{
+  border-top:1px solid rgba(46,63,84,0.08);
+  border-bottom:1px solid rgba(46,63,84,0.08);
+  background:#fff;
+  padding:20px 0;
+  overflow:hidden;
+}
+.strip-inner{
+  display:flex;
+  width:max-content;
+  gap:0;
+  animation:ticker 22s linear infinite;
+}
+.strip:hover .strip-inner{ animation-play-state:paused; }
+@keyframes ticker{
+  from{ transform:translateX(0); }
+  to{ transform:translateX(-50%); }
+}
+.strip-item{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-size:13.5px;
+  color:#2E3F54;
+  font-weight:500;
+  white-space:nowrap;
+  padding:0 0 0 52px;
+}
+.strip-item::after{
+  content:'◆';
+  margin-left:52px;
+  color:#B8924A;
+  font-size:8px;
+  opacity:0.6;
+}
+.strip-item .ic{ width:18px; height:18px; flex:0 0 18px; }
+.strip-item .ic path,
+.strip-item .ic circle,
+.strip-item .ic rect,
+.strip-item .ic ellipse{ stroke:#B8924A !important; }
+
 /* ── Healix sync / invite buttons (admin card actions) ── */
 #healix-sync-btn,
 #invite-btn {
