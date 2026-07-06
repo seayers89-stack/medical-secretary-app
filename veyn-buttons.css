@@ -4,6 +4,7 @@
    Gold ruling on ivory — 40px squares, Harley Street consulting room feel
    ────────────────────────────────────────────────────────────────────────── */
 body {
+  font-family: 'Special Elite', cursive;
   background-image:
     repeating-linear-gradient(0deg,  transparent, transparent 39px, rgba(184,146,74,0.13) 39px, rgba(184,146,74,0.13) 40px),
     repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(184,146,74,0.13) 39px, rgba(184,146,74,0.13) 40px);
