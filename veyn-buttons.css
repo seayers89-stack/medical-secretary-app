@@ -18,9 +18,11 @@ header {
   border-bottom: 1px solid rgba(247,244,237,0.1) !important;
 }
 .logo { color: #F7F4ED !important; }
-.nav-links a { color: rgba(247,244,237,0.65) !important; }
-.nav-links a:hover { color: #F7F4ED !important; border-bottom-color: #B8924A !important; }
-.nav-links a.active { color: #F7F4ED !important; border-bottom-color: #B8924A !important; }
+header .nav-links a { color: rgba(247,244,237,0.65) !important; }
+header .nav-links a:hover { color: #F7F4ED !important; border-bottom-color: #B8924A !important; }
+header .nav-links a.active { color: #F7F4ED !important; border-bottom-color: #B8924A !important; }
+header .nav-links.mobile-open a { color: #2E3F54 !important; }
+header .nav-links.mobile-open a:hover { color: #2E3F54 !important; }
 .btn-login {
   border-color: rgba(247,244,237,0.7) !important;
   color: #F7F4ED !important;
