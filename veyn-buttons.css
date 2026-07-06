@@ -1,5 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
 
+/* ── Art Deco grid background ───────────────────────────────────────────────
+   Gold ruling on ivory — 40px squares, Harley Street consulting room feel
+   ────────────────────────────────────────────────────────────────────────── */
+body {
+  background-image:
+    repeating-linear-gradient(0deg,  transparent, transparent 39px, rgba(184,146,74,0.13) 39px, rgba(184,146,74,0.13) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(184,146,74,0.13) 39px, rgba(184,146,74,0.13) 40px);
+}
+
 /* ── Typewriter key buttons ─────────────────────────────────────────────────
    Ring  = equal coloured border all round
    Dome  = ivory (#F0EDE3) button face
