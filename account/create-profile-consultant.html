@@ -175,27 +175,6 @@
         <label for="specialty">Specialty</label>
         <select id="specialty" name="specialty">
           <option value="">Select a specialty</option>
-          <option>Aesthetic medicine</option>
-          <option>Cardiology</option>
-          <option>Dermatology</option>
-          <option>Endocrinology</option>
-          <option>ENT</option>
-          <option>Fertility</option>
-          <option>Gastroenterology</option>
-          <option>General medicine</option>
-          <option>General surgery</option>
-          <option>Gynaecology</option>
-          <option>Neurology</option>
-          <option>Oncology</option>
-          <option>Ophthalmology</option>
-          <option>Orthopaedics</option>
-          <option>Paediatrics</option>
-          <option>Pain management</option>
-          <option>Plastic surgery</option>
-          <option>Psychiatry</option>
-          <option>Respiratory medicine</option>
-          <option>Rheumatology</option>
-          <option>Urology</option>
         </select>
       </div>
       <div class="field">
@@ -235,10 +214,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
 <script src="supabase-config.js"></script>
+<script src="specialties-data.js"></script>
 <script>
   const form = document.getElementById('signup-form');
   const errorBox = document.getElementById('form-error');
   const submitBtn = document.getElementById('submit-btn');
+
+  const specialtySelect = document.getElementById('specialty');
+  SPECIALTIES.forEach(s => {
+    const opt = document.createElement('option');
+    opt.textContent = s;
+    specialtySelect.appendChild(opt);
+  });
 
   let hospitalTags = [];
   const hospitalTagsEl = document.getElementById('hospital-tags');

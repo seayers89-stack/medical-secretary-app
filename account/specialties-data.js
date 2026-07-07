@@ -1,0 +1,25 @@
+// Veyn: shared specialty list, used by consultant sign-up, secretary search
+// filters, and the consultant directory (add form + search filters).
+const SPECIALTIES = [
+  'Aesthetic medicine',
+  'Cardiology',
+  'Dermatology',
+  'Endocrinology',
+  'ENT',
+  'Fertility',
+  'Gastroenterology',
+  'General medicine',
+  'General surgery',
+  'Gynaecology',
+  'Neurology',
+  'Oncology',
+  'Ophthalmology',
+  'Orthopaedics',
+  'Paediatrics',
+  'Pain management',
+  'Plastic surgery',
+  'Psychiatry',
+  'Respiratory medicine',
+  'Rheumatology',
+  'Urology',
+];

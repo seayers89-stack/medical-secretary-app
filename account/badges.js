@@ -23,3 +23,16 @@ function staffBadgeIconSVG(size = 16) {
     <path d="M60,34 L74,42 L74,62 C74,76 68,84 60,88 C52,84 46,76 46,62 L46,42 Z" fill="none" stroke="#2E3F54" stroke-width="6" stroke-linejoin="round"/>
   </svg>`;
 }
+
+// Unverified directory-entry badge — same engraved-seal construction, slate
+// grey (a neutral "not yet confirmed" mark, distinct from the green/navy
+// credential badges, for consultant directory entries a secretary added
+// rather than the consultant's own verified account).
+function unclaimedDirectoryBadgeIconSVG(size = 16) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 120 120" style="flex-shrink:0; vertical-align:-2px;">
+    <circle cx="60" cy="60" r="56" fill="none" stroke="#5C6470" stroke-width="3.5"/>
+    <circle cx="60" cy="60" r="46" fill="none" stroke="#5C6470" stroke-width="2" stroke-dasharray="3,7"/>
+    <path d="M60,36 A24,24 0 1 1 39,72" fill="none" stroke="#5C6470" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="60" cy="86" r="5" fill="#5C6470"/>
+  </svg>`;
+}

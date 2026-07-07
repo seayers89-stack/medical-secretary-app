@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>Add a consultant — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#2E3F54;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --gold-soft:#E7D9BC;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Special Elite', cursive;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(46,63,84,0.08);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px; max-width:1180px; margin:0 auto;
+  }
+  .logo{
+    font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Special Elite', cursive; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer;
+    background:none; transition:border-color .2s ease, background .2s ease;
+  }
+  .btn-login:hover{ border-color:var(--ink); background:rgba(46,63,84,0.04); }
+
+  .wrap{ max-width:560px; margin:0 auto; padding:64px 32px 100px; }
+  .eyebrow{
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:32px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:15px; line-height:1.6; margin-bottom:36px; }
+
+  .form-card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px; padding:36px 40px;
+  }
+  .field{ margin-bottom:18px; }
+  .field-row2{ display:flex; gap:16px; }
+  .field-row2 .field{ flex:1; }
+  .field label{ display:block; font-size:13px; font-weight:600; margin-bottom:7px; color:var(--ink); }
+  .field input, .field select{
+    width:100%; padding:12px 14px; font-family:'Special Elite', cursive; font-size:14.5px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper);
+    color:var(--ink); transition:border-color .2s ease;
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--gold); }
+  .lookup-link{ font-size:12.5px; color:var(--gold); text-decoration:underline; display:inline-block; margin-top:6px; }
+
+  .tag-list{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .tag-list:empty{ display:none; }
+  .tag-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:13.5px; font-weight:500;
+    background:var(--ink); color:var(--paper); padding:6px 10px 6px 14px; border-radius:999px;
+  }
+  .tag-pill button{
+    background:none; border:none; color:var(--paper); cursor:pointer; font-size:14px; line-height:1;
+    padding:2px; opacity:0.7;
+  }
+  .tag-pill button:hover{ opacity:1; }
+
+  .btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; transition:transform .2s ease, box-shadow .2s ease;
+    display:inline-block; width:100%; text-align:center; margin-top:8px;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-primary{ background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(46,63,84,0.5); }
+  .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(46,63,84,0.6); }
+
+  #form-error{ display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:18px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33; }
+  #duplicate-warning{ display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:18px; background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.35); color:#8F6F36; line-height:1.6; }
+  #duplicate-warning a{ text-decoration:underline; }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+<link rel="stylesheet" href="../veyn-buttons.css"></head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav"></nav>
+    </div>
+    <a href="login.html" class="btn-login" id="header-login-link">Log in</a>
+    <button class="btn-login" id="logout-btn" style="display:none;">Log out</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <p id="loading">Loading…</p>
+
+  <div id="page-content" style="display:none;">
+    <div class="eyebrow">Consultant directory</div>
+    <h1>Add a consultant</h1>
+    <p class="sub">Add a consultant you personally work with who hasn't joined Veyn yet, so they show up when other secretaries search the directory. Only add people you actually know — this isn't a place to copy in details from another website.</p>
+
+    <div class="form-card">
+      <p id="form-error"></p>
+      <p id="duplicate-warning"></p>
+
+      <form id="add-form">
+        <div class="field-row2">
+          <div class="field">
+            <label for="first-name">First name</label>
+            <input type="text" id="first-name" required>
+          </div>
+          <div class="field">
+            <label for="last-name">Last name</label>
+            <input type="text" id="last-name" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="specialty">Specialty</label>
+          <select id="specialty">
+            <option value="">Select a specialty</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="hospital-tag-input">Hospitals they work at</label>
+          <div id="hospital-tags" class="tag-list"></div>
+          <input type="text" id="hospital-tag-input" placeholder="Type a hospital name and press Enter">
+          <a href="#" id="lookup-link-hospitals" class="lookup-link" target="_blank" rel="noopener">Look this up ↗</a>
+        </div>
+
+        <div class="field">
+          <label for="website-url">Their website (optional)</label>
+          <input type="url" id="website-url" placeholder="https://...">
+          <a href="#" id="lookup-link-website" class="lookup-link" target="_blank" rel="noopener">Look this up ↗</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submit-btn">Add to directory</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Founded by a medical secretary, not a market gap.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script src="specialties-data.js"></script>
+<script>
+  const specialtySelect = document.getElementById('specialty');
+  SPECIALTIES.forEach(s => {
+    const opt = document.createElement('option');
+    opt.textContent = s;
+    specialtySelect.appendChild(opt);
+  });
+
+  const firstNameInput = document.getElementById('first-name');
+  const lastNameInput = document.getElementById('last-name');
+  const websiteInput = document.getElementById('website-url');
+
+  // "Look this up" is a plain link to a pre-filled web search that opens in a
+  // new tab — the secretary reads the results themselves and types in what
+  // they find. This must never become a fetch()/scrape call: importing
+  // consultant-directory data from PHIN or the major hospital groups is
+  // blocked by their Terms of Use (see docs/phin-data-source.md and
+  // docs/hospital-group-directories-tos-findings.md).
+  function updateLookupLinks() {
+    const name = `${firstNameInput.value.trim()} ${lastNameInput.value.trim()}`.trim();
+    const specialty = specialtySelect.value;
+    const q = encodeURIComponent(`${name} ${specialty} consultant UK hospital`.trim());
+    const url = `https://www.google.com/search?q=${q}`;
+    document.getElementById('lookup-link-hospitals').href = url;
+    document.getElementById('lookup-link-website').href = url;
+  }
+  [firstNameInput, lastNameInput, specialtySelect].forEach(el => el.addEventListener('input', updateLookupLinks));
+  updateLookupLinks();
+
+  let hospitalTags = [];
+  const hospitalTagsEl = document.getElementById('hospital-tags');
+  const hospitalInput = document.getElementById('hospital-tag-input');
+
+  function renderHospitalTags() {
+    hospitalTagsEl.innerHTML = hospitalTags.map((h, i) => `
+      <span class="tag-pill">${h}<button type="button" data-remove="${i}">&times;</button></span>
+    `).join('');
+    hospitalTagsEl.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        hospitalTags.splice(Number(btn.dataset.remove), 1);
+        renderHospitalTags();
+      });
+    });
+  }
+
+  hospitalInput.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ',') return;
+    e.preventDefault();
+    const value = hospitalInput.value.trim().replace(/,$/, '');
+    if (value && !hospitalTags.includes(value)) {
+      hospitalTags.push(value);
+      renderHospitalTags();
+    }
+    hospitalInput.value = '';
+  });
+
+  let currentUserId = null;
+  const duplicateWarning = document.getElementById('duplicate-warning');
+
+  async function checkForDuplicates() {
+    const firstName = firstNameInput.value.trim();
+    const lastName = lastNameInput.value.trim();
+    if (!firstName || !lastName) { duplicateWarning.style.display = 'none'; return; }
+
+    const [{ data: directoryMatches }, { data: registeredMatches }] = await Promise.all([
+      supabaseClient.from('consultant_directory_entries')
+        .select('first_name, last_name, specialty')
+        .ilike('first_name', firstName).ilike('last_name', lastName),
+      supabaseClient.from('consultant_profiles')
+        .select('specialty, profiles!inner(first_name, last_name)')
+        .ilike('profiles.first_name', firstName).ilike('profiles.last_name', lastName),
+    ]);
+
+    const matches = [
+      ...(directoryMatches || []).map(m => `${m.first_name} ${m.last_name} (${m.specialty || 'no specialty listed'})`),
+      ...(registeredMatches || []).map(m => `${m.profiles.first_name} ${m.profiles.last_name} (${m.specialty || 'no specialty listed'})`),
+    ];
+
+    if (matches.length > 0) {
+      duplicateWarning.innerHTML = `Already listed — is this who you mean? ${matches.join(', ')}. <a href="search-consultants.html?q=${encodeURIComponent(firstName + ' ' + lastName)}">Check the directory</a> before adding a duplicate.`;
+      duplicateWarning.style.display = 'block';
+    } else {
+      duplicateWarning.style.display = 'none';
+    }
+  }
+  lastNameInput.addEventListener('blur', checkForDuplicates);
+
+  const form = document.getElementById('add-form');
+  const errorBox = document.getElementById('form-error');
+  const submitBtn = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.style.display = 'none';
+
+    const pendingHospital = hospitalInput.value.trim();
+    if (pendingHospital && !hospitalTags.includes(pendingHospital)) hospitalTags.push(pendingHospital);
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adding…';
+
+    const { error } = await supabaseClient.from('consultant_directory_entries').insert({
+      first_name: firstNameInput.value.trim(),
+      last_name: lastNameInput.value.trim(),
+      specialty: specialtySelect.value || null,
+      hospitals: hospitalTags,
+      website_url: websiteInput.value.trim() || null,
+      added_by_profile_id: currentUserId,
+    });
+
+    if (error) {
+      errorBox.textContent = error.message;
+      errorBox.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Add to directory';
+      return;
+    }
+
+    window.location.href = 'search-consultants.html?added=1';
+  });
+
+  (async () => {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'add-consultant');
+
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (navResult.profile.role !== 'secretary' && !navResult.isAdmin) {
+      window.location.href = 'search-consultants.html';
+      return;
+    }
+
+    currentUserId = navResult.session.user.id;
+    document.getElementById('header-login-link').style.display = 'none';
+    document.getElementById('logout-btn').style.display = 'inline-block';
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+  })();
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.reload();
+  });
+</script>
+
+<script src="../mobile-nav.js"></script>
+<script src="../cookie-consent.js"></script>
+</body>
+</html>

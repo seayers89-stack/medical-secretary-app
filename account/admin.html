@@ -303,6 +303,7 @@
       <button class="tab-btn" data-tab="ideas">Ideas <span class="tab-badge" id="badge-ideas" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="secretaries">Secretaries</button>
       <button class="tab-btn" data-tab="consultants">Consultants</button>
+      <button class="tab-btn" data-tab="directory">Directory <span class="tab-badge" id="badge-directory" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="support">Support <span class="tab-badge" id="support-unread-badge" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">Manage admins</button>
     </div>
@@ -335,6 +336,17 @@
     <div class="tab-panel" id="tab-consultants">
       <input type="text" class="search-input" id="con-search" placeholder="Search by name…">
       <div id="consultants-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-directory">
+      <h3 style="font-family:'Cormorant Garamond', serif; font-size:17px; margin-bottom:12px;">Possible matches</h3>
+      <div id="directory-matches-list"></div>
+
+      <h3 style="font-family:'Cormorant Garamond', serif; font-size:17px; margin:28px 0 12px;">Reported entries</h3>
+      <div id="directory-reports-list"></div>
+
+      <h3 style="font-family:'Cormorant Garamond', serif; font-size:17px; margin:28px 0 12px;">All secretary-added entries</h3>
+      <div id="directory-all-list"></div>
     </div>
 
     <div class="tab-panel" id="tab-staff">
@@ -832,6 +844,192 @@
 
   document.getElementById('con-search').addEventListener('input', renderConsultants);
 
+  // ── Directory tab ──────────────────────────────────────────────────────────
+  // consultant_directory_entries: secretary-added consultant listings (see
+  // migration_47_consultant_directory_entries.sql). Never auto-claimed —
+  // the flag_directory_matches_for_new_consultant trigger only flags a
+  // possible match for admin review; the consultant themselves never sees it.
+  async function loadDirectoryTab() {
+    const { data: entries, error } = await supabaseClient
+      .from('consultant_directory_entries')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      document.getElementById('directory-all-list').innerHTML = `<div class="empty-state">Could not load directory entries: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+
+    const { data: reports } = await supabaseClient
+      .from('consultant_directory_entry_reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const entriesById = {};
+    (entries || []).forEach(e => { entriesById[e.id] = e; });
+
+    const matchedProfileIds = (entries || []).filter(e => e.possible_match_profile_id).map(e => e.possible_match_profile_id);
+    const addedByIds = (entries || []).map(e => e.added_by_profile_id);
+    const reporterIds = (reports || []).map(r => r.reporter_id);
+    const profilesById = await fetchProfilesByIds([...matchedProfileIds, ...addedByIds, ...reporterIds]);
+
+    function nameFor(id) {
+      const p = profilesById[id];
+      return p ? `${p.first_name} ${p.last_name}` : 'Unknown';
+    }
+
+    const badgeCount = (entries || []).filter(e => e.possible_match_profile_id).length + (reports || []).filter(r => !r.resolved).length;
+    setTabBadge('badge-directory', badgeCount);
+
+    renderDirectoryMatches(entries || [], nameFor);
+    renderDirectoryReports(reports || [], entriesById, nameFor);
+    renderDirectoryAll(entries || [], nameFor);
+  }
+
+  function renderDirectoryMatches(entries, nameFor) {
+    const list = document.getElementById('directory-matches-list');
+    const matches = entries.filter(e => e.possible_match_profile_id);
+
+    if (matches.length === 0) { list.innerHTML = '<div class="empty-state">No possible matches flagged.</div>'; return; }
+
+    list.innerHTML = matches.map(e => `
+      <div class="card" data-entry-id="${e.id}">
+        <div class="item-meta">
+          <span class="tag">Possible match</span>
+          <span>Added by ${escapeHtml(nameFor(e.added_by_profile_id))}</span>
+          <span>Flagged ${formatDate(e.flagged_at)}</span>
+        </div>
+        <div class="quoted-content">
+          <strong>${escapeHtml(e.first_name)} ${escapeHtml(e.last_name)}</strong> — ${escapeHtml(e.specialty || 'no specialty listed')}<br>
+          Hospitals: ${escapeHtml((e.hospitals || []).join(', ') || 'none listed')}<br>
+          Matches registered consultant: <strong>${escapeHtml(nameFor(e.possible_match_profile_id))}</strong>
+        </div>
+        <div class="row-actions">
+          <button type="button" class="success" data-merge="${e.id}">Merge into consultant profile</button>
+          <button type="button" data-ignore="${e.id}">Ignore</button>
+          <button type="button" class="danger" data-delete-entry="${e.id}">Delete entry</button>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-merge]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Merge this entry\'s hospitals into the matched consultant\'s profile, then delete the entry?')) return;
+        btn.disabled = true;
+        const entry = entries.find(e => e.id === btn.dataset.merge);
+        const { data: conProfile } = await supabaseClient
+          .from('consultant_profiles')
+          .select('hospitals')
+          .eq('profile_id', entry.possible_match_profile_id)
+          .single();
+        const merged = [...new Set([...(conProfile?.hospitals || []), ...(entry.hospitals || [])])];
+        await supabaseClient.from('consultant_profiles').update({ hospitals: merged }).eq('profile_id', entry.possible_match_profile_id);
+        await supabaseClient.from('consultant_directory_entries').delete().eq('id', entry.id);
+        await loadDirectoryTab();
+      });
+    });
+    list.querySelectorAll('[data-ignore]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        await supabaseClient.from('consultant_directory_entries').update({ possible_match_profile_id: null, flagged_at: null }).eq('id', btn.dataset.ignore);
+        await loadDirectoryTab();
+      });
+    });
+    list.querySelectorAll('[data-delete-entry]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this directory entry?')) return;
+        btn.disabled = true;
+        await supabaseClient.from('consultant_directory_entries').delete().eq('id', btn.dataset.deleteEntry);
+        await loadDirectoryTab();
+      });
+    });
+  }
+
+  function renderDirectoryReports(reports, entriesById, nameFor) {
+    const list = document.getElementById('directory-reports-list');
+
+    if (reports.length === 0) { list.innerHTML = '<div class="empty-state">No reports yet.</div>'; return; }
+
+    list.innerHTML = reports.map(r => {
+      const entry = entriesById[r.entry_id];
+      return `
+        <div class="card ${r.resolved ? 'resolved' : ''}" data-report-id="${r.id}">
+          <div class="item-meta">
+            <span>Reported by ${escapeHtml(nameFor(r.reporter_id))}</span>
+            <span>${formatDate(r.created_at)}</span>
+            ${r.resolved ? '<span>· Resolved</span>' : ''}
+          </div>
+          <div class="quoted-content">
+            ${entry ? `<strong>${escapeHtml(entry.first_name)} ${escapeHtml(entry.last_name)}</strong> — ${escapeHtml(entry.specialty || 'no specialty listed')}` : '<em>Entry no longer exists.</em>'}
+          </div>
+          ${r.reason ? `<div class="report-reason"><strong>Reason given:</strong> ${escapeHtml(r.reason)}</div>` : ''}
+          <div class="row-actions">
+            ${!r.resolved ? `<button type="button" class="success" data-resolve-report="${r.id}">Mark resolved</button>` : ''}
+            ${entry ? `<button type="button" class="danger" data-delete-entry-from-report="${entry.id}">Delete entry</button>` : ''}
+            <button type="button" class="danger" data-remove-directory-report="${r.id}">Remove report</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('[data-resolve-report]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        await supabaseClient.from('consultant_directory_entry_reports').update({ resolved: true }).eq('id', btn.dataset.resolveReport);
+        await loadDirectoryTab();
+      });
+    });
+    list.querySelectorAll('[data-delete-entry-from-report]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this directory entry?')) return;
+        btn.disabled = true;
+        await supabaseClient.from('consultant_directory_entries').delete().eq('id', btn.dataset.deleteEntryFromReport);
+        await loadDirectoryTab();
+      });
+    });
+    list.querySelectorAll('[data-remove-directory-report]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remove this report? The underlying entry will not be affected.')) return;
+        btn.disabled = true;
+        await supabaseClient.from('consultant_directory_entry_reports').delete().eq('id', btn.dataset.removeDirectoryReport);
+        await loadDirectoryTab();
+      });
+    });
+  }
+
+  function renderDirectoryAll(entries, nameFor) {
+    const list = document.getElementById('directory-all-list');
+
+    if (entries.length === 0) { list.innerHTML = '<div class="empty-state">No secretary-added entries yet.</div>'; return; }
+
+    list.innerHTML = `
+      <table class="data-table">
+        <thead><tr>
+          <th>Name</th><th>Specialty</th><th>Hospitals</th><th>Added by</th><th>Flagged</th><th>Added</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${entries.map(e => `<tr>
+            <td><strong>${escapeHtml(e.first_name)} ${escapeHtml(e.last_name)}</strong></td>
+            <td>${escapeHtml(e.specialty || '—')}</td>
+            <td>${escapeHtml((e.hospitals || []).join(', ') || '—')}</td>
+            <td>${escapeHtml(nameFor(e.added_by_profile_id))}</td>
+            <td>${e.possible_match_profile_id ? '<span class="result-badge soon">Yes</span>' : '—'}</td>
+            <td style="white-space:nowrap;">${formatDate(e.created_at)}</td>
+            <td><button type="button" class="danger" data-delete-directory-entry="${e.id}">Delete</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+
+    list.querySelectorAll('[data-delete-directory-entry]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this directory entry?')) return;
+        btn.disabled = true;
+        await supabaseClient.from('consultant_directory_entries').delete().eq('id', btn.dataset.deleteDirectoryEntry);
+        await loadDirectoryTab();
+      });
+    });
+  }
+
   // ── Manage admins tab ─────────────────────────────────────────────────────
   let allStaff = [];
 
@@ -970,6 +1168,7 @@
     await loadHealixSyncStatus();
     await loadSecretaries();
     await loadConsultants();
+    await loadDirectoryTab();
     await loadSupportThreads();
   }
 

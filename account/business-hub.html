@@ -130,12 +130,13 @@
   .template-btn.copied{ border-color:var(--green); color:var(--green); }
 
   #insurer-search, #gp-search, #gp-town-filter, #hospital-search, #hospital-area-filter,
+  #consultant-search, #consultant-specialty-filter, #consultant-hospital-filter,
   #billing-search, #billing-chapter-filter, #billing-section-filter{
     width:100%; padding:12px 14px; font-family:'Special Elite', cursive; font-size:14.5px;
     border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
     margin-bottom:18px;
   }
-  #gp-town-filter, #hospital-area-filter, #billing-chapter-filter, #billing-section-filter{ margin-bottom:0; cursor:pointer; }
+  #gp-town-filter, #hospital-area-filter, #consultant-specialty-filter, #consultant-hospital-filter, #billing-chapter-filter, #billing-section-filter{ margin-bottom:0; cursor:pointer; }
   #insurer-search:focus, #gp-search:focus, #gp-town-filter:focus, #hospital-search:focus, #hospital-area-filter:focus,
   #consultant-search:focus, #consultant-specialty-filter:focus, #consultant-hospital-filter:focus,
   #billing-search:focus, #billing-chapter-filter:focus, #billing-section-filter:focus{ outline:none; border-color:var(--gold); }
@@ -215,6 +216,7 @@
       <button class="tab-btn" data-tab="info">Business info</button>
       <button class="tab-btn" data-tab="templates">Templates</button>
       <button class="tab-btn" data-tab="contacts">Contacts</button>
+      <button class="tab-btn" data-tab="consultants">Find a consultant</button>
       <button class="tab-btn" data-tab="billing">Billing codes</button>
     </div>
 
@@ -409,6 +411,29 @@
     </div>
     </div>
 
+    <div class="tab-panel" id="tab-consultants">
+    <div class="guide-card" id="consultant-directory">
+      <span class="guide-label">Cross-referrals</span>
+      <h2>Find a consultant</h2>
+      <p>A reference directory for cross-referrals — look up a consultant's specialty, see who covers a given area, or check which hospitals someone works from. Consultants who've joined Veyn appear automatically; secretaries can also add someone they personally know who hasn't joined yet. <a href="add-consultant.html" id="add-consultant-hub-link" style="text-decoration:underline; display:none;">Add a consultant you know →</a></p>
+      <input type="text" id="consultant-search" placeholder="Search by name or hospital…" autocomplete="off">
+      <div class="field" style="margin-top:14px;">
+        <label for="consultant-specialty-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Filter by specialty</label>
+        <select id="consultant-specialty-filter">
+          <option value="">Any specialty</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label for="consultant-hospital-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Filter by hospital</label>
+        <select id="consultant-hospital-filter">
+          <option value="">Any hospital</option>
+        </select>
+      </div>
+      <p id="consultant-results-count" style="font-size:13px; color:var(--slate); margin-top:14px;"></p>
+      <div id="consultant-results"></div>
+    </div>
+    </div>
+
     <div class="tab-panel" id="tab-billing">
       <div class="guide-card" id="billing-codes-card">
         <span class="guide-label">CCSD fee schedule</span>
@@ -448,9 +473,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
+<script src="badges.js"></script>
+<script src="specialties-data.js"></script>
 <script src="hospitals-data.js"></script>
 <script src="billing-codes-data.js"></script>
 <script>
+  let currentUserId = null;
+  let isSecretaryOrAdmin = false;
+
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'business-hub');
     const loading = document.getElementById('loading');
@@ -459,6 +489,10 @@
       window.location.href = 'login.html';
       return;
     }
+
+    currentUserId = navResult.session.user.id;
+    isSecretaryOrAdmin = navResult.profile.role === 'secretary' || navResult.isAdmin;
+    if (isSecretaryOrAdmin) document.getElementById('add-consultant-hub-link').style.display = 'inline';
 
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
@@ -689,6 +723,7 @@ This is a plain-English starting template, not a substitute for legal advice —
       btn.classList.add('active');
       document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
       if (btn.dataset.tab === 'contacts') loadGpData();
+      if (btn.dataset.tab === 'consultants') loadConsultantDirectory();
     });
   });
 
@@ -989,6 +1024,136 @@ This is a plain-English starting template, not a substitute for legal advice —
       ${matches.map(renderHospitalCard).join('')}
     `;
   });
+
+  // ── Consultants tab ────────────────────────────────────────────────────
+  // Merges self-registered consultants (consultant_profiles) with
+  // secretary-added entries (consultant_directory_entries) — see
+  // migration_47_consultant_directory_entries.sql and search-consultants.html
+  // for the standalone version of this same directory.
+  let allDirectoryConsultants = [];
+  let consultantDataLoaded = false;
+
+  async function loadConsultantDirectory() {
+    if (consultantDataLoaded) return;
+    consultantDataLoaded = true;
+
+    SPECIALTIES.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s;
+      document.getElementById('consultant-specialty-filter').appendChild(opt);
+    });
+
+    const [{ data: registered, error: registeredError }, { data: directory }] = await Promise.all([
+      supabaseClient.from('consultant_profiles')
+        .select('profile_id, specialty, hospitals, profiles(first_name, last_name)'),
+      supabaseClient.from('consultant_directory_entries')
+        .select('id, first_name, last_name, specialty, hospitals, website_url'),
+    ]);
+
+    if (registeredError) {
+      document.getElementById('consultant-results').innerHTML = `<div class="insurer-empty">Could not load the directory: ${escapeHtml(registeredError.message)}</div>`;
+      return;
+    }
+
+    const fromRegistered = (registered || []).map(c => ({
+      source: 'registered',
+      id: c.profile_id,
+      name: `${c.profiles?.first_name || ''} ${c.profiles?.last_name || ''}`.trim() || 'Consultant',
+      specialty: c.specialty,
+      hospitals: c.hospitals || [],
+      website_url: null,
+    }));
+
+    const fromDirectory = (directory || []).map(c => ({
+      source: 'directory',
+      id: c.id,
+      name: `${c.first_name} ${c.last_name}`.trim(),
+      specialty: c.specialty,
+      hospitals: c.hospitals || [],
+      website_url: c.website_url,
+    }));
+
+    allDirectoryConsultants = [...fromRegistered, ...fromDirectory];
+
+    const hospitalSet = new Set();
+    allDirectoryConsultants.forEach(c => (c.hospitals || []).forEach(h => hospitalSet.add(h)));
+    [...hospitalSet].sort().forEach(h => {
+      const opt = document.createElement('option');
+      opt.value = h;
+      opt.textContent = h;
+      document.getElementById('consultant-hospital-filter').appendChild(opt);
+    });
+
+    renderConsultantDirectory();
+  }
+
+  function renderConsultantDirectory() {
+    const query = document.getElementById('consultant-search').value.trim().toLowerCase();
+    const specialty = document.getElementById('consultant-specialty-filter').value;
+    const hospital = document.getElementById('consultant-hospital-filter').value;
+
+    const filtered = allDirectoryConsultants.filter(c => {
+      if (query) {
+        const haystack = `${c.name} ${(c.hospitals || []).join(' ')}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      if (specialty && c.specialty !== specialty) return false;
+      if (hospital && !(c.hospitals || []).includes(hospital)) return false;
+      return true;
+    });
+
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+    document.getElementById('consultant-results-count').textContent = `${filtered.length} consultant${filtered.length === 1 ? '' : 's'}`;
+
+    const resultsEl = document.getElementById('consultant-results');
+    if (filtered.length === 0) {
+      resultsEl.innerHTML = `<div class="insurer-empty">No consultants match yet.${isSecretaryOrAdmin ? ' <a href="add-consultant.html" style="text-decoration:underline;">Add one you know</a>.' : ''}</div>`;
+      return;
+    }
+
+    resultsEl.innerHTML = filtered.map(renderConsultantCard).join('');
+
+    resultsEl.querySelectorAll('[data-report-consultant-id]').forEach(btn => {
+      btn.addEventListener('click', () => reportDirectoryEntry(btn.dataset.reportConsultantId));
+    });
+  }
+
+  function renderConsultantCard(c) {
+    const hospitals = (c.hospitals || []).join(', ') || 'No hospitals listed';
+    const website = c.website_url
+      ? `<div class="insurer-row"><span>Website</span><span><a href="${escapeHtml(c.website_url)}" target="_blank" rel="noopener" style="color:var(--gold); text-decoration:underline;">${escapeHtml(c.website_url)}</a></span></div>`
+      : '';
+    const badge = c.source === 'directory'
+      ? `<span style="display:inline-flex; align-items:center; gap:5px; font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate); background:rgba(46,63,84,0.06); padding:4px 10px; border-radius:999px; font-weight:600; margin-bottom:10px;">${unclaimedDirectoryBadgeIconSVG(12)} Unverified — added by a secretary</span>`
+      : '';
+    const report = c.source === 'directory' && isSecretaryOrAdmin
+      ? `<div style="margin-top:8px;"><button type="button" style="background:none; border:none; font-family:inherit; font-size:12px; color:var(--slate); text-decoration:underline; cursor:pointer; padding:0;" data-report-consultant-id="${c.id}">Report</button></div>`
+      : '';
+
+    return `
+      <div class="insurer-card">
+        <div>${badge}</div>
+        <h3>${escapeHtml(c.name)}</h3>
+        <div class="insurer-row"><span>Specialty</span><span>${escapeHtml(c.specialty || '—')}</span></div>
+        <div class="insurer-row"><span>Hospitals</span><span>${escapeHtml(hospitals)}</span></div>
+        ${website}
+        ${report}
+      </div>
+    `;
+  }
+
+  async function reportDirectoryEntry(entryId) {
+    const reason = window.prompt("What's the issue with this listing? (optional)") || '';
+    const { error } = await supabaseClient.from('consultant_directory_entry_reports')
+      .insert({ entry_id: entryId, reporter_id: currentUserId, reason });
+    alert(error ? `Could not submit report: ${error.message}` : 'Thanks — this has been reported for review.');
+  }
+
+  document.getElementById('consultant-search').addEventListener('input', renderConsultantDirectory);
+  document.getElementById('consultant-specialty-filter').addEventListener('change', renderConsultantDirectory);
+  document.getElementById('consultant-hospital-filter').addEventListener('change', renderConsultantDirectory);
 </script>
 
 <script src="../mobile-nav.js"></script>
