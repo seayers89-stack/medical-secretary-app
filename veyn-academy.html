@@ -144,6 +144,25 @@
 
   svg{ display:block; }
 
+  /* river diagram */
+  .river-wrap{ max-width:900px; margin:0 auto; }
+  .nd{ cursor:pointer; }
+  .nd .ring{ fill:rgba(247,244,237,0.88); stroke:#2E3F54; stroke-width:1.5; transition:stroke .2s,stroke-width .2s,fill .2s; }
+  .nd:hover .ring,.nd.active .ring{ stroke:#B8924A; stroke-width:2.2; }
+  .nd.active .ring{ fill:rgba(184,146,74,0.08); }
+  .nd .dot{ fill:#8a6a30; transition:fill .2s; }
+  .nd:hover .dot,.nd.active .dot{ fill:#B8924A; }
+  .nd text{ pointer-events:none; font-family:'Special Elite',cursive; fill:#2E3F54; font-size:9.5px; letter-spacing:.08em; }
+  .module-dp{
+    padding:16px 24px 20px; border:1px solid rgba(138,106,48,0.2);
+    border-radius:12px; background:var(--white); margin:0 auto;
+    max-width:900px; min-height:72px;
+  }
+  .module-dp .dn{ font-family:'Special Elite',cursive; font-size:9.5px; color:#8a6a30; letter-spacing:.14em; margin-bottom:4px; }
+  .module-dp .dt{ font-family:'Fraunces',serif; font-size:16px; font-weight:600; color:#2E3F54; margin-bottom:6px; }
+  .module-dp .db{ font-family:'Special Elite',cursive; font-size:13px; color:#5C6470; line-height:1.65; }
+  .module-dp .dh{ font-family:'Special Elite',cursive; font-size:11px; color:#8a6a30; opacity:.5; }
+
 </style>
 <link rel="stylesheet" href="veyn-buttons.css"></head>
 <body>
@@ -199,84 +218,14 @@
     <h2>11 modules covering the actual job</h2>
     <p>Not generic admin training — the specific workflows private practice runs on. Each module includes a lesson, flashcards for revision, and a quiz to mark it complete.</p>
   </div>
-  <div class="modules">
-    <div class="module">
-      <div class="module-num">01</div>
-      <div>
-        <h3>Diary &amp; clinic-list management</h3>
-        <p>Structuring a consultant's diary across multiple sites, managing clinic lists, and handling the inevitable last-minute changes without losing the day.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">02</div>
-      <div>
-        <h3>Dictation-to-letter workflow</h3>
-        <p>Turning consultant dictation into accurate, properly formatted clinic letters — efficiently, and to the standard private practice expects.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">03</div>
-      <div>
-        <h3>Records &amp; referrals</h3>
-        <p>Managing patient records and the referral process end to end, including the handoffs between GPs, consultants, and other specialists.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">04</div>
-      <div>
-        <h3>Billing &amp; insurer admin</h3>
-        <p>Private billing, self-pay administration, and insurer invoicing — the financial side of the job that's rarely taught properly anywhere.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">05</div>
-      <div>
-        <h3>Multi-consultant coordination</h3>
-        <p>Supporting more than one consultant at once without anything falling through the cracks — prioritisation, communication, and the systems to make it sustainable.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">06</div>
-      <div>
-        <h3>Investigations, imaging &amp; results</h3>
-        <p>Managing diagnostic requests, imaging pathways, pathology results, report tracking and consultant review — safely, from request through to follow-up.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">07</div>
-      <div>
-        <h3>Theatre, procedures &amp; hospital coordination</h3>
-        <p>Coordinating procedure bookings, theatre lists, pre-assessment and admissions across consultants, hospitals and insurers.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">08</div>
-      <div>
-        <h3>Consultant private practice setup &amp; management</h3>
-        <p>How a private practice actually runs — systems, workflows, insurer relationships, financial admin and compliance.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">09</div>
-      <div>
-        <h3>Systems, software &amp; digital skills</h3>
-        <p>Patient management systems, electronic records, insurer portals, spreadsheets and the cyber security basics every secretary needs.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">10</div>
-      <div>
-        <h3>Patient communication &amp; customer service</h3>
-        <p>Professional phone and email standards, managing expectations, confidentiality, and handling complaints in private healthcare.</p>
-      </div>
-    </div>
-    <div class="module">
-      <div class="module-num">11</div>
-      <div>
-        <h3>Advanced skills &amp; career development</h3>
-        <p>Moving from reactive admin into proactive, senior support — prioritisation, leadership, service improvement and a path toward practice management.</p>
-      </div>
-    </div>
+  <div class="river-wrap">
+    <svg id="academy-river" viewBox="0 0 680 370" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <path id="river-path"
+        d="M 42 155 C 148 58 318 285 432 212 C 546 138 604 285 652 298"
+        stroke="#B8924A" stroke-width="1.4" fill="none" stroke-dasharray="6 5" opacity="0.6"/>
+      <g id="river-nodes"></g>
+    </svg>
+    <div class="module-dp" id="module-dp"><div class="dh">SELECT A MODULE TO READ MORE</div></div>
   </div>
 </section>
 
@@ -423,5 +372,79 @@
 
 <script src="mobile-nav.js"></script>
 <script src="cookie-consent.js"></script>
+<script>
+(function(){
+  const moduleData=[null,
+    {t:"Diary & clinic-list management",d:"Structuring a consultant's diary across multiple sites, managing clinic lists, and handling the inevitable last-minute changes without losing the day."},
+    {t:"Dictation-to-letter workflow",d:"Turning consultant dictation into accurate, properly formatted clinic letters — efficiently, and to the standard private practice expects."},
+    {t:"Records & referrals",d:"Managing patient records and the referral process end to end, including the handoffs between GPs, consultants, and other specialists."},
+    {t:"Billing & insurer admin",d:"Private billing, self-pay administration, and insurer invoicing — the financial side of the job that's rarely taught properly anywhere."},
+    {t:"Multi-consultant coordination",d:"Supporting more than one consultant at once without anything falling through the cracks — prioritisation, communication, and systems to make it sustainable."},
+    {t:"Investigations, imaging & results",d:"Managing diagnostic requests, imaging pathways, pathology results and report tracking safely, from request through to follow-up."},
+    {t:"Theatre, procedures & hospital coordination",d:"Coordinating procedure bookings, theatre lists, pre-assessment and admissions across consultants, hospitals and insurers."},
+    {t:"Consultant practice setup & management",d:"How a private practice actually runs — systems, workflows, insurer relationships, financial admin and compliance."},
+    {t:"Systems, software & digital skills",d:"Patient management systems, electronic records, insurer portals, spreadsheets and the cyber security basics every secretary needs."},
+    {t:"Patient communication & customer service",d:"Professional phone and email standards, managing expectations, confidentiality, and handling complaints in private healthcare."},
+    {t:"Advanced skills & career development",d:"Moving from reactive admin into proactive, senior support — prioritisation, leadership, service improvement and a path toward practice management."}
+  ];
+  const names=['DIARY','DICTATION','RECORDS','BILLING','COORDINATION','IMAGING','THEATRE','PRACTICE','DIGITAL','COMMS','CAREER'];
+  const NS='http://www.w3.org/2000/svg';
+  const riverPath=document.getElementById('river-path');
+  const nodesG=document.getElementById('river-nodes');
+  if(!riverPath)return;
+  const total=riverPath.getTotalLength();
+
+  const nd=[];
+  for(let i=0;i<=10;i++){
+    const L=total*i/10;
+    const pt=riverPath.getPointAtLength(L);
+    const d=5;
+    const pa=riverPath.getPointAtLength(Math.max(0,L-d));
+    const pb=riverPath.getPointAtLength(Math.min(total,L+d));
+    const tx=pb.x-pa.x,ty=pb.y-pa.y;
+    const tl=Math.sqrt(tx*tx+ty*ty)||1;
+    const nx=-ty/tl,ny=tx/tl;
+    const side=i%2===0?1:-1;
+    nd.push({px:pt.x,py:pt.y,nx,ny,side,dist:50,forceAbove:false});
+  }
+  nd[2].forceAbove=true;
+  nd[8].forceAbove=true;
+
+  for(let pass=0;pass<6;pass++){
+    for(let i=0;i<=10;i++){
+      if(nd[i].forceAbove)continue;
+      for(let j=i+2;j<=10;j+=2){
+        if(nd[j].forceAbove)continue;
+        const a=nd[i],b=nd[j];
+        const alx=a.px+a.nx*a.side*a.dist,aly=a.py+a.ny*a.side*a.dist;
+        const blx=b.px+b.nx*b.side*b.dist,bly=b.py+b.ny*b.side*b.dist;
+        const sep=Math.sqrt((blx-alx)**2+(bly-aly)**2);
+        if(sep<88){const push=(88-sep)/2+4;a.dist=Math.max(a.dist-push/2,36);b.dist+=push;}
+      }
+    }
+  }
+
+  nd.forEach(function(n,i){
+    const num=i+1;
+    var lx,ly,anchor;
+    if(n.forceAbove){lx=n.px;ly=n.py-40;anchor='middle';}
+    else{lx=n.px+n.nx*n.side*n.dist;ly=n.py+n.ny*n.side*n.dist;anchor=lx>n.px+8?'start':lx<n.px-8?'end':'middle';}
+    var g=document.createElementNS(NS,'g');
+    g.setAttribute('class','nd');g.setAttribute('id','rn'+num);g.setAttribute('onclick','pickModule('+num+')');
+    var c1=document.createElementNS(NS,'circle');c1.setAttribute('class','ring');c1.setAttribute('cx',n.px.toFixed(1));c1.setAttribute('cy',n.py.toFixed(1));c1.setAttribute('r','24');
+    var c2=document.createElementNS(NS,'circle');c2.setAttribute('class','dot');c2.setAttribute('cx',n.px.toFixed(1));c2.setAttribute('cy',n.py.toFixed(1));c2.setAttribute('r','4.5');
+    var t1=document.createElementNS(NS,'text');t1.setAttribute('x',lx.toFixed(1));t1.setAttribute('y',(ly-5).toFixed(1));t1.setAttribute('text-anchor',anchor);t1.textContent='MODULE · '+(num<10?'0'+num:''+num);
+    var t2=document.createElementNS(NS,'text');t2.setAttribute('x',lx.toFixed(1));t2.setAttribute('y',(ly+8).toFixed(1));t2.setAttribute('text-anchor',anchor);t2.textContent=names[i];
+    g.append(c1,c2,t1,t2);nodesG.appendChild(g);
+  });
+
+  window.pickModule=function(n){
+    document.querySelectorAll('.nd').forEach(function(e){e.classList.remove('active');});
+    document.getElementById('rn'+n).classList.add('active');
+    var m=moduleData[n],k=n<10?'0'+n:''+n;
+    document.getElementById('module-dp').innerHTML='<div class="dn">MODULE \xb7 '+k+'</div><div class="dt">'+m.t+'</div><div class="db">'+m.d+'</div>';
+  };
+})();
+</script>
 </body>
 </html>
