@@ -19,7 +19,6 @@ const CONSULTANT_NAV_LINKS = [
 const SECRETARY_NAV_LINKS = [
   { label: 'My profile', href: 'profile.html', key: 'profile' },
   { label: 'Messages', href: 'messages.html', key: 'messages' },
-  { label: 'Find a consultant', href: 'search-consultants.html', key: 'search-consultants' },
   { label: 'Job board', href: 'job-board.html', key: 'job-board' },
   { label: 'Academy', href: 'academy.html', key: 'academy' },
   { label: 'Business Hub', href: 'business-hub.html', key: 'business-hub' },
@@ -32,7 +31,6 @@ const SECRETARY_NAV_LINKS = [
 const ADMIN_NAV_LINKS = [
   { label: 'Admin', href: 'admin.html', key: 'admin' },
   { label: 'Search', href: 'search-secretaries.html', key: 'search' },
-  { label: 'Find a consultant', href: 'search-consultants.html', key: 'search-consultants' },
   { label: 'Job board', href: 'job-board.html', key: 'job-board' },
   { label: 'Academy', href: 'academy.html', key: 'academy' },
   { label: 'Business Hub', href: 'business-hub.html', key: 'business-hub' },
@@ -44,7 +42,6 @@ const ADMIN_NAV_LINKS = [
 const ADMIN_ALLOWLIST = [
   'admin.html', 'admin-accept-invite.html', 'login.html',
   'view-secretary.html', 'search-secretaries.html',
-  'search-consultants.html', 'add-consultant.html',
   'specialist-course.html', 'specialist-course-exercises.html',
   'specialist-course-quiz.html', 'specialist-course-flashcards.html', 'specialist-course-printables.html',
   'support.html', 'job-board.html', 'academy.html', 'specialist-courses.html',
