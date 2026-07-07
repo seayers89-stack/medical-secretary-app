@@ -1227,7 +1227,8 @@ This is a plain-English starting template, not a substitute for legal advice —
           <div style="margin-bottom:14px;">
             <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Hospitals they work at</label>
             <div id="modal-hospital-tags" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;"></div>
-            <input type="text" id="modal-hospital-tag-input" placeholder="Type a hospital name and press Enter" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            <input type="text" id="modal-hospital-tag-input" placeholder="Type a hospital name — pick a suggestion to match exactly" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            <div id="modal-hospital-suggestions" style="margin-top:4px;"></div>
             <a href="#" id="modal-lookup-link-hospitals" target="_blank" rel="noopener" style="font-size:12.5px; color:#B8924A; text-decoration:underline; display:inline-block; margin-top:6px;">Look this up ↗</a>
           </div>
 
@@ -1273,6 +1274,7 @@ This is a plain-English starting template, not a substitute for legal advice —
     let hospitalTags = [];
     const hospitalTagsEl = document.getElementById('modal-hospital-tags');
     const hospitalInput = document.getElementById('modal-hospital-tag-input');
+    const hospitalSuggestionsEl = document.getElementById('modal-hospital-suggestions');
 
     function renderModalHospitalTags() {
       hospitalTagsEl.innerHTML = hospitalTags.map((h, i) => `
@@ -1286,6 +1288,41 @@ This is a plain-English starting template, not a substitute for legal advice —
       });
     }
 
+    // Suggests exact matches from HOSPITALS as the secretary types, so
+    // picking one guarantees the name matches what renderHospitalLinks()
+    // looks up later — freeform typing still works via Enter/comma for
+    // hospitals not in the list.
+    function renderModalHospitalSuggestions(query) {
+      if (!query) { hospitalSuggestionsEl.innerHTML = ''; return; }
+      // hospitals-data.js has a handful of accidental duplicate names — dedupe
+      // by name so the same hospital doesn't appear twice in the list.
+      const seen = new Set();
+      const matches = HOSPITALS.filter(h => {
+        if (!h.name.toLowerCase().includes(query.toLowerCase())) return false;
+        if (seen.has(h.name)) return false;
+        seen.add(h.name);
+        return true;
+      }).slice(0, 8);
+      if (matches.length === 0) { hospitalSuggestionsEl.innerHTML = ''; return; }
+      hospitalSuggestionsEl.innerHTML = matches.map((h, i) => `
+        <button type="button" class="insurer-suggestion" data-index="${i}">
+          <span class="suggestion-name">${escapeHtml(h.name)}</span>
+          <span class="suggestion-type">${escapeHtml(h.area)}</span>
+        </button>
+      `).join('');
+      hospitalSuggestionsEl.querySelectorAll('.insurer-suggestion').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const h = matches[Number(btn.dataset.index)];
+          if (!hospitalTags.includes(h.name)) { hospitalTags.push(h.name); renderModalHospitalTags(); }
+          hospitalInput.value = '';
+          hospitalSuggestionsEl.innerHTML = '';
+          hospitalInput.focus();
+        });
+      });
+    }
+
+    hospitalInput.addEventListener('input', () => renderModalHospitalSuggestions(hospitalInput.value.trim()));
+
     hospitalInput.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ',') return;
       e.preventDefault();
@@ -1295,6 +1332,7 @@ This is a plain-English starting template, not a substitute for legal advice —
         renderModalHospitalTags();
       }
       hospitalInput.value = '';
+      hospitalSuggestionsEl.innerHTML = '';
     });
 
     const duplicateWarning = document.getElementById('modal-duplicate-warning');
