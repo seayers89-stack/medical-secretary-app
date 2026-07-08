@@ -380,7 +380,7 @@
     <div class="guide-card" id="gp-practices">
       <span class="guide-label">Who to call</span>
       <h2>GP practice search</h2>
-      <p>Search by GP practice name, or browse all practices in a town/city. <em>Note: this directory doesn't include a county field, so "town/city" is used instead.</em></p>
+      <p>Search by GP practice name, or browse all practices in a town/city. <em>Note: this directory doesn't include a county field, so "town/city" is used instead.</em> <button type="button" id="suggest-gp-link" style="text-decoration:underline; background:none; border:none; padding:0; font:inherit; color:var(--gold); cursor:pointer;">Something missing or wrong? Suggest an addition or correction →</button></p>
       <input type="text" id="gp-search" placeholder="Type a GP practice name…" autocomplete="off">
       <div class="field" style="margin-top:14px;">
         <label for="gp-town-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Or show all practices in a town/city</label>
@@ -397,7 +397,7 @@
     <div class="guide-card" id="hospitals">
       <span class="guide-label">Who to call</span>
       <h2>Private hospital search</h2>
-      <p>Search by hospital name, or browse all hospitals in a county/area.</p>
+      <p>Search by hospital name, or browse all hospitals in a county/area. <button type="button" id="suggest-hospital-link" style="text-decoration:underline; background:none; border:none; padding:0; font:inherit; color:var(--gold); cursor:pointer;">Something missing or wrong? Suggest an addition or correction →</button></p>
       <input type="text" id="hospital-search" placeholder="Type a hospital name…" autocomplete="off">
       <div class="field" style="margin-top:14px;">
         <label for="hospital-area-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Or show all hospitals in a county/area</label>
@@ -475,11 +475,32 @@
 <script src="account-nav.js"></script>
 <script src="badges.js"></script>
 <script src="specialties-data.js"></script>
-<script src="hospitals-data.js"></script>
 <script src="billing-codes-data.js"></script>
 <script>
   let currentUserId = null;
   let isSecretaryOrAdmin = false;
+
+  // Hospitals now live in the `hospitals` table (see
+  // migration_49_hospitals_table.sql) instead of the old static
+  // hospitals-data.js, so admin can Apply a contact suggestion and have it
+  // actually update this data. Fetched once at login time — every consumer
+  // (hospital search, area filter, findHospitalWebsite, the "Add a
+  // consultant" modal's hospital autocomplete) just reads this variable.
+  let HOSPITALS = [];
+
+  async function loadHospitals() {
+    const { data } = await supabaseClient.from('hospitals').select('*');
+    HOSPITALS = data || [];
+
+    const areas = [...new Set(HOSPITALS.map(h => h.area))].sort();
+    const areaSelect = document.getElementById('hospital-area-filter');
+    areas.forEach(area => {
+      const opt = document.createElement('option');
+      opt.value = area;
+      opt.textContent = area;
+      areaSelect.appendChild(opt);
+    });
+  }
 
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'business-hub');
@@ -493,6 +514,8 @@
     currentUserId = navResult.session.user.id;
     isSecretaryOrAdmin = navResult.profile.role === 'secretary' || navResult.isAdmin;
     if (isSecretaryOrAdmin) document.getElementById('add-consultant-hub-link').style.display = 'inline';
+
+    await loadHospitals();
 
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
@@ -941,17 +964,6 @@ This is a plain-English starting template, not a substitute for legal advice —
     `;
   });
 
-  (() => {
-    const areas = [...new Set(HOSPITALS.map(h => h.area))].sort();
-    const areaSelect = document.getElementById('hospital-area-filter');
-    areas.forEach(area => {
-      const opt = document.createElement('option');
-      opt.value = area;
-      opt.textContent = area;
-      areaSelect.appendChild(opt);
-    });
-  })();
-
   function renderHospitalCard(h) {
     return `
       <div class="insurer-card">
@@ -1024,6 +1036,102 @@ This is a plain-English starting template, not a substitute for legal advice —
       ${matches.map(renderHospitalCard).join('')}
     `;
   });
+
+  // ── Suggest an addition/correction (hospitals + GP practices) ───────────
+  // hospitals-data.js and gp-practices.json are static files, not database
+  // tables, so this is purely a review queue: an admin reads the suggestion
+  // and manually edits the source file if it checks out, then marks it
+  // applied in the admin Directory tab. Nothing here writes to the
+  // directories automatically.
+  function openSuggestContactModal(contactType) {
+    const typeLabel = contactType === 'gp' ? 'GP practice' : 'hospital';
+    const overlay = document.createElement('div');
+    overlay.id = 'suggest-contact-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(46,63,84,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; overflow-y:auto;';
+    overlay.innerHTML = `
+      <div style="background:#F7F4ED; border-radius:14px; padding:32px 36px; max-width:480px; width:100%; font-family:'Special Elite', cursive; box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+        <h3 style="font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:8px; color:#2E3F54;">Suggest a ${typeLabel} addition or correction</h3>
+        <p style="font-size:13.5px; color:#5C6470; line-height:1.6; margin-bottom:20px;">An admin reviews every suggestion before it's added to the directory.</p>
+
+        <p id="suggest-contact-error" style="display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:16px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;"></p>
+
+        <form id="suggest-contact-form">
+          <div style="margin-bottom:16px; display:flex; gap:16px;">
+            <label style="display:flex; align-items:center; gap:6px; font-size:13.5px; color:#2E3F54; cursor:pointer;"><input type="radio" name="suggestion-kind" value="addition" checked> A new ${typeLabel} that's missing</label>
+            <label style="display:flex; align-items:center; gap:6px; font-size:13.5px; color:#2E3F54; cursor:pointer;"><input type="radio" name="suggestion-kind" value="edit"> A fix to an existing one</label>
+          </div>
+
+          <div id="suggest-reference-field" style="margin-bottom:14px; display:none;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Which ${typeLabel}?</label>
+            <input type="text" id="suggest-reference-name" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+          </div>
+
+          <div style="margin-bottom:20px;">
+            <label id="suggest-details-label" style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">What should be added?</label>
+            <textarea id="suggest-details" required rows="5" placeholder="Name, address, phone, website, specialties — whatever you know." style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54; resize:vertical;"></textarea>
+          </div>
+
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" id="suggest-contact-cancel-btn" style="padding:11px 18px; border-radius:8px; border:1px solid rgba(46,63,84,0.15); background:#fff; color:#2E3F54; font-size:14px; font-family:'Special Elite', cursive; cursor:pointer;">Cancel</button>
+            <button type="submit" id="suggest-contact-submit-btn" style="padding:11px 20px; border-radius:8px; border:none; background:#2E3F54; color:#F7F4ED; font-size:14px; font-family:'Special Elite', cursive; font-weight:600; cursor:pointer;">Send suggestion</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const closeModal = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    document.getElementById('suggest-contact-cancel-btn').addEventListener('click', closeModal);
+
+    const referenceField = document.getElementById('suggest-reference-field');
+    const detailsLabel = document.getElementById('suggest-details-label');
+    document.querySelectorAll('input[name="suggestion-kind"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const isEdit = radio.value === 'edit' && radio.checked;
+        if (radio.checked) {
+          referenceField.style.display = radio.value === 'edit' ? 'block' : 'none';
+          detailsLabel.textContent = radio.value === 'edit' ? 'What needs fixing?' : 'What should be added?';
+        }
+      });
+    });
+
+    const errorBox = document.getElementById('suggest-contact-error');
+    const submitBtn = document.getElementById('suggest-contact-submit-btn');
+
+    document.getElementById('suggest-contact-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.style.display = 'none';
+
+      const kind = document.querySelector('input[name="suggestion-kind"]:checked').value;
+      const referenceName = document.getElementById('suggest-reference-name').value.trim();
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+
+      const { error } = await supabaseClient.from('contact_suggestions').insert({
+        contact_type: contactType,
+        suggestion_kind: kind,
+        reference_name: referenceName || null,
+        details: document.getElementById('suggest-details').value.trim(),
+        submitted_by_profile_id: currentUserId,
+      });
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send suggestion';
+        return;
+      }
+
+      closeModal();
+      alert('Thanks — an admin will review this.');
+    });
+  }
+
+  document.getElementById('suggest-gp-link').addEventListener('click', () => openSuggestContactModal('gp'));
+  document.getElementById('suggest-hospital-link').addEventListener('click', () => openSuggestContactModal('hospital'));
 
   // ── Consultants tab ────────────────────────────────────────────────────
   // Merges self-registered consultants (consultant_profiles) with

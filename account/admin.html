@@ -142,6 +142,15 @@
   .empty-state{ text-align:center; color:var(--slate); font-size:14px; padding:30px 0; }
   .denied-state{ text-align:center; color:var(--slate); font-size:15px; padding:60px 0; }
 
+  .insurer-suggestion{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    width:100%; text-align:left; padding:10px 14px; border-radius:8px; cursor:pointer;
+    background:none; border:1px solid transparent; font-family:'Special Elite', cursive; color:var(--ink);
+  }
+  .insurer-suggestion:hover{ background:var(--paper); border-color:rgba(46,63,84,0.08); }
+  .insurer-suggestion .suggestion-name{ font-weight:600; font-size:14px; }
+  .insurer-suggestion .suggestion-type{ font-size:12px; color:var(--slate); }
+
   .staff-row{
     display:flex; justify-content:space-between; align-items:center; gap:16px;
     padding:14px 18px;
@@ -304,6 +313,7 @@
       <button class="tab-btn" data-tab="secretaries">Secretaries</button>
       <button class="tab-btn" data-tab="consultants">Consultants</button>
       <button class="tab-btn" data-tab="directory">Directory <span class="tab-badge" id="badge-directory" style="display:none;"></span></button>
+      <button class="tab-btn" data-tab="contact-suggestions">Contact suggestions <span class="tab-badge" id="badge-contact-suggestions" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="support">Support <span class="tab-badge" id="support-unread-badge" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">Manage admins</button>
     </div>
@@ -349,6 +359,11 @@
       <div id="directory-all-list"></div>
     </div>
 
+    <div class="tab-panel" id="tab-contact-suggestions">
+      <p style="font-size:13.5px; color:var(--slate); margin-bottom:16px;">Suggested additions/corrections to the Business Hub hospital and GP directories (hospitals-data.js / gp-practices.json — static files, not database tables). Review each, edit the source file yourself if it checks out, then mark it applied.</p>
+      <div id="contact-suggestions-list"></div>
+    </div>
+
     <div class="tab-panel" id="tab-staff">
       <div class="invite-form" id="invite-form-wrap">
         <h3>Add admin by email</h3>
@@ -383,7 +398,6 @@
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
 <script src="specialties-data.js"></script>
-<script src="hospitals-data.js"></script>
 <script>
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -1209,6 +1223,272 @@
     });
   }
 
+  // ── Contact suggestions tab ─────────────────────────────────────────────
+  // Secretary-submitted suggestions for the Business Hub hospital/GP
+  // directories (see migration_48_contact_suggestions.sql). Purely a review
+  // queue — applying a suggestion means manually editing hospitals-data.js
+  // or gp-practices.json yourself, then marking it applied here.
+  async function loadContactSuggestions() {
+    const list = document.getElementById('contact-suggestions-list');
+    const { data: suggestions, error } = await supabaseClient
+      .from('contact_suggestions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load suggestions: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    if (!suggestions || suggestions.length === 0) {
+      list.innerHTML = '<div class="empty-state">No suggestions yet.</div>';
+      setTabBadge('badge-contact-suggestions', 0);
+      return;
+    }
+
+    const profilesById = await fetchProfilesByIds(suggestions.map(s => s.submitted_by_profile_id));
+    function nameFor(id) {
+      const p = profilesById[id];
+      return p ? `${p.first_name} ${p.last_name}` : 'Unknown';
+    }
+
+    setTabBadge('badge-contact-suggestions', suggestions.filter(s => s.status === 'pending').length);
+
+    list.innerHTML = suggestions.map(s => `
+      <div class="card ${s.status !== 'pending' ? 'resolved' : ''}" data-suggestion-id="${s.id}">
+        <div class="item-meta">
+          <span class="tag">${s.contact_type === 'gp' ? 'GP practice' : 'Hospital'}</span>
+          <span class="tag ${s.suggestion_kind === 'edit' ? 'reply' : ''}">${s.suggestion_kind === 'edit' ? 'Correction' : 'Addition'}</span>
+          <span>Suggested by ${escapeHtml(nameFor(s.submitted_by_profile_id))}</span>
+          <span>${formatDate(s.created_at)}</span>
+          ${s.status !== 'pending' ? `<span>· ${s.status === 'applied' ? 'Applied' : 'Dismissed'}</span>` : ''}
+        </div>
+        <div class="quoted-content">
+          ${s.reference_name ? `<div class="quoted-title">Re: ${escapeHtml(s.reference_name)}</div>` : ''}
+          <div style="white-space:pre-wrap;">${escapeHtml(s.details)}</div>
+        </div>
+        ${s.admin_notes ? `<div class="report-reason"><strong>Admin note:</strong> ${escapeHtml(s.admin_notes)}</div>` : ''}
+        ${s.status === 'pending' ? `
+          <div class="row-actions">
+            ${s.contact_type === 'hospital'
+              ? `<button type="button" class="success" data-apply-hospital-suggestion="${s.id}">Apply</button>`
+              : `<button type="button" class="success" data-mark-applied="${s.id}">Mark applied</button>`}
+            <button type="button" data-dismiss-suggestion="${s.id}">Dismiss</button>
+            <button type="button" class="danger" data-delete-suggestion="${s.id}">Delete</button>
+          </div>
+        ` : `
+          <div class="row-actions">
+            <button type="button" class="danger" data-delete-suggestion="${s.id}">Delete</button>
+          </div>
+        `}
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-apply-hospital-suggestion]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openApplyHospitalSuggestionModal(suggestions.find(s => s.id === btn.dataset.applyHospitalSuggestion));
+      });
+    });
+    list.querySelectorAll('[data-mark-applied]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const note = window.prompt('Optional note (e.g. what you changed):') || null;
+        btn.disabled = true;
+        await supabaseClient.from('contact_suggestions')
+          .update({ status: 'applied', admin_notes: note, resolved_at: new Date().toISOString() })
+          .eq('id', btn.dataset.markApplied);
+        await loadContactSuggestions();
+      });
+    });
+    list.querySelectorAll('[data-dismiss-suggestion]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const note = window.prompt('Optional note on why this was dismissed:') || null;
+        btn.disabled = true;
+        await supabaseClient.from('contact_suggestions')
+          .update({ status: 'dismissed', admin_notes: note, resolved_at: new Date().toISOString() })
+          .eq('id', btn.dataset.dismissSuggestion);
+        await loadContactSuggestions();
+      });
+    });
+    list.querySelectorAll('[data-delete-suggestion]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this suggestion?')) return;
+        btn.disabled = true;
+        await supabaseClient.from('contact_suggestions').delete().eq('id', btn.dataset.deleteSuggestion);
+        await loadContactSuggestions();
+      });
+    });
+  }
+
+  // Real "Apply" for hospital suggestions — writes directly to the
+  // `hospitals` table (migration_49_hospitals_table.sql) instead of just
+  // flagging the suggestion as a record. Additions get a blank structured
+  // form; corrections get a "which hospital?" search step first (the
+  // suggestion's reference_name is free text, so the admin picks the exact
+  // row) before the same form, prefilled. The suggestion's free-text
+  // `details` are shown as read-only reference throughout — the admin
+  // transcribes it into fields rather than the app parsing prose.
+  function openApplyHospitalSuggestionModal(suggestion) {
+    if (!suggestion) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'apply-hospital-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(46,63,84,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; overflow-y:auto;';
+    document.body.appendChild(overlay);
+
+    const closeModal = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+    function renderShell(innerHtml) {
+      overlay.innerHTML = `
+        <div style="background:#F7F4ED; border-radius:14px; padding:32px 36px; max-width:520px; width:100%; font-family:'Special Elite', cursive; box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+          ${innerHtml}
+        </div>
+      `;
+    }
+
+    function renderDetailsReference() {
+      return `
+        <div style="background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.35); border-radius:8px; padding:12px 14px; margin-bottom:20px; font-size:13px; color:#8F6F36; line-height:1.6; white-space:pre-wrap;">
+          ${suggestion.reference_name ? `<strong>Re: ${escapeHtml(suggestion.reference_name)}</strong><br>` : ''}${escapeHtml(suggestion.details)}
+        </div>
+      `;
+    }
+
+    function renderForm(existingHospital) {
+      const h = existingHospital || {};
+      renderShell(`
+        <h3 style="font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:8px; color:#2E3F54;">${existingHospital ? 'Edit hospital' : 'Add hospital'}</h3>
+        <p style="font-size:13.5px; color:#5C6470; line-height:1.6; margin-bottom:16px;">Suggested by a secretary — transcribe into the fields below.</p>
+        ${renderDetailsReference()}
+        <p id="apply-hospital-error" style="display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:16px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;"></p>
+        <form id="apply-hospital-form">
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Name</label>
+            <input type="text" id="ah-name" required value="${escapeHtml(h.name || '')}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+          </div>
+          <div style="display:flex; gap:12px; margin-bottom:12px;">
+            <div style="flex:1;">
+              <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Area/county</label>
+              <input type="text" id="ah-area" value="${escapeHtml(h.area || '')}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Town</label>
+              <input type="text" id="ah-town" value="${escapeHtml(h.town || '')}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Type</label>
+            <input type="text" id="ah-type" placeholder="e.g. Private Hospital - Spire" value="${escapeHtml(h.type || '')}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+          </div>
+          <div style="display:flex; gap:12px; margin-bottom:12px;">
+            <div style="flex:1;">
+              <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Contact</label>
+              <input type="text" id="ah-contact" value="${escapeHtml(h.contact || '')}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Website</label>
+              <input type="text" id="ah-website" value="${escapeHtml(h.website || '')}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Specialties</label>
+            <input type="text" id="ah-specialties" value="${escapeHtml(h.specialties || '')}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Notes</label>
+            <textarea id="ah-notes" rows="2" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54; resize:vertical;">${escapeHtml(h.notes || '')}</textarea>
+          </div>
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" id="apply-hospital-cancel-btn" style="padding:11px 18px; border-radius:8px; border:1px solid rgba(46,63,84,0.15); background:#fff; color:#2E3F54; font-size:14px; font-family:'Special Elite', cursive; cursor:pointer;">Cancel</button>
+            <button type="submit" id="apply-hospital-submit-btn" style="padding:11px 20px; border-radius:8px; border:none; background:#2E3F54; color:#F7F4ED; font-size:14px; font-family:'Special Elite', cursive; font-weight:600; cursor:pointer;">${existingHospital ? 'Save changes' : 'Add hospital'}</button>
+          </div>
+        </form>
+      `);
+
+      overlay.querySelector('#apply-hospital-cancel-btn').addEventListener('click', closeModal);
+
+      const errorBox = overlay.querySelector('#apply-hospital-error');
+      const submitBtn = overlay.querySelector('#apply-hospital-submit-btn');
+
+      overlay.querySelector('#apply-hospital-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving…';
+
+        const payload = {
+          name: overlay.querySelector('#ah-name').value.trim(),
+          area: overlay.querySelector('#ah-area').value.trim() || null,
+          town: overlay.querySelector('#ah-town').value.trim() || null,
+          type: overlay.querySelector('#ah-type').value.trim() || null,
+          contact: overlay.querySelector('#ah-contact').value.trim() || null,
+          website: overlay.querySelector('#ah-website').value.trim() || null,
+          specialties: overlay.querySelector('#ah-specialties').value.trim() || null,
+          notes: overlay.querySelector('#ah-notes').value.trim() || null,
+        };
+
+        const { error } = existingHospital
+          ? await supabaseClient.from('hospitals').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', existingHospital.id)
+          : await supabaseClient.from('hospitals').insert(payload);
+
+        if (error) {
+          errorBox.textContent = error.message;
+          errorBox.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = existingHospital ? 'Save changes' : 'Add hospital';
+          return;
+        }
+
+        await supabaseClient.from('contact_suggestions')
+          .update({ status: 'applied', resolved_at: new Date().toISOString() })
+          .eq('id', suggestion.id);
+
+        closeModal();
+        await loadContactSuggestions();
+      });
+    }
+
+    function renderSearchStep() {
+      renderShell(`
+        <h3 style="font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:8px; color:#2E3F54;">Which hospital?</h3>
+        <p style="font-size:13.5px; color:#5C6470; line-height:1.6; margin-bottom:16px;">Find the hospital this correction applies to.</p>
+        ${renderDetailsReference()}
+        <input type="text" id="ah-search-name" value="${escapeHtml(suggestion.reference_name || '')}" placeholder="Type a hospital name…" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54; margin-bottom:8px;">
+        <div id="ah-search-results"></div>
+        <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+          <button type="button" id="apply-hospital-cancel-btn" style="padding:11px 18px; border-radius:8px; border:1px solid rgba(46,63,84,0.15); background:#fff; color:#2E3F54; font-size:14px; font-family:'Special Elite', cursive; cursor:pointer;">Cancel</button>
+        </div>
+      `);
+
+      overlay.querySelector('#apply-hospital-cancel-btn').addEventListener('click', closeModal);
+
+      const searchInput = overlay.querySelector('#ah-search-name');
+      const resultsEl = overlay.querySelector('#ah-search-results');
+
+      function renderMatches() {
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) { resultsEl.innerHTML = ''; return; }
+        const matches = HOSPITALS.filter(h => h.name.toLowerCase().includes(query)).slice(0, 10);
+        if (matches.length === 0) { resultsEl.innerHTML = '<div class="empty-state">No matches.</div>'; return; }
+        resultsEl.innerHTML = matches.map((h, i) => `
+          <button type="button" class="insurer-suggestion" data-index="${i}">
+            <span class="suggestion-name">${escapeHtml(h.name)}</span>
+            <span class="suggestion-type">${escapeHtml(h.area || '')}</span>
+          </button>
+        `).join('');
+        resultsEl.querySelectorAll('.insurer-suggestion').forEach(btn => {
+          btn.addEventListener('click', () => renderForm(matches[Number(btn.dataset.index)]));
+        });
+      }
+      searchInput.addEventListener('input', renderMatches);
+      renderMatches();
+    }
+
+    if (suggestion.suggestion_kind === 'edit') {
+      renderSearchStep();
+    } else {
+      renderForm(null);
+    }
+  }
+
   // ── Manage admins tab ─────────────────────────────────────────────────────
   let allStaff = [];
 
@@ -1340,7 +1620,19 @@
     }
   }
 
+  // Hospitals now live in the `hospitals` table (see
+  // migration_49_hospitals_table.sql) instead of the old static
+  // hospitals-data.js — fetched once so the "edit directory entry" modal's
+  // hospital-suggestion autocomplete keeps working.
+  let HOSPITALS = [];
+
+  async function loadHospitals() {
+    const { data } = await supabaseClient.from('hospitals').select('*');
+    HOSPITALS = data || [];
+  }
+
   async function loadAdminContent() {
+    await loadHospitals();
     await loadReports();
     await loadKnowledgeSubmissions();
     await loadIdeasAdmin();
@@ -1348,6 +1640,7 @@
     await loadSecretaries();
     await loadConsultants();
     await loadDirectoryTab();
+    await loadContactSuggestions();
     await loadSupportThreads();
   }
 
