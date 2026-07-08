@@ -130,6 +130,7 @@
   <div id="page-content" style="display:none;">
     <h1 id="page-title"></h1>
     <p class="sub" id="page-sub"></p>
+    <p style="margin-top:-22px; margin-bottom:24px;"><a href="#" id="guide-link" style="font-size:13px; font-weight:600; color:var(--gold); text-decoration:underline;">← Read the guide / watch it in use first</a></p>
 
     <div class="card" id="intro-card" style="display:none;">
       <div class="stat-row">
@@ -331,6 +332,7 @@
     document.getElementById('page-title').textContent = `${sys.name} — Proficiency quiz`;
     document.getElementById('page-sub').textContent = `${allQuestions.length} questions on real working knowledge of ${sys.name} — not vendor copy. Score 80% or more to mark it as verified on your profile.`;
     document.getElementById('intro-qcount').textContent = allQuestions.length;
+    document.getElementById('guide-link').href = `system-guide.html?slug=${slug}`;
 
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';

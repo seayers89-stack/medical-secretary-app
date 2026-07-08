@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>System guide — Veyn Academy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#2E3F54;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Special Elite', cursive;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(46,63,84,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; flex-wrap:wrap; row-gap:8px; column-gap:20px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Special Elite', cursive; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
+
+  .guide-card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
+    padding:32px 36px; margin-bottom:14px; text-align:left;
+  }
+  .guide-card h2{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; margin-bottom:10px; }
+  .guide-card p{ color:var(--ink); font-size:14.5px; line-height:1.7; margin-bottom:10px; }
+  .guide-card ul{ color:var(--ink); font-size:14.5px; line-height:1.7; padding-left:20px; margin-bottom:10px; }
+  .guide-card p:last-child, .guide-card ul:last-child{ margin-bottom:0; }
+
+  .no-guide-note{
+    background:rgba(184,146,74,0.08); border:1px solid rgba(184,146,74,0.25); border-radius:10px;
+    padding:16px 18px; font-size:13.5px; color:var(--slate); line-height:1.6; margin-bottom:20px;
+  }
+
+  .video-card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
+    padding:28px 32px; margin-bottom:20px;
+  }
+  .video-card h2{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:17px; margin-bottom:6px; }
+  .video-card .video-note{ font-size:13px; color:var(--slate); line-height:1.6; margin-bottom:16px; }
+  .video-link{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--paper); border:1px solid rgba(46,63,84,0.08); border-radius:10px;
+    padding:14px 18px; margin-bottom:10px; transition:border-color .15s ease;
+  }
+  .video-link:last-child{ margin-bottom:0; }
+  .video-link:hover{ border-color:var(--gold); }
+  .video-link-label{ font-size:14px; font-weight:500; color:var(--ink); }
+  .video-link-source{
+    font-family:'Special Elite', cursive; font-size:9.5px; letter-spacing:0.05em; text-transform:uppercase;
+    color:var(--slate); margin-top:4px; display:block;
+  }
+  .video-link-arrow{ font-size:14px; color:var(--gold); flex-shrink:0; }
+
+  .quiz-cta{
+    text-align:center; background:var(--ink); border-radius:18px; padding:30px 32px; margin-top:24px;
+  }
+  .quiz-cta p{ color:rgba(247,244,237,0.75); font-size:13.5px; margin-bottom:16px; }
+  .quiz-cta a{
+    display:inline-block; font-family:'Special Elite', cursive; font-weight:600; font-size:15px;
+    padding:13px 28px; border-radius:8px; background:var(--gold); color:var(--ink);
+  }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+</style>
+<link rel="stylesheet" href="../veyn-buttons.css"></head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <a href="academy.html" class="btn-login">Back to Academy</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Academy · System guide</div>
+  <p id="loading">Loading…</p>
+
+  <div id="page-content" style="display:none;">
+    <h1 id="page-title"></h1>
+    <p class="sub" id="page-sub"></p>
+
+    <div id="sections-list"></div>
+    <div id="no-guide-note" style="display:none;" class="no-guide-note">
+      A full written guide for this system hasn't been written up yet — it's based on real working-secretary experience, not vendor copy, so it takes time to get right. In the meantime, the video below shows it in real use, and the proficiency quiz is ready now.
+    </div>
+
+    <div id="video-card-wrap"></div>
+
+    <div class="quiz-cta">
+      <p id="quiz-cta-text">Ready to test what you know?</p>
+      <a id="quiz-cta-link" href="#">Take the proficiency quiz →</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Skills-tested, every time.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script src="system-skills-data.js"></script>
+<script>
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  const sys = SYSTEM_SKILLS[slug];
+
+  function renderSections() {
+    const list = document.getElementById('sections-list');
+    const noGuideNote = document.getElementById('no-guide-note');
+
+    if (!sys.sections || sys.sections.length === 0) {
+      noGuideNote.style.display = 'block';
+      return;
+    }
+
+    list.innerHTML = sys.sections.map(s => `
+      <div class="guide-card">
+        <h2>${escapeHtml(s.heading)}</h2>
+        ${s.body}
+      </div>
+    `).join('');
+  }
+
+  // Plain external links only — opened in a new tab, never embedded or
+  // scraped. See the comment above SYSTEM_SKILLS in system-skills-data.js
+  // for the review process behind `videos`.
+  function renderVideos() {
+    const wrap = document.getElementById('video-card-wrap');
+    const videos = sys.videos || [];
+    if (videos.length === 0) return;
+
+    const hasPractitioner = videos.some(v => v.source === 'practitioner');
+
+    wrap.innerHTML = `
+      <div class="video-card">
+        <h2>Watch it in use</h2>
+        <p class="video-note">
+          External videos, not hosted by Veyn — opens in a new tab. Not affiliated with or endorsed by the vendor, and the interface may have changed since recording.
+          ${hasPractitioner ? ' Practitioner-recorded videos are reviewed for visible patient data before being linked here, but always use your own judgement.' : ''}
+        </p>
+        ${videos.map(v => `
+          <a class="video-link" href="${escapeHtml(v.url)}" target="_blank" rel="noopener">
+            <span>
+              <span class="video-link-label">${escapeHtml(v.label)}</span>
+              <span class="video-link-source">${v.source === 'official' ? 'Official vendor video' : "Recorded by a practising secretary/clinician — not an official vendor video"}</span>
+            </span>
+            <span class="video-link-arrow">↗</span>
+          </a>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  (async () => {
+    if (!sys) {
+      document.getElementById('loading').textContent = 'System not found.';
+      return;
+    }
+
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, null);
+    const loading = document.getElementById('loading');
+
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (navResult.profile.role !== 'secretary') {
+      loading.textContent = 'The system guides are available for secretary accounts.';
+      return;
+    }
+
+    document.getElementById('page-title').textContent = sys.name;
+    document.getElementById('page-sub').textContent = sys.aim || `What to actually expect from ${sys.name} day to day — plus a proficiency quiz to verify it on your profile.`;
+    document.getElementById('quiz-cta-text').textContent = `${sys.quiz.length}-question proficiency quiz on real working knowledge of ${sys.name}.`;
+    document.getElementById('quiz-cta-link').href = `system-quiz.html?slug=${slug}`;
+
+    renderSections();
+    renderVideos();
+
+    loading.style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+  })();
+</script>
+
+<script src="../mobile-nav.js"></script>
+<script src="../cookie-consent.js"></script>
+</body>
+</html>
