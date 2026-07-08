@@ -1,23 +1,13 @@
 // Veyn: per-system proficiency content (guide + quiz + flashcards), sourced
 // from real working-secretary interviews, not vendor marketing copy.
-
-// `videos`: external links to the system actually in use, shown on
-// system-guide.html. `source: 'official'` = published by the vendor
-// (sandbox/demo data, safe to assume no real patient data on screen).
-// `source: 'practitioner'` = a real secretary/clinician's own recording —
-// UNVERIFIED until a human has actually watched it and confirmed no
-// patient-identifiable data is visible on screen (name, DOB, notes, etc.)
-// — do not treat `practitioner` entries as safe to publish until that
-// check has happened, and re-check before adding any more. Plain external
-// links only (opened in a new tab), never embedded or scraped — see the
-// "Look this up" pattern in daily-tools.html for the same approach used
-// elsewhere in this app.
+// Video links for "watch it in use" on system-guide.html live in the
+// system_videos database table (migration_53_system_videos.sql), not here
+// — admin-managed so a new video doesn't require a code deploy.
 const SYSTEM_SKILLS = {
   carebit: {
     slug: 'carebit',
     name: 'Carebit',
     aim: "Carebit's calendar, patient records, billing, and Compose correspondence tools, plus the failure points that actually trip up new users — confirmed by a secretary with 3 years' genuine working experience across six specialties, not vendor copy.",
-    videos: [],
     sections: [
       {
         heading: 'Diary & appointment booking',
@@ -145,10 +135,6 @@ const SYSTEM_SKILLS = {
   semble: {
     slug: 'semble',
     name: 'Semble',
-    videos: [
-      { url: 'https://www.youtube.com/watch?v=6CU6Ys59p4M', label: 'Save HOURS using Semble in Your Private Practice', source: 'practitioner' },
-      { url: 'https://www.youtube.com/watch?v=sx-_CbnSU9A', label: 'Run Your Private Practice From ANYWHERE Using Semble', source: 'practitioner' },
-    ],
     quiz: [
       {
         question: "What does Semble call its electronic health record module?",
@@ -205,9 +191,6 @@ const SYSTEM_SKILLS = {
   pabau: {
     slug: 'pabau',
     name: 'Pabau',
-    videos: [
-      { url: 'https://www.youtube.com/watch?v=_egPW_epzz4', label: 'Pabau CRM Demo — Practice Management Software Beginner Tutorial', source: 'official' },
-    ],
     quiz: [
       {
         question: "What is Pabau's AI medical scribe feature called?",
@@ -264,10 +247,6 @@ const SYSTEM_SKILLS = {
   dgl: {
     slug: 'dgl',
     name: 'DGL Practice Manager',
-    videos: [
-      { url: 'https://www.youtube.com/watch?v=MDZG2umelio', label: 'DGL Go Overview Demo', source: 'official' },
-      { url: 'https://www.youtube.com/playlist?list=PLp4m7yqHdmwaVG3v4pcTqjRxk51NCwKHr', label: 'Full DGL Practice Manager tutorials playlist', source: 'official' },
-    ],
     quiz: [
       {
         question: "Who owns DGL Practice Manager?",

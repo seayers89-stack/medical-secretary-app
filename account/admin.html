@@ -315,6 +315,7 @@
       <button class="tab-btn" data-tab="directory">Directory <span class="tab-badge" id="badge-directory" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="contact-suggestions">Contact suggestions <span class="tab-badge" id="badge-contact-suggestions" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="spelling">Spelling terms <span class="tab-badge" id="badge-spelling" style="display:none;"></span></button>
+      <button class="tab-btn" data-tab="videos">System videos <span class="tab-badge" id="badge-videos" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="support">Support <span class="tab-badge" id="support-unread-badge" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">Manage admins</button>
     </div>
@@ -382,6 +383,25 @@
         </div>
         <input type="text" class="search-input" id="spelling-term-search" placeholder="Search the term list…">
         <div id="spelling-terms-list"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-videos">
+      <div class="support-sub-tabs">
+        <button class="support-sub-btn active" data-video-view="suggestions">Suggestions <span class="support-sub-count" id="count-video-pending"></span></button>
+        <button class="support-sub-btn" data-video-view="all">All videos <span class="support-sub-count" id="count-video-all"></span></button>
+      </div>
+
+      <div id="video-suggestions-view">
+        <p style="font-size:13.5px; color:var(--slate); margin-bottom:16px;">Secretary-recommended videos for the Academy system guides. Watch each one before approving — check it's genuinely useful, and that no patient-identifiable data is visible on screen. Approving opens a prefilled "add video" form; nothing is added to the live guide automatically.</p>
+        <div id="video-suggestions-list"></div>
+      </div>
+
+      <div id="video-all-view" style="display:none;">
+        <div class="row-actions" style="margin-bottom:14px;">
+          <button type="button" class="success" id="video-add-btn">Add video</button>
+        </div>
+        <div id="video-all-list"></div>
       </div>
     </div>
 
@@ -1810,6 +1830,267 @@
     });
   }
 
+  // ── System videos tab ─────────────────────────────────────────────────────
+  // Admin-managed "watch it in use" links on account/system-guide.html,
+  // backed by system_videos and system_video_suggestions
+  // (migration_53_system_videos.sql). Same review pattern as spelling terms
+  // above: approving a suggestion opens a prefilled "add video" form rather
+  // than writing to system_videos automatically.
+  let allSystemVideos = [];
+
+  document.querySelectorAll('[data-video-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-video-view]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const view = btn.dataset.videoView;
+      document.getElementById('video-suggestions-view').style.display = view === 'suggestions' ? 'block' : 'none';
+      document.getElementById('video-all-view').style.display = view === 'all' ? 'block' : 'none';
+    });
+  });
+
+  async function loadVideoSuggestions() {
+    const list = document.getElementById('video-suggestions-list');
+    const { data: suggestions, error } = await supabaseClient
+      .from('system_video_suggestions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load suggestions: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    if (!suggestions || suggestions.length === 0) {
+      list.innerHTML = '<div class="empty-state">No suggestions yet.</div>';
+      setTabBadge('badge-videos', 0);
+      document.getElementById('count-video-pending').textContent = 0;
+      return;
+    }
+
+    const pendingCount = suggestions.filter(s => s.status === 'pending').length;
+    setTabBadge('badge-videos', pendingCount);
+    document.getElementById('count-video-pending').textContent = pendingCount;
+
+    const profilesById = await fetchProfilesByIds(suggestions.map(s => s.submitted_by_profile_id));
+    function nameFor(id) {
+      const p = profilesById[id];
+      return p ? `${p.first_name} ${p.last_name}` : 'Unknown';
+    }
+
+    list.innerHTML = suggestions.map(s => `
+      <div class="card ${s.status !== 'pending' ? 'resolved' : ''}" data-suggestion-id="${s.id}">
+        <div class="item-meta">
+          <span class="tag">${escapeHtml(SYSTEM_NAMES[s.system_slug] || s.system_slug)}</span>
+          <span>Suggested by ${escapeHtml(nameFor(s.submitted_by_profile_id))}</span>
+          <span>${formatDate(s.created_at)}</span>
+          ${s.status !== 'pending' ? `<span>· ${s.status === 'approved' ? 'Approved' : 'Rejected'}</span>` : ''}
+        </div>
+        <div class="quoted-content">
+          <div class="quoted-title"><a href="${escapeHtml(s.url)}" target="_blank" rel="noopener" style="text-decoration:underline;">${escapeHtml(s.label || s.url)}</a></div>
+          ${s.label ? `<div style="font-size:12.5px; color:var(--slate); margin-top:2px;">${escapeHtml(s.url)}</div>` : ''}
+          ${s.note ? `<div style="white-space:pre-wrap; margin-top:6px;">${escapeHtml(s.note)}</div>` : ''}
+        </div>
+        ${s.admin_notes ? `<div class="report-reason"><strong>Admin note:</strong> ${escapeHtml(s.admin_notes)}</div>` : ''}
+        ${s.status === 'pending' ? `
+          <div class="row-actions">
+            <button type="button" class="success" data-approve-video-suggestion="${s.id}">Approve → add video</button>
+            <button type="button" data-reject-video-suggestion="${s.id}">Reject</button>
+            <button type="button" class="danger" data-delete-video-suggestion="${s.id}">Delete</button>
+          </div>
+        ` : `
+          <div class="row-actions">
+            <button type="button" class="danger" data-delete-video-suggestion="${s.id}">Delete</button>
+          </div>
+        `}
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-approve-video-suggestion]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const suggestion = suggestions.find(s => s.id === btn.dataset.approveVideoSuggestion);
+        openSystemVideoModal(null, suggestion);
+      });
+    });
+    list.querySelectorAll('[data-reject-video-suggestion]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const note = window.prompt('Optional note on why this was rejected:') || null;
+        btn.disabled = true;
+        await supabaseClient.from('system_video_suggestions')
+          .update({ status: 'rejected', admin_notes: note, resolved_at: new Date().toISOString() })
+          .eq('id', btn.dataset.rejectVideoSuggestion);
+        await loadVideoSuggestions();
+      });
+    });
+    list.querySelectorAll('[data-delete-video-suggestion]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this suggestion?')) return;
+        btn.disabled = true;
+        await supabaseClient.from('system_video_suggestions').delete().eq('id', btn.dataset.deleteVideoSuggestion);
+        await loadVideoSuggestions();
+      });
+    });
+  }
+
+  async function loadSystemVideos() {
+    const list = document.getElementById('video-all-list');
+    const { data: videos, error } = await supabaseClient
+      .from('system_videos')
+      .select('*')
+      .order('system_slug', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load videos: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+
+    allSystemVideos = videos || [];
+    document.getElementById('count-video-all').textContent = allSystemVideos.length;
+    renderSystemVideosList();
+  }
+
+  function renderSystemVideosList() {
+    const list = document.getElementById('video-all-list');
+    if (allSystemVideos.length === 0) {
+      list.innerHTML = '<div class="empty-state">No videos added yet.</div>';
+      return;
+    }
+
+    list.innerHTML = allSystemVideos.map(v => `
+      <div class="card" data-video-id="${v.id}">
+        <div class="item-meta">
+          <span class="tag">${escapeHtml(SYSTEM_NAMES[v.system_slug] || v.system_slug)}</span>
+          <span class="tag ${v.source === 'practitioner' ? 'reply' : ''}">${v.source === 'official' ? 'Official' : 'Practitioner'}</span>
+        </div>
+        <div class="quoted-title" style="font-size:15px;"><a href="${escapeHtml(v.url)}" target="_blank" rel="noopener" style="text-decoration:underline;">${escapeHtml(v.label)}</a></div>
+        <div class="row-actions" style="margin-top:10px;">
+          <button type="button" data-edit-video="${v.id}">Edit</button>
+          <button type="button" class="danger" data-delete-video="${v.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-edit-video]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const video = allSystemVideos.find(v => v.id === btn.dataset.editVideo);
+        openSystemVideoModal(video, null);
+      });
+    });
+    list.querySelectorAll('[data-delete-video]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this video? It will disappear from the guide page immediately.')) return;
+        btn.disabled = true;
+        await supabaseClient.from('system_videos').delete().eq('id', btn.dataset.deleteVideo);
+        await loadSystemVideos();
+      });
+    });
+  }
+
+  document.getElementById('video-add-btn').addEventListener('click', () => openSystemVideoModal(null, null));
+
+  // Shared add/edit modal. `existingVideo` edits a system_videos row in
+  // place; `fromSuggestion` prefills from a pending suggestion and marks it
+  // approved once the video is saved — a suggestion is never written to
+  // system_videos automatically, only via this reviewed save. Always watch
+  // the video before approving — this form doesn't do that for you.
+  function openSystemVideoModal(existingVideo, fromSuggestion) {
+    const overlay = document.createElement('div');
+    overlay.id = 'system-video-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(46,63,84,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; overflow-y:auto;';
+    document.body.appendChild(overlay);
+
+    const closeModal = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+    const v = existingVideo || {
+      system_slug: fromSuggestion ? fromSuggestion.system_slug : '',
+      url: fromSuggestion ? fromSuggestion.url : '',
+      label: fromSuggestion ? (fromSuggestion.label || '') : '',
+      source: '',
+    };
+
+    overlay.innerHTML = `
+      <div style="background:#F7F4ED; border-radius:14px; padding:32px 36px; max-width:480px; width:100%; font-family:'Special Elite', cursive; box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+        <h3 style="font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:8px; color:#2E3F54;">${existingVideo ? 'Edit video' : 'Add video'}</h3>
+        ${fromSuggestion ? `
+          <div style="background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.35); border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:13px; color:#8F6F36; line-height:1.6; white-space:pre-wrap;">
+            Suggested by a secretary${fromSuggestion.note ? `: ${escapeHtml(fromSuggestion.note)}` : '.'} Have you watched it and checked for visible patient data?
+          </div>
+        ` : ''}
+        <p id="sv-error" style="display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:16px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;"></p>
+        <form id="sv-form">
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">System</label>
+            <select id="sv-slug" required style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+              <option value="">Select one…</option>
+              ${Object.entries(SYSTEM_NAMES).map(([slug, name]) => `<option value="${slug}" ${v.system_slug === slug ? 'selected' : ''}>${name}</option>`).join('')}
+            </select>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Video URL</label>
+            <input type="url" id="sv-url" required value="${escapeHtml(v.url)}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Title</label>
+            <input type="text" id="sv-label" required value="${escapeHtml(v.label)}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Source</label>
+            <select id="sv-source" required style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+              <option value="">Select one…</option>
+              <option value="official" ${v.source === 'official' ? 'selected' : ''}>Official vendor video</option>
+              <option value="practitioner" ${v.source === 'practitioner' ? 'selected' : ''}>Practitioner-recorded (checked for patient data)</option>
+            </select>
+          </div>
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" id="sv-cancel-btn" style="padding:11px 18px; border-radius:8px; border:1px solid rgba(46,63,84,0.15); background:#fff; color:#2E3F54; font-size:14px; font-family:'Special Elite', cursive; cursor:pointer;">Cancel</button>
+            <button type="submit" id="sv-submit-btn" style="padding:11px 20px; border-radius:8px; border:none; background:#2E3F54; color:#F7F4ED; font-size:14px; font-family:'Special Elite', cursive; font-weight:600; cursor:pointer;">${existingVideo ? 'Save changes' : 'Add video'}</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    overlay.querySelector('#sv-cancel-btn').addEventListener('click', closeModal);
+
+    const errorBox = overlay.querySelector('#sv-error');
+    const submitBtn = overlay.querySelector('#sv-submit-btn');
+
+    overlay.querySelector('#sv-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving…';
+
+      const payload = {
+        system_slug: overlay.querySelector('#sv-slug').value,
+        url: overlay.querySelector('#sv-url').value.trim(),
+        label: overlay.querySelector('#sv-label').value.trim(),
+        source: overlay.querySelector('#sv-source').value,
+      };
+
+      const { error } = existingVideo
+        ? await supabaseClient.from('system_videos').update(payload).eq('id', existingVideo.id)
+        : await supabaseClient.from('system_videos').insert({ ...payload, added_by_profile_id: adminUserId });
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = existingVideo ? 'Save changes' : 'Add video';
+        return;
+      }
+
+      if (fromSuggestion) {
+        await supabaseClient.from('system_video_suggestions')
+          .update({ status: 'approved', resolved_at: new Date().toISOString() })
+          .eq('id', fromSuggestion.id);
+        await loadVideoSuggestions();
+      }
+
+      closeModal();
+      await loadSystemVideos();
+    });
+  }
+
   // ── Manage admins tab ─────────────────────────────────────────────────────
   let allStaff = [];
 
@@ -1964,6 +2245,8 @@
     await loadContactSuggestions();
     await loadSpellingSuggestions();
     await loadSpellingTerms();
+    await loadVideoSuggestions();
+    await loadSystemVideos();
     await loadSupportThreads();
   }
 

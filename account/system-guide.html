@@ -88,6 +88,39 @@
   }
   .video-link-arrow{ font-size:14px; color:var(--gold); flex-shrink:0; }
 
+  .suggest-row{ text-align:center; margin:18px 0 4px; }
+  .suggest-link{
+    background:none; border:none; cursor:pointer; font-family:'Special Elite', cursive;
+    font-size:13px; color:var(--slate); text-decoration:underline;
+  }
+  .suggest-link:hover{ color:var(--ink); }
+
+  .suggest-panel{
+    background:var(--white); border:1.5px solid rgba(184,146,74,0.35); border-radius:14px;
+    padding:22px 24px; margin-bottom:20px; display:none;
+  }
+  .suggest-panel.open{ display:block; }
+  .suggest-panel h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; margin-bottom:4px; }
+  .suggest-panel .suggest-sub{ font-size:13px; color:var(--slate); margin-bottom:16px; }
+  .suggest-field{ margin-bottom:12px; }
+  .suggest-field label{ display:block; font-size:12px; font-weight:600; margin-bottom:5px; }
+  .suggest-field input, .suggest-field textarea{
+    width:100%; padding:11px 13px; font-family:'Special Elite', cursive; font-size:14px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .suggest-field input:focus, .suggest-field textarea:focus{ outline:none; border-color:var(--gold); }
+  .suggest-field textarea{ resize:vertical; min-height:60px; }
+  .suggest-actions{ display:flex; gap:10px; align-items:center; margin-top:16px; }
+  .suggest-actions .btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:14px; padding:11px 20px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--gold); color:var(--ink);
+  }
+  .suggest-actions .btn:disabled{ opacity:0.6; cursor:not-allowed; }
+  .suggest-actions .btn-cancel{ background:none; border:1.5px solid rgba(46,63,84,0.2); color:var(--ink); }
+  .suggest-status{ font-size:13px; margin-top:12px; }
+  .suggest-status.error{ color:#a33; }
+  .suggest-status.success{ color:var(--green); }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
@@ -126,6 +159,34 @@
     </div>
 
     <div id="video-card-wrap"></div>
+
+    <div class="suggest-row">
+      <button class="suggest-link" id="suggest-toggle">Know a good video of this in use? Recommend it →</button>
+    </div>
+
+    <div class="suggest-panel" id="suggest-panel">
+      <h3>Recommend a video</h3>
+      <p class="suggest-sub">An admin reviews every link before it's added to this page — checking it's genuinely useful and that no patient-identifiable data is visible on screen.</p>
+      <form id="suggest-form">
+        <div class="suggest-field">
+          <label for="suggest-url">Video URL</label>
+          <input type="url" id="suggest-url" placeholder="https://www.youtube.com/watch?v=…" required>
+        </div>
+        <div class="suggest-field">
+          <label for="suggest-label">Title (optional)</label>
+          <input type="text" id="suggest-label" placeholder="What would you call this video?">
+        </div>
+        <div class="suggest-field">
+          <label for="suggest-note">Note (optional)</label>
+          <textarea id="suggest-note" placeholder="Why it's useful, who made it, anything to flag…"></textarea>
+        </div>
+        <div class="suggest-actions">
+          <button type="submit" class="btn" id="suggest-submit-btn">Submit recommendation</button>
+          <button type="button" class="btn btn-cancel" id="suggest-cancel-btn">Cancel</button>
+        </div>
+        <p class="suggest-status" id="suggest-status"></p>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -162,11 +223,18 @@
   }
 
   // Plain external links only — opened in a new tab, never embedded or
-  // scraped. See the comment above SYSTEM_SKILLS in system-skills-data.js
-  // for the review process behind `videos`.
-  function renderVideos() {
+  // scraped. Sourced from the system_videos table (migration_53), which
+  // only admins can write to — a recommendation from the form below never
+  // lands here directly, only via admin approval.
+  async function renderVideos() {
     const wrap = document.getElementById('video-card-wrap');
-    const videos = sys.videos || [];
+    const { data, error } = await supabaseClient
+      .from('system_videos')
+      .select('url, label, source')
+      .eq('system_slug', slug)
+      .order('created_at', { ascending: true });
+
+    const videos = error ? [] : (data || []);
 
     if (videos.length === 0) {
       wrap.innerHTML = `
@@ -206,6 +274,8 @@
     return div.innerHTML;
   }
 
+  let currentUserId = null;
+
   (async () => {
     if (!sys) {
       document.getElementById('loading').textContent = 'System not found.';
@@ -224,15 +294,62 @@
       return;
     }
 
+    currentUserId = navResult.session.user.id;
+
     document.getElementById('page-title').textContent = sys.name;
     document.getElementById('page-sub').textContent = sys.aim || `What to actually expect from ${sys.name} day to day.`;
 
     renderSections();
-    renderVideos();
+    await renderVideos();
 
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
   })();
+
+  // ── Recommend a video ────────────────────────────────────────────────
+  document.getElementById('suggest-toggle').addEventListener('click', () => {
+    document.getElementById('suggest-panel').classList.toggle('open');
+  });
+
+  document.getElementById('suggest-cancel-btn').addEventListener('click', () => {
+    document.getElementById('suggest-panel').classList.remove('open');
+  });
+
+  document.getElementById('suggest-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('suggest-status');
+    const submitBtn = document.getElementById('suggest-submit-btn');
+    const url = document.getElementById('suggest-url').value.trim();
+    const label = document.getElementById('suggest-label').value.trim();
+    const note = document.getElementById('suggest-note').value.trim();
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    statusEl.textContent = '';
+    statusEl.className = 'suggest-status';
+
+    const { error } = await supabaseClient.from('system_video_suggestions').insert({
+      system_slug: slug,
+      url,
+      label: label || null,
+      note: note || null,
+      submitted_by_profile_id: currentUserId,
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit recommendation';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'suggest-status error';
+      return;
+    }
+
+    statusEl.textContent = 'Thanks — an admin will review this.';
+    statusEl.className = 'suggest-status success';
+    document.getElementById('suggest-form').reset();
+    setTimeout(() => { document.getElementById('suggest-panel').classList.remove('open'); }, 1500);
+  });
 </script>
 
 <script src="../mobile-nav.js"></script>
