@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
-<title>Business Hub — Veyn</title>
+<title>Daily Tools — Veyn</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
@@ -82,8 +82,6 @@
   .btn-primary{ background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(46,63,84,0.5); }
   .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(46,63,84,0.6); }
 
-
-
   section.block{ padding:72px 32px; }
   .block-head{ text-align:center; max-width:680px; margin:0 auto 52px; }
   .label{
@@ -100,23 +98,28 @@
   .card h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:19px; margin-bottom:10px; }
   .card p{ color:var(--slate); font-size:14.5px; line-height:1.6; }
 
-  .calc-mock{
+  .search-mock{
     background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:16px;
-    padding:36px; max-width:560px; margin:0 auto;
+    padding:36px; max-width:520px; margin:0 auto;
   }
-  .calc-row{ margin-bottom:20px; }
-  .calc-row:last-of-type{ margin-bottom:0; }
-  .calc-label{ font-size:13.5px; color:var(--slate); margin-bottom:8px; display:block; }
-  .calc-input{
-    background:var(--paper); border:1px solid rgba(46,63,84,0.12); border-radius:8px;
-    padding:12px 14px; font-size:14px; color:var(--ink); font-family:'Special Elite', cursive;
+  .search-mock-label{ font-size:13.5px; color:var(--slate); margin-bottom:8px; display:block; }
+  .search-mock-input{
+    background:var(--paper); border:1.5px solid rgba(184,146,74,0.4); border-radius:8px;
+    padding:14px 16px; font-size:15px; color:var(--ink); font-family:'Special Elite', cursive;
+    margin-bottom:8px;
   }
-  .calc-result{
-    background:var(--ink); color:var(--paper); border-radius:12px; padding:24px;
-    text-align:center; margin-top:28px;
+  .search-mock-hint{ font-size:12px; color:var(--slate); font-style:italic; margin-bottom:22px; }
+  .search-mock-result{
+    background:var(--ink); color:var(--paper); border-radius:12px; padding:22px 24px;
   }
-  .calc-result .calc-figure{ font-family:'Cormorant Garamond', serif; font-size:32px; font-weight:600; color:var(--gold-soft); }
-  .calc-result .calc-caption{ font-family:'Special Elite', cursive; font-size:11px; color:rgba(247,244,237,0.6); margin-top:4px; letter-spacing:0.03em; }
+  .search-mock-top{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+  .search-mock-term{ font-family:'Cormorant Garamond', serif; font-size:26px; font-weight:600; }
+  .search-mock-tag{
+    font-family:'Special Elite', cursive; font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--gold-soft); border:1px solid rgba(231,217,188,0.4); border-radius:999px; padding:3px 10px;
+  }
+  .search-mock-phonetic{ font-size:13.5px; color:rgba(247,244,237,0.65); margin-bottom:8px; }
+  .search-mock-note{ font-size:12px; color:rgba(247,244,237,0.5); font-style:italic; }
 
   .final-cta{ text-align:center; background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:24px; padding:56px 40px; max-width:760px; margin:0 32px; }
   .final-cta h2{ margin-bottom:10px; }
@@ -145,9 +148,9 @@
         <a href="veyn-for-secretaries.html">How it works</a>
         <a href="veyn-pricing-secretaries.html">Pricing</a>
         <a href="veyn-academy.html">Academy</a>
-        <a href="veyn-daily-tools.html">Daily Tools</a>
+        <a href="#" class="active">Daily Tools</a>
         <a href="veyn-community.html">Community</a>
-        <a href="#" class="active">Business Hub</a>
+        <a href="veyn-business-hub.html">Business Hub</a>
       </nav>
     </div>
     <a href="account/login.html" class="btn-login">Log in</a>
@@ -155,9 +158,9 @@
 </header>
 
 <section class="hero">
-  <div class="eyebrow"><span class="sq"></span> The job is bigger than the listing</div>
-  <h1>Your career doesn't pause<br>between <em>placements</em>.</h1>
-  <p class="sub">Day-rate calculator, contract and invoice templates, and self-employment guidance — all free, whether or not you're between jobs right now.</p>
+  <div class="eyebrow"><span class="sq"></span> Built for the middle of a letter</div>
+  <h1>Stop switching tabs<br>to check a <em>spelling</em>.</h1>
+  <p class="sub">Medication and anatomy spelling, insurer and hospital contacts, the consultant directory, and CCSD billing codes — searchable in seconds, without leaving your dashboard.</p>
   <div class="cta-row">
     <a class="btn btn-primary" href="account/create-profile-secretary.html">Create your free profile</a>
   </div>
@@ -166,32 +169,36 @@
 <div class="strip">
   <div class="strip-inner">
     <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Free, no premium tier required</div>
-    <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>No competitor offers this</div>
-    <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>Useful from day one</div>
+    <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>Matches even when you spell it wrong</div>
+    <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>One search, not ten tabs</div>
     <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#3F6B4F" stroke-width="1.6"/><path d="M9 12l2 2 4-4" stroke="#3F6B4F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Free, no premium tier required</div>
-    <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>No competitor offers this</div>
-    <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>Useful from day one</div>
+    <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#2E3F54" stroke-width="1.6"/><path d="M3 9h18" stroke="#2E3F54" stroke-width="1.6"/></svg>Matches even when you spell it wrong</div>
+    <div class="strip-item"><svg class="ic" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B8924A" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#B8924A" stroke-width="1.6" stroke-linecap="round"/></svg>One search, not ten tabs</div>
   </div>
 </div>
 
 <section class="block">
   <div class="block-head">
     <span class="label">What's here</span>
-    <h2>Three tools for the business side of the job</h2>
-    <p>Looking for insurer/hospital contacts, the consultant directory, or CCSD billing codes? Those live in <a href="veyn-daily-tools.html" style="text-decoration:underline; color:var(--ink);">Daily Tools</a> now.</p>
+    <h2>Four tools for the middle of the working day</h2>
+    <p>Not planning or reference reading — the things you reach for mid-task, dozens of times a week.</p>
   </div>
   <div class="grid3">
     <div class="card">
-      <h3>Day-rate calculator</h3>
-      <p>UK freelancer day-rate logic — target income, expenses, and a buffer, divided across your realistic billable days. Most secretaries underprice themselves; this gives you a real number to start from.</p>
+      <h3>Medication &amp; anatomy spelling</h3>
+      <p>Type it the way it sounds and it still finds the right term — matches on common misspellings, not just exact spelling. Filter by specialty or body area to narrow it down fast.</p>
     </div>
     <div class="card">
-      <h3>Invoice &amp; contract templates</h3>
-      <p>Ready-to-use templates for invoicing consultants and setting out the terms of an engagement — a small but real friction point removed.</p>
+      <h3>Insurer, GP &amp; hospital contacts</h3>
+      <p>Authorisation and billing contacts for every major UK insurer, plus a searchable GP practice and private hospital directory — no digging through old emails for a phone number.</p>
     </div>
     <div class="card">
-      <h3>Self-employment guidance</h3>
-      <p>What it actually means to be self-employed as a private medical secretary, including the genuine IR35 grey area — working regularly for one consultant can mean you're treated as an employee even while invoicing as self-employed.</p>
+      <h3>Find a consultant</h3>
+      <p>A real cross-referral directory — look up a consultant's specialty, hospitals, and contact details in seconds. Consultants on Veyn appear automatically; add anyone else you personally work with.</p>
+    </div>
+    <div class="card">
+      <h3>CCSD billing codes</h3>
+      <p>Search the full code list by code, description, chapter, or section — with Healix's published reimbursement fee shown directly against each code, pulled from their own fee schedule.</p>
     </div>
   </div>
 </section>
@@ -199,25 +206,20 @@
 <section class="block" style="padding-top:0;">
   <div class="block-head">
     <span class="label">Try it</span>
-    <h2>Price your day rate properly</h2>
-    <p>A preview of the calculator — the real version on your dashboard adjusts live as you type.</p>
+    <h2>Even a rough guess finds the right term</h2>
+    <p>A preview of the spelling search — type a misspelling and it still surfaces the correct term, with how to say it and where it's used.</p>
   </div>
-  <div class="calc-mock">
-    <div class="calc-row">
-      <span class="calc-label">Target annual income</span>
-      <div class="calc-input">£38,000</div>
-    </div>
-    <div class="calc-row">
-      <span class="calc-label">Annual business expenses</span>
-      <div class="calc-input">£3,200</div>
-    </div>
-    <div class="calc-row">
-      <span class="calc-label">Realistic billable days per year</span>
-      <div class="calc-input">180 days</div>
-    </div>
-    <div class="calc-result">
-      <div class="calc-figure">£229/day</div>
-      <div class="calc-caption">SUGGESTED MINIMUM DAY RATE</div>
+  <div class="search-mock">
+    <span class="search-mock-label">You type</span>
+    <div class="search-mock-input">amoxicilin</div>
+    <p class="search-mock-hint">← not quite right, but close enough</p>
+    <div class="search-mock-result">
+      <div class="search-mock-top">
+        <span class="search-mock-term">Amoxicillin</span>
+        <span class="search-mock-tag">Medication</span>
+      </div>
+      <div class="search-mock-phonetic">a-mox-i-SIL-in</div>
+      <div class="search-mock-note">Matches common spelling "amoxicilin"</div>
     </div>
   </div>
 </section>
@@ -225,7 +227,7 @@
 <section class="block" style="padding-top:0;display:flex;justify-content:center;">
   <div class="final-cta">
     <h2>All of this, free with your profile</h2>
-    <p>No separate sign-up, no premium tier — the Business Hub is part of the core platform.</p>
+    <p>No separate sign-up, no premium tier — Daily Tools is part of the core platform.</p>
     <a class="btn btn-primary" href="account/create-profile-secretary.html">Create your free profile</a>
   </div>
 </section>
@@ -247,8 +249,8 @@
       <a href="index.html">Home</a>
       <a href="veyn-about.html">About</a>
       <a href="veyn-academy.html">Academy</a>
-      <a href="veyn-daily-tools.html">Daily Tools</a>
       <a href="veyn-community.html">Community</a>
+      <a href="veyn-business-hub.html">Business Hub</a>
       <a href="#">Contact</a>
     </div>
     <div class="foot-col">
