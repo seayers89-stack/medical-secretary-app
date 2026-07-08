@@ -47,7 +47,9 @@
     border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
   }
 
-  .wrap{ max-width:720px; margin:0 auto; padding:48px 32px 100px; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:48px 32px 100px; }
+  .page-head{ max-width:720px; }
+  .content-narrow{ max-width:720px; }
   .eyebrow{
     font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
     color:var(--gold); margin-bottom:14px;
@@ -72,6 +74,12 @@
   }
   .guide-card h2{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; margin-bottom:10px; }
   .guide-card p{ color:var(--ink); font-size:14.5px; line-height:1.7; margin-bottom:10px; }
+
+  .contacts-grid{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; align-items:start; }
+  .contacts-grid .guide-card{ padding:24px 22px; margin-bottom:0; min-width:0; }
+  .contacts-grid .guide-card h2{ font-size:16.5px; }
+  @media (max-width:980px){ .contacts-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:640px){ .contacts-grid{ grid-template-columns:1fr; } }
   .guide-card .guide-label{
     font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
     color:var(--gold); margin-bottom:12px; display:block;
@@ -256,9 +264,11 @@
 </header>
 
 <div class="wrap">
-  <div class="eyebrow">Daily Tools</div>
-  <h1>The tools you'll reach for every day</h1>
-  <p class="sub">Spelling lookups, insurer and hospital contacts, the consultant directory, and CCSD billing codes — in one place, separate from the business/tax side in Business Hub.</p>
+  <div class="page-head">
+    <div class="eyebrow">Daily Tools</div>
+    <h1>The tools you'll reach for every day</h1>
+    <p class="sub">Spelling lookups, insurer and hospital contacts, the consultant directory, and CCSD billing codes — in one place, separate from the business/tax side in Business Hub.</p>
+  </div>
 
   <p id="loading">Loading…</p>
 
@@ -271,6 +281,7 @@
     </div>
 
     <div class="tab-panel active" id="tab-spelling">
+    <div class="content-narrow">
       <div class="search-panel">
         <div class="search-box">
           <input type="text" id="search-input" placeholder="Start typing a medication or body part…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
@@ -333,8 +344,10 @@
       <p class="result-count" id="result-count">Loading terms…</p>
       <div class="result-list" id="result-list"></div>
     </div>
+    </div>
 
     <div class="tab-panel" id="tab-contacts">
+      <div class="contacts-grid">
       <div class="guide-card" id="insurers">
         <span class="guide-label">Who to call</span>
         <h2>UK private health insurer contacts</h2>
@@ -376,9 +389,11 @@
         <div id="hospital-detail"></div>
         <div id="hospital-area-results"></div>
       </div>
+      </div>
     </div>
 
     <div class="tab-panel" id="tab-consultants">
+    <div class="content-narrow">
       <div class="guide-card" id="consultant-directory">
         <span class="guide-label">Cross-referrals</span>
         <h2>Find a consultant</h2>
@@ -399,9 +414,11 @@
         <p id="consultant-results-count" style="font-size:13px; color:var(--slate); margin-top:14px;"></p>
         <div id="consultant-results"></div>
       </div>
+      </div>
     </div>
 
     <div class="tab-panel" id="tab-billing">
+    <div class="content-narrow">
       <div class="guide-card" id="billing-codes-card">
         <span class="guide-label">CCSD fee schedule</span>
         <h2>Billing codes</h2>
@@ -424,6 +441,7 @@
         </div>
         <p id="billing-results-count" style="font-size:13px; color:var(--slate); margin-top:14px;"></p>
         <div id="billing-results"></div>
+      </div>
       </div>
     </div>
   </div>
