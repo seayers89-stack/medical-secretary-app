@@ -1872,6 +1872,7 @@
 
     const profilesById = await fetchProfilesByIds(suggestions.map(s => s.submitted_by_profile_id));
     function nameFor(id) {
+      if (!id) return 'research/curation, not a secretary submission';
       const p = profilesById[id];
       return p ? `${p.first_name} ${p.last_name}` : 'Unknown';
     }
@@ -2013,7 +2014,7 @@
         <h3 style="font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:8px; color:#2E3F54;">${existingVideo ? 'Edit video' : 'Add video'}</h3>
         ${fromSuggestion ? `
           <div style="background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.35); border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:13px; color:#8F6F36; line-height:1.6; white-space:pre-wrap;">
-            Suggested by a secretary${fromSuggestion.note ? `: ${escapeHtml(fromSuggestion.note)}` : '.'} Have you watched it and checked for visible patient data?
+            ${fromSuggestion.submitted_by_profile_id ? 'Suggested by a secretary' : 'Added via research/curation, not a secretary submission'}${fromSuggestion.note ? `: ${escapeHtml(fromSuggestion.note)}` : '.'} Have you watched it and checked for visible patient data?
           </div>
         ` : ''}
         <p id="sv-error" style="display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:16px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;"></p>
