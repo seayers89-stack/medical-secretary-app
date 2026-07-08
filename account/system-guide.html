@@ -88,15 +88,6 @@
   }
   .video-link-arrow{ font-size:14px; color:var(--gold); flex-shrink:0; }
 
-  .quiz-cta{
-    text-align:center; background:var(--ink); border-radius:18px; padding:30px 32px; margin-top:24px;
-  }
-  .quiz-cta p{ color:rgba(247,244,237,0.75); font-size:13.5px; margin-bottom:16px; }
-  .quiz-cta a{
-    display:inline-block; font-family:'Special Elite', cursive; font-weight:600; font-size:15px;
-    padding:13px 28px; border-radius:8px; background:var(--gold); color:var(--ink);
-  }
-
   #loading{ color:var(--slate); font-size:14.5px; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
@@ -131,15 +122,10 @@
 
     <div id="sections-list"></div>
     <div id="no-guide-note" style="display:none;" class="no-guide-note">
-      A full written guide for this system hasn't been written up yet — it's based on real working-secretary experience, not vendor copy, so it takes time to get right. In the meantime, the video below shows it in real use, and the proficiency quiz is ready now.
+      A full written guide for this system hasn't been written up yet — it's based on real working-secretary experience, not vendor copy, so it takes time to get right. In the meantime, the video below shows it in real use.
     </div>
 
     <div id="video-card-wrap"></div>
-
-    <div class="quiz-cta">
-      <p id="quiz-cta-text">Ready to test what you know?</p>
-      <a id="quiz-cta-link" href="#">Take the proficiency quiz →</a>
-    </div>
   </div>
 </div>
 
@@ -181,7 +167,16 @@
   function renderVideos() {
     const wrap = document.getElementById('video-card-wrap');
     const videos = sys.videos || [];
-    if (videos.length === 0) return;
+
+    if (videos.length === 0) {
+      wrap.innerHTML = `
+        <div class="video-card">
+          <h2>Watch it in use</h2>
+          <p class="video-note">No publicly available video of ${escapeHtml(sys.name)} in use yet — check back later.</p>
+        </div>
+      `;
+      return;
+    }
 
     const hasPractitioner = videos.some(v => v.source === 'practitioner');
 
@@ -230,9 +225,7 @@
     }
 
     document.getElementById('page-title').textContent = sys.name;
-    document.getElementById('page-sub').textContent = sys.aim || `What to actually expect from ${sys.name} day to day — plus a proficiency quiz to verify it on your profile.`;
-    document.getElementById('quiz-cta-text').textContent = `${sys.quiz.length}-question proficiency quiz on real working knowledge of ${sys.name}.`;
-    document.getElementById('quiz-cta-link').href = `system-quiz.html?slug=${slug}`;
+    document.getElementById('page-sub').textContent = sys.aim || `What to actually expect from ${sys.name} day to day.`;
 
     renderSections();
     renderVideos();
