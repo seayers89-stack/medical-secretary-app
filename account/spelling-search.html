@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>Spelling search — Veyn Academy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#2E3F54;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Special Elite', cursive;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(46,63,84,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .logo{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .btn-login{
+    font-family:'Special Elite', cursive; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:720px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
+
+  .search-panel{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
+    padding:24px 28px; margin-bottom:20px; position:sticky; top:88px; z-index:10;
+  }
+  .search-box{ position:relative; }
+  .search-box input{
+    width:100%; padding:15px 44px 15px 16px; font-family:'Special Elite', cursive; font-size:16px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:10px; background:var(--paper); color:var(--ink);
+  }
+  .search-box input:focus{ outline:none; border-color:var(--gold); background:var(--white); }
+  .search-box .clear-btn{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; color:var(--slate); font-size:18px; padding:6px; display:none;
+  }
+  .search-box .clear-btn.show{ display:block; }
+
+  .category-grid{ display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+  .category-chip{
+    font-size:13px; font-weight:500; padding:8px 15px; border-radius:999px;
+    border:1.5px solid rgba(46,63,84,0.15); background:var(--paper); color:var(--ink);
+    cursor:pointer; user-select:none; transition:all .15s ease;
+  }
+  .category-chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .category-chip.all-chip.active{ background:var(--gold); color:var(--ink); border-color:var(--gold); }
+
+  .filter-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .filter-row select{
+    flex:1; min-width:160px; padding:9px 12px; font-family:'Special Elite', cursive; font-size:13px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .filter-row select:focus{ outline:none; border-color:var(--gold); }
+  .filter-clear{
+    font-size:12px; color:var(--slate); background:none; border:none; cursor:pointer; text-decoration:underline;
+    display:none; align-self:center;
+  }
+  .filter-clear.show{ display:inline-block; }
+
+  .result-count{ font-size:12.5px; color:var(--slate); margin:0 4px 14px; }
+  .result-count strong{ color:var(--ink); }
+
+  .result-list{ display:flex; flex-direction:column; gap:10px; }
+  .result-card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:14px;
+    padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .result-main{ min-width:0; }
+  .result-top{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .result-term{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; }
+  .result-term mark{ background:rgba(184,146,74,0.28); color:inherit; border-radius:3px; padding:0 1px; }
+  .category-tag{
+    font-family:'Special Elite', cursive; font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--gold); border:1px solid rgba(184,146,74,0.4); border-radius:999px; padding:3px 9px;
+  }
+  .category-tag.anatomy{ color:var(--green); border-color:rgba(63,107,79,0.4); }
+  .result-phonetic{ font-size:13px; color:var(--slate); margin-top:3px; }
+  .result-filters{ font-size:11.5px; color:var(--slate); margin-top:4px; }
+  .result-note{ font-size:12px; color:var(--slate); margin-top:6px; font-style:italic; }
+
+  .copy-btn{
+    flex-shrink:0; font-family:'Special Elite', cursive; font-weight:600; font-size:13px; padding:10px 16px;
+    border-radius:8px; cursor:pointer; border:1.5px solid rgba(46,63,84,0.15); background:none; color:var(--ink);
+    white-space:nowrap; transition:all .15s ease;
+  }
+  .copy-btn:hover{ border-color:var(--gold); }
+  .copy-btn.copied{ background:var(--green); border-color:var(--green); color:var(--white); }
+
+  .empty-state{
+    text-align:center; padding:48px 24px; color:var(--slate); font-size:14px; line-height:1.7;
+  }
+  .empty-state .big{ font-family:'Cormorant Garamond', serif; font-size:20px; color:var(--ink); margin-bottom:8px; }
+
+  .hint-note{
+    background:rgba(184,146,74,0.08); border:1px solid rgba(184,146,74,0.25); border-radius:10px;
+    padding:14px 16px; font-size:13px; color:var(--slate); line-height:1.6; margin-bottom:20px;
+  }
+
+  .suggest-row{ text-align:center; margin:18px 0 4px; }
+  .suggest-link{
+    background:none; border:none; cursor:pointer; font-family:'Special Elite', cursive;
+    font-size:13px; color:var(--slate); text-decoration:underline;
+  }
+  .suggest-link:hover{ color:var(--ink); }
+
+  .suggest-panel{
+    background:var(--white); border:1.5px solid rgba(184,146,74,0.35); border-radius:14px;
+    padding:22px 24px; margin-bottom:20px; display:none;
+  }
+  .suggest-panel.open{ display:block; }
+  .suggest-panel h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; margin-bottom:4px; }
+  .suggest-panel .suggest-sub{ font-size:13px; color:var(--slate); margin-bottom:16px; }
+  .suggest-field{ margin-bottom:12px; }
+  .suggest-field label{ display:block; font-size:12px; font-weight:600; margin-bottom:5px; }
+  .suggest-field input, .suggest-field select, .suggest-field textarea{
+    width:100%; padding:11px 13px; font-family:'Special Elite', cursive; font-size:14px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .suggest-field input:focus, .suggest-field select:focus, .suggest-field textarea:focus{ outline:none; border-color:var(--gold); }
+  .suggest-field textarea{ resize:vertical; min-height:60px; }
+  .suggest-actions{ display:flex; gap:10px; align-items:center; margin-top:16px; }
+  .suggest-actions .btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:14px; padding:11px 20px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--gold); color:var(--ink);
+  }
+  .suggest-actions .btn:disabled{ opacity:0.6; cursor:not-allowed; }
+  .suggest-actions .btn-cancel{ background:none; border:1.5px solid rgba(46,63,84,0.2); color:var(--ink); }
+  .suggest-status{ font-size:13px; margin-top:12px; }
+  .suggest-status.error{ color:#a33; }
+  .suggest-status.success{ color:var(--green); }
+  .suggest-login-note{ font-size:13.5px; color:var(--slate); line-height:1.6; }
+  .suggest-login-note a{ font-weight:600; text-decoration:underline; color:var(--ink); }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:600px){
+    .search-panel{ position:static; }
+    .result-card{ flex-direction:column; align-items:stretch; }
+    .copy-btn{ width:100%; }
+  }
+
+</style>
+<link rel="stylesheet" href="../veyn-buttons.css"></head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+    <a href="../veyn-academy.html" class="btn-login" id="back-to-academy-link">Back to Academy</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Academy · Reference tool</div>
+  <h1>Medication &amp; anatomy speller</h1>
+  <p class="sub">Search by sound, guess, or common misspelling — this keeps working even if you don't type it quite right. Built for checking spellings while drafting clinic letters. Nothing here is saved or scored.</p>
+
+  <div class="search-panel">
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Start typing a medication or body part…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus>
+      <button class="clear-btn" id="clear-btn" aria-label="Clear search">&times;</button>
+    </div>
+    <div class="category-grid" id="category-grid">
+      <button class="category-chip all-chip active" data-cat="all">All terms</button>
+      <button class="category-chip" data-cat="medication">Medications</button>
+      <button class="category-chip" data-cat="anatomy">Anatomy</button>
+    </div>
+    <div class="filter-row">
+      <select id="body-area-filter">
+        <option value="">All body areas</option>
+      </select>
+      <select id="specialty-filter">
+        <option value="">All specialties</option>
+      </select>
+      <button class="filter-clear" id="filter-clear-btn">Clear filters</button>
+    </div>
+  </div>
+
+  <div class="suggest-row">
+    <button class="suggest-link" id="suggest-toggle">Can't find a term? Suggest one →</button>
+  </div>
+
+  <div class="suggest-panel" id="suggest-panel">
+    <h3>Suggest a term</h3>
+    <div id="suggest-logged-out" style="display:none;">
+      <p class="suggest-login-note">Suggestions are reviewed by an admin, so we ask you to be logged in first. <a href="login.html">Log in</a>, then come back to this page.</p>
+    </div>
+    <div id="suggest-logged-in" style="display:none;">
+      <p class="suggest-sub">Add a medication or body part that's missing, or flag one that needs a correction. An admin reviews every suggestion before it goes live.</p>
+      <form id="suggest-form">
+        <div class="suggest-field">
+          <label for="suggest-term">Term</label>
+          <input type="text" id="suggest-term" placeholder="e.g. Dexamethasone" required>
+        </div>
+        <div class="suggest-field">
+          <label for="suggest-category">Category</label>
+          <select id="suggest-category" required>
+            <option value="">Select one…</option>
+            <option value="medication">Medication</option>
+            <option value="anatomy">Anatomy</option>
+          </select>
+        </div>
+        <div class="suggest-field">
+          <label for="suggest-specialty">Specialty (optional)</label>
+          <select id="suggest-specialty">
+            <option value="">Not sure / general</option>
+          </select>
+        </div>
+        <div class="suggest-field">
+          <label for="suggest-note">Note (optional)</label>
+          <textarea id="suggest-note" placeholder="How it's pronounced, common misspellings you've seen, or why it's needed…"></textarea>
+        </div>
+        <div class="suggest-actions">
+          <button type="submit" class="btn" id="suggest-submit-btn">Submit suggestion</button>
+          <button type="button" class="btn btn-cancel" id="suggest-cancel-btn">Cancel</button>
+        </div>
+        <p class="suggest-status" id="suggest-status"></p>
+      </form>
+    </div>
+  </div>
+
+  <p class="result-count" id="result-count">Loading terms…</p>
+  <div class="result-list" id="result-list"></div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Skills-tested, every time.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="supabase-config.js"></script>
+<script src="specialties-data.js"></script>
+<script>
+  // Body-system taxonomy — spans both anatomy terms (where they are) and
+  // medications (what they act on), so filtering "Respiratory" surfaces
+  // both Trachea and Salbutamol. Keep in sync with the check constraint in
+  // migration_51_spelling_terms_filters.sql.
+  const BODY_AREAS = [
+    'Cardiovascular', 'Respiratory', 'Gastrointestinal', 'Musculoskeletal',
+    'Nervous system', 'Genitourinary', 'Reproductive', 'Endocrine', 'Skin',
+    'Eyes', 'Ears, nose & throat', 'Head & neck', 'Blood & immune',
+    'Mental health', 'General / systemic',
+  ];
+
+  let SPELLING_TERMS = [];
+  let currentUserId = null;
+  let activeCategory = 'all';
+  let activeBodyArea = '';
+  let activeSpecialty = '';
+
+  function populateFilterOptions() {
+    const bodyAreaSelect = document.getElementById('body-area-filter');
+    BODY_AREAS.forEach(area => {
+      const opt = document.createElement('option');
+      opt.value = area;
+      opt.textContent = area;
+      bodyAreaSelect.appendChild(opt);
+    });
+
+    const specialtySelect = document.getElementById('specialty-filter');
+    const suggestSpecialtySelect = document.getElementById('suggest-specialty');
+    SPECIALTIES.forEach(spec => {
+      const opt1 = document.createElement('option');
+      opt1.value = spec;
+      opt1.textContent = spec;
+      specialtySelect.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = spec;
+      opt2.textContent = spec;
+      suggestSpecialtySelect.appendChild(opt2);
+    });
+  }
+  populateFilterOptions();
+
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      document.getElementById('back-to-academy-link').href = 'academy.html';
+      currentUserId = session.user.id;
+    }
+
+    const { data, error } = await supabaseClient
+      .from('spelling_terms')
+      .select('term, category, phonetic, aliases, body_area, specialty');
+
+    if (error) {
+      document.getElementById('result-count').textContent = '';
+      document.getElementById('result-list').innerHTML = `
+        <div class="empty-state">
+          <div class="big">Couldn't load the term list</div>
+          <div>${escapeHtml(error.message)}</div>
+        </div>`;
+      return;
+    }
+
+    SPELLING_TERMS = (data || []).map(row => ({ ...row, aliases: row.aliases || [] }));
+    render();
+  })();
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function normalize(s) {
+    return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  // Levenshtein distance, capped for speed on short strings.
+  function editDistance(a, b) {
+    const m = a.length, n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    const prev = new Array(n + 1);
+    const curr = new Array(n + 1);
+    for (let j = 0; j <= n; j++) prev[j] = j;
+    for (let i = 1; i <= m; i++) {
+      curr[0] = i;
+      for (let j = 1; j <= n; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+      }
+      for (let j = 0; j <= n; j++) prev[j] = curr[j];
+    }
+    return prev[n];
+  }
+
+  function scoreEntry(entry, query) {
+    const nQuery = normalize(query);
+    if (!nQuery) return { score: 0, matchedVia: null };
+
+    const nTerm = normalize(entry.term);
+    if (nTerm.startsWith(nQuery)) return { score: 100, matchedVia: null };
+    if (nTerm.includes(nQuery)) return { score: 80, matchedVia: null };
+
+    for (const alias of entry.aliases) {
+      const nAlias = normalize(alias);
+      if (nAlias.startsWith(nQuery)) return { score: 70, matchedVia: alias };
+      if (nAlias.includes(nQuery)) return { score: 55, matchedVia: alias };
+    }
+
+    // Typo tolerance: only worth checking once the query has enough
+    // characters that a fuzzy hit is meaningful rather than noise.
+    if (nQuery.length >= 4) {
+      let best = Infinity;
+      let bestVia = null;
+      const dTerm = editDistance(nQuery, nTerm.slice(0, nQuery.length + 3));
+      if (dTerm < best) { best = dTerm; bestVia = null; }
+      for (const alias of entry.aliases) {
+        const nAlias = normalize(alias);
+        const d = editDistance(nQuery, nAlias.slice(0, nQuery.length + 3));
+        if (d < best) { best = d; bestVia = alias; }
+      }
+      const threshold = nQuery.length <= 5 ? 2 : 3;
+      if (best <= threshold) return { score: 30 - best, matchedVia: bestVia, fuzzy: true };
+    }
+
+    return null;
+  }
+
+  function highlight(text, query) {
+    if (!query) return text;
+    const nQuery = normalize(query);
+    const nText = normalize(text);
+    const idx = nText.indexOf(nQuery);
+    if (idx === -1) return text;
+
+    // Map the normalized-string match back onto the original text by
+    // walking both in lockstep, since normalize() strips characters.
+    let plainIdx = 0, normIdx = 0, start = -1, end = -1;
+    for (let i = 0; i < text.length; i++) {
+      if (/[a-zA-Z0-9]/.test(text[i])) {
+        if (normIdx === idx) start = i;
+        normIdx++;
+        if (normIdx === idx + nQuery.length) { end = i + 1; break; }
+      }
+    }
+    if (start === -1 || end === -1) return text;
+    return text.slice(0, start) + '<mark>' + text.slice(start, end) + '</mark>' + text.slice(end);
+  }
+
+  function render() {
+    const query = document.getElementById('search-input').value.trim();
+    document.getElementById('clear-btn').classList.toggle('show', query.length > 0);
+    document.getElementById('filter-clear-btn').classList.toggle('show', !!(activeBodyArea || activeSpecialty));
+
+    let pool = activeCategory === 'all' ? SPELLING_TERMS : SPELLING_TERMS.filter(e => e.category === activeCategory);
+    if (activeBodyArea) pool = pool.filter(e => e.body_area === activeBodyArea);
+    if (activeSpecialty) pool = pool.filter(e => e.specialty === activeSpecialty);
+    const list = document.getElementById('result-list');
+    const countEl = document.getElementById('result-count');
+
+    let entries;
+    if (!query) {
+      entries = [...pool].sort((a, b) => a.term.localeCompare(b.term)).map(e => ({ entry: e, matchedVia: null, fuzzy: false }));
+      countEl.textContent = `${entries.length} terms — browse or start typing`;
+    } else {
+      const scored = [];
+      for (const entry of pool) {
+        const result = scoreEntry(entry, query);
+        if (result) scored.push({ entry, score: result.score, matchedVia: result.matchedVia, fuzzy: !!result.fuzzy });
+      }
+      scored.sort((a, b) => b.score - a.score || a.entry.term.localeCompare(b.entry.term));
+      entries = scored;
+      countEl.innerHTML = entries.length
+        ? `<strong>${entries.length}</strong> match${entries.length === 1 ? '' : 'es'} for "${query}"`
+        : `No matches for "${query}"`;
+    }
+
+    if (!entries.length) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="big">Nothing found</div>
+          <div>Try just the first few letters, or the way it sounds — "levo" or "levaraset" both work for Levetiracetam.</div>
+          ${query ? `<div class="suggest-row"><button class="suggest-link" data-suggest-query="${escapeHtml(query)}">Suggest "${escapeHtml(query)}" as a new term →</button></div>` : ''}
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = entries.map(({ entry, matchedVia, fuzzy }) => {
+      const termHtml = query ? highlight(entry.term, query) : entry.term;
+      let noteHtml = '';
+      if (fuzzy) {
+        noteHtml = `<div class="result-note">Closest match to what you typed</div>`;
+      } else if (matchedVia) {
+        noteHtml = `<div class="result-note">Matches common spelling "${matchedVia}"</div>`;
+      }
+      return `
+        <div class="result-card">
+          <div class="result-main">
+            <div class="result-top">
+              <span class="result-term">${termHtml}</span>
+              <span class="category-tag ${entry.category}">${entry.category === 'medication' ? 'Medication' : 'Anatomy'}</span>
+            </div>
+            <div class="result-phonetic">${entry.phonetic}</div>
+            ${(entry.specialty || entry.body_area) ? `<div class="result-filters">${[entry.specialty, entry.body_area].filter(Boolean).join(' · ')}</div>` : ''}
+            ${noteHtml}
+          </div>
+          <button class="copy-btn" data-term="${entry.term.replace(/"/g, '&quot;')}">Copy</button>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('search-input').addEventListener('input', render);
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    const input = document.getElementById('search-input');
+    input.value = '';
+    input.focus();
+    render();
+  });
+
+  document.getElementById('category-grid').addEventListener('click', (e) => {
+    const chip = e.target.closest('.category-chip');
+    if (!chip) return;
+    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeCategory = chip.dataset.cat;
+    render();
+  });
+
+  document.getElementById('body-area-filter').addEventListener('change', (e) => {
+    activeBodyArea = e.target.value;
+    render();
+  });
+
+  document.getElementById('specialty-filter').addEventListener('change', (e) => {
+    activeSpecialty = e.target.value;
+    render();
+  });
+
+  document.getElementById('filter-clear-btn').addEventListener('click', () => {
+    activeBodyArea = '';
+    activeSpecialty = '';
+    document.getElementById('body-area-filter').value = '';
+    document.getElementById('specialty-filter').value = '';
+    render();
+  });
+
+  document.getElementById('result-list').addEventListener('click', async (e) => {
+    const copyBtn = e.target.closest('.copy-btn');
+    if (copyBtn) {
+      try {
+        await navigator.clipboard.writeText(copyBtn.dataset.term);
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copied ✓';
+        copyBtn.classList.add('copied');
+        setTimeout(() => { copyBtn.textContent = original; copyBtn.classList.remove('copied'); }, 1200);
+      } catch (err) {
+        console.warn('Clipboard write failed:', err);
+      }
+      return;
+    }
+
+    const suggestBtn = e.target.closest('[data-suggest-query]');
+    if (suggestBtn) openSuggestPanel(suggestBtn.dataset.suggestQuery);
+  });
+
+  // ── Suggest a term ──────────────────────────────────────────────────
+  function openSuggestPanel(prefillTerm) {
+    const panel = document.getElementById('suggest-panel');
+    const loggedOut = document.getElementById('suggest-logged-out');
+    const loggedIn = document.getElementById('suggest-logged-in');
+
+    panel.classList.add('open');
+    loggedOut.style.display = currentUserId ? 'none' : 'block';
+    loggedIn.style.display = currentUserId ? 'block' : 'none';
+
+    if (currentUserId && prefillTerm) {
+      document.getElementById('suggest-term').value = prefillTerm;
+    }
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('suggest-toggle').addEventListener('click', () => {
+    const panel = document.getElementById('suggest-panel');
+    if (panel.classList.contains('open')) {
+      panel.classList.remove('open');
+    } else {
+      openSuggestPanel(document.getElementById('search-input').value.trim());
+    }
+  });
+
+  document.getElementById('suggest-cancel-btn').addEventListener('click', () => {
+    document.getElementById('suggest-panel').classList.remove('open');
+  });
+
+  document.getElementById('suggest-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('suggest-status');
+    const submitBtn = document.getElementById('suggest-submit-btn');
+    const term = document.getElementById('suggest-term').value.trim();
+    const category = document.getElementById('suggest-category').value;
+    const specialty = document.getElementById('suggest-specialty').value;
+    const note = document.getElementById('suggest-note').value.trim();
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    statusEl.textContent = '';
+    statusEl.className = 'suggest-status';
+
+    const { error } = await supabaseClient.from('spelling_term_suggestions').insert({
+      suggested_term: term,
+      category: category || null,
+      specialty: specialty || null,
+      note: note || null,
+      submitted_by_profile_id: currentUserId,
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit suggestion';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'suggest-status error';
+      return;
+    }
+
+    statusEl.textContent = 'Thanks — an admin will review this.';
+    statusEl.className = 'suggest-status success';
+    document.getElementById('suggest-form').reset();
+    setTimeout(() => { document.getElementById('suggest-panel').classList.remove('open'); }, 1500);
+  });
+</script>
+
+<script src="../mobile-nav.js"></script>
+<script src="../cookie-consent.js"></script>
+</body>
+</html>

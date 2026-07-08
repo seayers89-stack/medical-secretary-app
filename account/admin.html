@@ -314,6 +314,7 @@
       <button class="tab-btn" data-tab="consultants">Consultants</button>
       <button class="tab-btn" data-tab="directory">Directory <span class="tab-badge" id="badge-directory" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="contact-suggestions">Contact suggestions <span class="tab-badge" id="badge-contact-suggestions" style="display:none;"></span></button>
+      <button class="tab-btn" data-tab="spelling">Spelling terms <span class="tab-badge" id="badge-spelling" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="support">Support <span class="tab-badge" id="support-unread-badge" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="staff" id="staff-tab-btn" style="display:none;">Manage admins</button>
     </div>
@@ -362,6 +363,26 @@
     <div class="tab-panel" id="tab-contact-suggestions">
       <p style="font-size:13.5px; color:var(--slate); margin-bottom:16px;">Suggested additions/corrections to the Business Hub hospital and GP directories (hospitals-data.js / gp-practices.json — static files, not database tables). Review each, edit the source file yourself if it checks out, then mark it applied.</p>
       <div id="contact-suggestions-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-spelling">
+      <div class="support-sub-tabs">
+        <button class="support-sub-btn active" data-spelling-view="suggestions">Suggestions <span class="support-sub-count" id="count-spelling-pending"></span></button>
+        <button class="support-sub-btn" data-spelling-view="terms">All terms <span class="support-sub-count" id="count-spelling-terms"></span></button>
+      </div>
+
+      <div id="spelling-suggestions-view">
+        <p style="font-size:13.5px; color:var(--slate); margin-bottom:16px;">Secretary-submitted terms for the Academy spelling search tool. Approving one opens a prefilled "add term" form — nothing is added to the live list automatically.</p>
+        <div id="spelling-suggestions-list"></div>
+      </div>
+
+      <div id="spelling-terms-view" style="display:none;">
+        <div class="row-actions" style="margin-bottom:14px;">
+          <button type="button" class="success" id="spelling-add-term-btn">Add term</button>
+        </div>
+        <input type="text" class="search-input" id="spelling-term-search" placeholder="Search the term list…">
+        <div id="spelling-terms-list"></div>
+      </div>
     </div>
 
     <div class="tab-panel" id="tab-staff">
@@ -1489,6 +1510,306 @@
     }
   }
 
+  // ── Spelling terms tab ────────────────────────────────────────────────────
+  // Admin-managed reference data for the Academy spelling search tool
+  // (account/spelling-search.html), backed by spelling_terms and
+  // spelling_term_suggestions (migration_50_spelling_terms.sql).
+  let allSpellingTerms = [];
+
+  // Keep in sync with the check constraint in
+  // migration_51_spelling_terms_filters.sql. Specialty options come from
+  // SPECIALTIES (specialties-data.js, already loaded above).
+  const BODY_AREAS = [
+    'Cardiovascular', 'Respiratory', 'Gastrointestinal', 'Musculoskeletal',
+    'Nervous system', 'Genitourinary', 'Reproductive', 'Endocrine', 'Skin',
+    'Eyes', 'Ears, nose & throat', 'Head & neck', 'Blood & immune',
+    'Mental health', 'General / systemic',
+  ];
+
+  document.querySelectorAll('[data-spelling-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-spelling-view]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const view = btn.dataset.spellingView;
+      document.getElementById('spelling-suggestions-view').style.display = view === 'suggestions' ? 'block' : 'none';
+      document.getElementById('spelling-terms-view').style.display = view === 'terms' ? 'block' : 'none';
+    });
+  });
+
+  async function loadSpellingSuggestions() {
+    const list = document.getElementById('spelling-suggestions-list');
+    const { data: suggestions, error } = await supabaseClient
+      .from('spelling_term_suggestions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load suggestions: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    if (!suggestions || suggestions.length === 0) {
+      list.innerHTML = '<div class="empty-state">No suggestions yet.</div>';
+      setTabBadge('badge-spelling', 0);
+      document.getElementById('count-spelling-pending').textContent = 0;
+      return;
+    }
+
+    const pendingCount = suggestions.filter(s => s.status === 'pending').length;
+    setTabBadge('badge-spelling', pendingCount);
+    document.getElementById('count-spelling-pending').textContent = pendingCount;
+
+    const profilesById = await fetchProfilesByIds(suggestions.map(s => s.submitted_by_profile_id));
+    function nameFor(id) {
+      const p = profilesById[id];
+      return p ? `${p.first_name} ${p.last_name}` : 'Unknown';
+    }
+
+    list.innerHTML = suggestions.map(s => `
+      <div class="card ${s.status !== 'pending' ? 'resolved' : ''}" data-suggestion-id="${s.id}">
+        <div class="item-meta">
+          <span class="tag ${s.category === 'anatomy' ? 'reply' : ''}">${s.category === 'anatomy' ? 'Anatomy' : (s.category === 'medication' ? 'Medication' : 'Uncategorised')}</span>
+          ${s.specialty ? `<span class="tag">${escapeHtml(s.specialty)}</span>` : ''}
+          <span>Suggested by ${escapeHtml(nameFor(s.submitted_by_profile_id))}</span>
+          <span>${formatDate(s.created_at)}</span>
+          ${s.status !== 'pending' ? `<span>· ${s.status === 'approved' ? 'Approved' : 'Dismissed'}</span>` : ''}
+        </div>
+        <div class="quoted-content">
+          <div class="quoted-title">${escapeHtml(s.suggested_term)}</div>
+          ${s.note ? `<div style="white-space:pre-wrap;">${escapeHtml(s.note)}</div>` : ''}
+        </div>
+        ${s.admin_notes ? `<div class="report-reason"><strong>Admin note:</strong> ${escapeHtml(s.admin_notes)}</div>` : ''}
+        ${s.status === 'pending' ? `
+          <div class="row-actions">
+            <button type="button" class="success" data-approve-spelling-suggestion="${s.id}">Approve → add term</button>
+            <button type="button" data-dismiss-spelling-suggestion="${s.id}">Dismiss</button>
+            <button type="button" class="danger" data-delete-spelling-suggestion="${s.id}">Delete</button>
+          </div>
+        ` : `
+          <div class="row-actions">
+            <button type="button" class="danger" data-delete-spelling-suggestion="${s.id}">Delete</button>
+          </div>
+        `}
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-approve-spelling-suggestion]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const suggestion = suggestions.find(s => s.id === btn.dataset.approveSpellingSuggestion);
+        openSpellingTermModal(null, suggestion);
+      });
+    });
+    list.querySelectorAll('[data-dismiss-spelling-suggestion]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const note = window.prompt('Optional note on why this was dismissed:') || null;
+        btn.disabled = true;
+        await supabaseClient.from('spelling_term_suggestions')
+          .update({ status: 'dismissed', admin_notes: note, resolved_at: new Date().toISOString() })
+          .eq('id', btn.dataset.dismissSpellingSuggestion);
+        await loadSpellingSuggestions();
+      });
+    });
+    list.querySelectorAll('[data-delete-spelling-suggestion]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this suggestion?')) return;
+        btn.disabled = true;
+        await supabaseClient.from('spelling_term_suggestions').delete().eq('id', btn.dataset.deleteSpellingSuggestion);
+        await loadSpellingSuggestions();
+      });
+    });
+  }
+
+  async function loadSpellingTerms(query) {
+    const list = document.getElementById('spelling-terms-list');
+    const { data: terms, error } = await supabaseClient
+      .from('spelling_terms')
+      .select('*')
+      .order('term', { ascending: true });
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load terms: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+
+    allSpellingTerms = terms || [];
+    document.getElementById('count-spelling-terms').textContent = allSpellingTerms.length;
+    renderSpellingTermsList(query);
+  }
+
+  function renderSpellingTermsList(query) {
+    const list = document.getElementById('spelling-terms-list');
+    const q = (query || '').trim().toLowerCase();
+    const filtered = q
+      ? allSpellingTerms.filter(t =>
+          t.term.toLowerCase().includes(q)
+          || (t.aliases || []).some(a => a.toLowerCase().includes(q))
+          || (t.specialty || '').toLowerCase().includes(q)
+          || (t.body_area || '').toLowerCase().includes(q))
+      : allSpellingTerms;
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty-state">No terms found.</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(t => `
+      <div class="card" data-term-id="${t.id}">
+        <div class="item-meta">
+          <span class="tag ${t.category === 'anatomy' ? 'reply' : ''}">${t.category === 'anatomy' ? 'Anatomy' : 'Medication'}</span>
+          ${t.specialty ? `<span class="tag">${escapeHtml(t.specialty)}</span>` : ''}
+          ${t.body_area ? `<span class="tag">${escapeHtml(t.body_area)}</span>` : ''}
+          <span>${escapeHtml(t.phonetic || '')}</span>
+        </div>
+        <div class="quoted-title" style="font-size:16px;">${escapeHtml(t.term)}</div>
+        ${(t.aliases || []).length ? `<div style="font-size:12.5px; color:var(--slate); margin-top:4px;">Common misspellings: ${escapeHtml((t.aliases || []).join(', '))}</div>` : ''}
+        <div class="row-actions" style="margin-top:10px;">
+          <button type="button" data-edit-spelling-term="${t.id}">Edit</button>
+          <button type="button" class="danger" data-delete-spelling-term="${t.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-edit-spelling-term]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const term = allSpellingTerms.find(t => t.id === btn.dataset.editSpellingTerm);
+        openSpellingTermModal(term, null);
+      });
+    });
+    list.querySelectorAll('[data-delete-spelling-term]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this term? It will disappear from the search tool immediately.')) return;
+        btn.disabled = true;
+        await supabaseClient.from('spelling_terms').delete().eq('id', btn.dataset.deleteSpellingTerm);
+        await loadSpellingTerms(document.getElementById('spelling-term-search').value);
+      });
+    });
+  }
+
+  document.getElementById('spelling-term-search').addEventListener('input', (e) => {
+    renderSpellingTermsList(e.target.value);
+  });
+
+  document.getElementById('spelling-add-term-btn').addEventListener('click', () => openSpellingTermModal(null, null));
+
+  // Shared add/edit modal. `existingTerm` edits a spelling_terms row in
+  // place; `fromSuggestion` prefills from a pending suggestion and marks it
+  // approved once the term is saved — a suggestion is never written to
+  // spelling_terms automatically, only via this reviewed save.
+  function openSpellingTermModal(existingTerm, fromSuggestion) {
+    const overlay = document.createElement('div');
+    overlay.id = 'spelling-term-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(46,63,84,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; overflow-y:auto;';
+    document.body.appendChild(overlay);
+
+    const closeModal = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+    const t = existingTerm || {
+      term: fromSuggestion ? fromSuggestion.suggested_term : '',
+      category: fromSuggestion ? (fromSuggestion.category || '') : '',
+      specialty: fromSuggestion ? (fromSuggestion.specialty || '') : '',
+      body_area: '',
+      phonetic: '',
+      aliases: [],
+    };
+
+    overlay.innerHTML = `
+      <div style="background:#F7F4ED; border-radius:14px; padding:32px 36px; max-width:480px; width:100%; font-family:'Special Elite', cursive; box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+        <h3 style="font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:8px; color:#2E3F54;">${existingTerm ? 'Edit term' : 'Add term'}</h3>
+        ${fromSuggestion ? `
+          <div style="background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.35); border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:13px; color:#8F6F36; line-height:1.6; white-space:pre-wrap;">
+            Suggested by a secretary${fromSuggestion.note ? `: ${escapeHtml(fromSuggestion.note)}` : '.'}
+          </div>
+        ` : ''}
+        <p id="st-error" style="display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:16px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;"></p>
+        <form id="st-form">
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Term</label>
+            <input type="text" id="st-term" required value="${escapeHtml(t.term)}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Category</label>
+            <select id="st-category" required style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+              <option value="">Select one…</option>
+              <option value="medication" ${t.category === 'medication' ? 'selected' : ''}>Medication</option>
+              <option value="anatomy" ${t.category === 'anatomy' ? 'selected' : ''}>Anatomy</option>
+            </select>
+          </div>
+          <div style="display:flex; gap:12px; margin-bottom:12px;">
+            <div style="flex:1;">
+              <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Body area</label>
+              <select id="st-body-area" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+                <option value="">Not set</option>
+                ${BODY_AREAS.map(area => `<option value="${area}" ${t.body_area === area ? 'selected' : ''}>${area}</option>`).join('')}
+              </select>
+            </div>
+            <div style="flex:1;">
+              <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Specialty</label>
+              <select id="st-specialty" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+                <option value="">Not set</option>
+                ${SPECIALTIES.map(spec => `<option value="${spec}" ${t.specialty === spec ? 'selected' : ''}>${spec}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Phonetic guide</label>
+            <input type="text" id="st-phonetic" placeholder="e.g. a-mox-i-SIL-in" value="${escapeHtml(t.phonetic || '')}" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Common misspellings</label>
+            <textarea id="st-aliases" rows="2" placeholder="Comma-separated, e.g. amoxicilin, amoxycillin" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54; resize:vertical;">${escapeHtml((t.aliases || []).join(', '))}</textarea>
+          </div>
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" id="st-cancel-btn" style="padding:11px 18px; border-radius:8px; border:1px solid rgba(46,63,84,0.15); background:#fff; color:#2E3F54; font-size:14px; font-family:'Special Elite', cursive; cursor:pointer;">Cancel</button>
+            <button type="submit" id="st-submit-btn" style="padding:11px 20px; border-radius:8px; border:none; background:#2E3F54; color:#F7F4ED; font-size:14px; font-family:'Special Elite', cursive; font-weight:600; cursor:pointer;">${existingTerm ? 'Save changes' : 'Add term'}</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    overlay.querySelector('#st-cancel-btn').addEventListener('click', closeModal);
+
+    const errorBox = overlay.querySelector('#st-error');
+    const submitBtn = overlay.querySelector('#st-submit-btn');
+
+    overlay.querySelector('#st-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving…';
+
+      const payload = {
+        term: overlay.querySelector('#st-term').value.trim(),
+        category: overlay.querySelector('#st-category').value,
+        body_area: overlay.querySelector('#st-body-area').value || null,
+        specialty: overlay.querySelector('#st-specialty').value || null,
+        phonetic: overlay.querySelector('#st-phonetic').value.trim() || null,
+        aliases: overlay.querySelector('#st-aliases').value.split(',').map(a => a.trim()).filter(Boolean),
+      };
+
+      const { error } = existingTerm
+        ? await supabaseClient.from('spelling_terms').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', existingTerm.id)
+        : await supabaseClient.from('spelling_terms').insert({ ...payload, added_by_profile_id: adminUserId });
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = existingTerm ? 'Save changes' : 'Add term';
+        return;
+      }
+
+      if (fromSuggestion) {
+        await supabaseClient.from('spelling_term_suggestions')
+          .update({ status: 'approved', resolved_at: new Date().toISOString() })
+          .eq('id', fromSuggestion.id);
+        await loadSpellingSuggestions();
+      }
+
+      closeModal();
+      await loadSpellingTerms(document.getElementById('spelling-term-search').value);
+    });
+  }
+
   // ── Manage admins tab ─────────────────────────────────────────────────────
   let allStaff = [];
 
@@ -1641,6 +1962,8 @@
     await loadConsultants();
     await loadDirectoryTab();
     await loadContactSuggestions();
+    await loadSpellingSuggestions();
+    await loadSpellingTerms();
     await loadSupportThreads();
   }
 
