@@ -21,6 +21,7 @@ const SECRETARY_NAV_LINKS = [
   { label: 'Messages', href: 'messages.html', key: 'messages' },
   { label: 'Job board', href: 'job-board.html', key: 'job-board' },
   { label: 'Academy', href: 'academy.html', key: 'academy' },
+  { label: 'Daily Tools', href: 'daily-tools.html', key: 'daily-tools' },
   { label: 'Business Hub', href: 'business-hub.html', key: 'business-hub' },
   { label: 'Community', href: 'community.html', key: 'community' },
   { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
@@ -33,6 +34,7 @@ const ADMIN_NAV_LINKS = [
   { label: 'Search', href: 'search-secretaries.html', key: 'search' },
   { label: 'Job board', href: 'job-board.html', key: 'job-board' },
   { label: 'Academy', href: 'academy.html', key: 'academy' },
+  { label: 'Daily Tools', href: 'daily-tools.html', key: 'daily-tools' },
   { label: 'Business Hub', href: 'business-hub.html', key: 'business-hub' },
   { label: 'Community', href: 'community.html', key: 'community' },
   { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
@@ -45,7 +47,7 @@ const ADMIN_ALLOWLIST = [
   'specialist-course.html', 'specialist-course-exercises.html',
   'specialist-course-quiz.html', 'specialist-course-flashcards.html', 'specialist-course-printables.html',
   'support.html', 'job-board.html', 'academy.html', 'specialist-courses.html',
-  'business-hub.html', 'community.html', 'community-post.html', 'ideas.html',
+  'daily-tools.html', 'business-hub.html', 'community.html', 'community-post.html', 'ideas.html',
   'messages.html', 'thread.html', 'post-job.html', 'my-postings.html',
 ];
 

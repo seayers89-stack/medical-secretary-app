@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>Daily Tools — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#2E3F54;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Special Elite', cursive;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(46,63,84,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Special Elite', cursive; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:720px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:32px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:15px; line-height:1.6; margin-bottom:32px; }
+
+  .tab-row{ display:flex; gap:8px; margin-bottom:28px; border-bottom:1px solid rgba(46,63,84,0.08); flex-wrap:wrap; }
+  .tab-btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:14.5px; color:var(--slate);
+    background:none; border:none; cursor:pointer; padding:10px 4px; margin-bottom:-1px;
+    border-bottom:2px solid transparent;
+  }
+  .tab-btn.active{ color:var(--ink); border-bottom-color:var(--gold); }
+  .tab-btn:hover{ color:var(--ink); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  .guide-card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
+    padding:32px 36px; margin-bottom:14px; text-align:left;
+  }
+  .guide-card h2{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; margin-bottom:10px; }
+  .guide-card p{ color:var(--ink); font-size:14.5px; line-height:1.7; margin-bottom:10px; }
+  .guide-card .guide-label{
+    font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:12px; display:block;
+  }
+
+  #insurer-search, #gp-search, #gp-town-filter, #hospital-search, #hospital-area-filter,
+  #consultant-search, #consultant-specialty-filter, #consultant-hospital-filter,
+  #billing-search, #billing-chapter-filter, #billing-section-filter{
+    width:100%; padding:12px 14px; font-family:'Special Elite', cursive; font-size:14.5px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+    margin-bottom:18px;
+  }
+  #gp-town-filter, #hospital-area-filter, #consultant-specialty-filter, #consultant-hospital-filter, #billing-chapter-filter, #billing-section-filter{ margin-bottom:0; cursor:pointer; }
+  #insurer-search:focus, #gp-search:focus, #gp-town-filter:focus, #hospital-search:focus, #hospital-area-filter:focus,
+  #consultant-search:focus, #consultant-specialty-filter:focus, #consultant-hospital-filter:focus,
+  #billing-search:focus, #billing-chapter-filter:focus, #billing-section-filter:focus{ outline:none; border-color:var(--gold); }
+
+  .hospital-link{ color:var(--gold); text-decoration:underline; cursor:pointer; }
+  .hospital-link:hover{ color:#8F6F36; }
+  .insurer-link-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:500;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:999px; padding:7px 14px; color:var(--ink);
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .insurer-link-pill:hover{ border-color:var(--gold); color:#8F6F36; }
+  .insurer-card{
+    background:var(--paper); border:1px solid rgba(46,63,84,0.08); border-radius:12px;
+    padding:18px 20px; margin-bottom:12px; overflow-wrap:anywhere;
+  }
+  .insurer-card h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:16px; margin-bottom:2px; }
+  .insurer-type{
+    font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase;
+    color:#8F6F36; margin-bottom:10px; display:block;
+  }
+  .insurer-row{ display:flex; justify-content:space-between; gap:12px; font-size:13.5px; padding:5px 0; border-top:1px solid rgba(46,63,84,0.06); }
+  .insurer-row:first-of-type{ border-top:none; }
+  .insurer-row span:first-child{ color:var(--slate); flex-shrink:0; }
+  .insurer-row span:last-child{ text-align:right; font-weight:500; overflow-wrap:anywhere; min-width:0; }
+  .insurer-notes{ font-size:12.5px; color:var(--slate); margin-top:8px; font-style:italic; }
+  .insurer-empty{ text-align:center; color:var(--slate); font-size:14px; padding:20px 0; }
+
+  .insurer-suggestion{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    width:100%; text-align:left; padding:10px 14px; border-radius:8px; cursor:pointer;
+    background:none; border:1px solid transparent; font-family:'Special Elite', cursive; color:var(--ink);
+  }
+  .insurer-suggestion:hover{ background:var(--paper); border-color:rgba(46,63,84,0.08); }
+  .insurer-suggestion .suggestion-name{ font-weight:600; font-size:14px; }
+  .insurer-suggestion .suggestion-type{ font-size:12px; color:var(--slate); }
+
+  .search-panel{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
+    padding:24px 28px; margin-bottom:20px;
+  }
+  .search-box{ position:relative; }
+  .search-box input{
+    width:100%; padding:15px 44px 15px 16px; font-family:'Special Elite', cursive; font-size:16px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:10px; background:var(--paper); color:var(--ink);
+  }
+  .search-box input:focus{ outline:none; border-color:var(--gold); background:var(--white); }
+  .search-box .clear-btn{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; color:var(--slate); font-size:18px; padding:6px; display:none;
+  }
+  .search-box .clear-btn.show{ display:block; }
+
+  .category-grid{ display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+  .category-chip{
+    font-size:13px; font-weight:500; padding:8px 15px; border-radius:999px;
+    border:1.5px solid rgba(46,63,84,0.15); background:var(--paper); color:var(--ink);
+    cursor:pointer; user-select:none; transition:all .15s ease;
+  }
+  .category-chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .category-chip.all-chip.active{ background:var(--gold); color:var(--ink); border-color:var(--gold); }
+
+  .filter-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .filter-row select{
+    flex:1; min-width:160px; padding:9px 12px; font-family:'Special Elite', cursive; font-size:13px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .filter-row select:focus{ outline:none; border-color:var(--gold); }
+  .filter-clear{
+    font-size:12px; color:var(--slate); background:none; border:none; cursor:pointer; text-decoration:underline;
+    display:none; align-self:center;
+  }
+  .filter-clear.show{ display:inline-block; }
+
+  .result-count{ font-size:12.5px; color:var(--slate); margin:0 4px 14px; }
+  .result-count strong{ color:var(--ink); }
+
+  .result-list{ display:flex; flex-direction:column; gap:10px; }
+  .result-card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:14px;
+    padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .result-main{ min-width:0; }
+  .result-top{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .result-term{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; }
+  .result-term mark{ background:rgba(184,146,74,0.28); color:inherit; border-radius:3px; padding:0 1px; }
+  .category-tag{
+    font-family:'Special Elite', cursive; font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--gold); border:1px solid rgba(184,146,74,0.4); border-radius:999px; padding:3px 9px;
+  }
+  .category-tag.anatomy{ color:var(--green); border-color:rgba(63,107,79,0.4); }
+  .result-phonetic{ font-size:13px; color:var(--slate); margin-top:3px; }
+  .result-filters{ font-size:11.5px; color:var(--slate); margin-top:4px; }
+  .result-note{ font-size:12px; color:var(--slate); margin-top:6px; font-style:italic; }
+
+  .copy-btn{
+    flex-shrink:0; font-family:'Special Elite', cursive; font-weight:600; font-size:13px; padding:10px 16px;
+    border-radius:8px; cursor:pointer; border:1.5px solid rgba(46,63,84,0.15); background:none; color:var(--ink);
+    white-space:nowrap; transition:all .15s ease;
+  }
+  .copy-btn:hover{ border-color:var(--gold); }
+  .copy-btn.copied{ background:var(--green); border-color:var(--green); color:var(--white); }
+
+  .empty-state{
+    text-align:center; padding:48px 24px; color:var(--slate); font-size:14px; line-height:1.7;
+  }
+  .empty-state .big{ font-family:'Cormorant Garamond', serif; font-size:20px; color:var(--ink); margin-bottom:8px; }
+
+  .suggest-row{ text-align:center; margin:18px 0 4px; }
+  .suggest-link{
+    background:none; border:none; cursor:pointer; font-family:'Special Elite', cursive;
+    font-size:13px; color:var(--slate); text-decoration:underline;
+  }
+  .suggest-link:hover{ color:var(--ink); }
+
+  .suggest-panel{
+    background:var(--white); border:1.5px solid rgba(184,146,74,0.35); border-radius:14px;
+    padding:22px 24px; margin-bottom:20px; display:none;
+  }
+  .suggest-panel.open{ display:block; }
+  .suggest-panel h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; margin-bottom:4px; }
+  .suggest-panel .suggest-sub{ font-size:13px; color:var(--slate); margin-bottom:16px; }
+  .suggest-field{ margin-bottom:12px; }
+  .suggest-field label{ display:block; font-size:12px; font-weight:600; margin-bottom:5px; }
+  .suggest-field input, .suggest-field select, .suggest-field textarea{
+    width:100%; padding:11px 13px; font-family:'Special Elite', cursive; font-size:14px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .suggest-field input:focus, .suggest-field select:focus, .suggest-field textarea:focus{ outline:none; border-color:var(--gold); }
+  .suggest-field textarea{ resize:vertical; min-height:60px; }
+  .suggest-actions{ display:flex; gap:10px; align-items:center; margin-top:16px; }
+  .suggest-actions .btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:14px; padding:11px 20px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--gold); color:var(--ink);
+  }
+  .suggest-actions .btn:disabled{ opacity:0.6; cursor:not-allowed; }
+  .suggest-actions .btn-cancel{ background:none; border:1.5px solid rgba(46,63,84,0.2); color:var(--ink); }
+  .suggest-status{ font-size:13px; margin-top:12px; }
+  .suggest-status.error{ color:#a33; }
+  .suggest-status.success{ color:var(--green); }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:600px){
+    .result-card{ flex-direction:column; align-items:stretch; }
+    .copy-btn{ width:100%; }
+  }
+
+</style>
+<link rel="stylesheet" href="../veyn-buttons.css"></head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <a href="profile.html" class="btn-login">My profile</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Daily Tools</div>
+  <h1>The tools you'll reach for every day</h1>
+  <p class="sub">Spelling lookups, insurer and hospital contacts, the consultant directory, and CCSD billing codes — in one place, separate from the business/tax side in Business Hub.</p>
+
+  <p id="loading">Loading…</p>
+
+  <div id="page-content" style="display:none;">
+    <div class="tab-row">
+      <button class="tab-btn active" data-tab="spelling">Spelling search</button>
+      <button class="tab-btn" data-tab="contacts">Contacts</button>
+      <button class="tab-btn" data-tab="consultants">Find a consultant</button>
+      <button class="tab-btn" data-tab="billing">Billing codes</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-spelling">
+      <div class="search-panel">
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="Start typing a medication or body part…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <button class="clear-btn" id="clear-btn" aria-label="Clear search">&times;</button>
+        </div>
+        <div class="category-grid" id="category-grid">
+          <button class="category-chip all-chip active" data-cat="all">All terms</button>
+          <button class="category-chip" data-cat="medication">Medications</button>
+          <button class="category-chip" data-cat="anatomy">Anatomy</button>
+        </div>
+        <div class="filter-row">
+          <select id="body-area-filter">
+            <option value="">All body areas</option>
+          </select>
+          <select id="specialty-filter">
+            <option value="">All specialties</option>
+          </select>
+          <button class="filter-clear" id="filter-clear-btn">Clear filters</button>
+        </div>
+      </div>
+
+      <div class="suggest-row">
+        <button class="suggest-link" id="suggest-toggle">Can't find a term? Suggest one →</button>
+      </div>
+
+      <div class="suggest-panel" id="suggest-panel">
+        <h3>Suggest a term</h3>
+        <p class="suggest-sub">Add a medication or body part that's missing, or flag one that needs a correction. An admin reviews every suggestion before it goes live.</p>
+        <form id="suggest-form">
+          <div class="suggest-field">
+            <label for="suggest-term">Term</label>
+            <input type="text" id="suggest-term" placeholder="e.g. Dexamethasone" required>
+          </div>
+          <div class="suggest-field">
+            <label for="suggest-category">Category</label>
+            <select id="suggest-category" required>
+              <option value="">Select one…</option>
+              <option value="medication">Medication</option>
+              <option value="anatomy">Anatomy</option>
+            </select>
+          </div>
+          <div class="suggest-field">
+            <label for="suggest-specialty">Specialty (optional)</label>
+            <select id="suggest-specialty">
+              <option value="">Not sure / general</option>
+            </select>
+          </div>
+          <div class="suggest-field">
+            <label for="suggest-note">Note (optional)</label>
+            <textarea id="suggest-note" placeholder="How it's pronounced, common misspellings you've seen, or why it's needed…"></textarea>
+          </div>
+          <div class="suggest-actions">
+            <button type="submit" class="btn" id="suggest-submit-btn">Submit suggestion</button>
+            <button type="button" class="btn btn-cancel" id="suggest-cancel-btn">Cancel</button>
+          </div>
+          <p class="suggest-status" id="suggest-status"></p>
+        </form>
+      </div>
+
+      <p class="result-count" id="result-count">Loading terms…</p>
+      <div class="result-list" id="result-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-contacts">
+      <div class="guide-card" id="insurers">
+        <span class="guide-label">Who to call</span>
+        <h2>UK private health insurer contacts</h2>
+        <p>Start typing an insurer name to find authorisation, billing, and invoice-query contacts.</p>
+        <input type="text" id="insurer-search" placeholder="Type an insurer name…" autocomplete="off">
+        <div id="insurer-suggestions"></div>
+        <div id="insurer-detail"></div>
+      </div>
+
+      <div class="guide-card" id="gp-practices">
+        <span class="guide-label">Who to call</span>
+        <h2>GP practice search</h2>
+        <p>Search by GP practice name, or browse all practices in a town/city. <em>Note: this directory doesn't include a county field, so "town/city" is used instead.</em> <button type="button" id="suggest-gp-link" style="text-decoration:underline; background:none; border:none; padding:0; font:inherit; color:var(--gold); cursor:pointer;">Something missing or wrong? Suggest an addition or correction →</button></p>
+        <input type="text" id="gp-search" placeholder="Type a GP practice name…" autocomplete="off">
+        <div class="field" style="margin-top:14px;">
+          <label for="gp-town-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Or show all practices in a town/city</label>
+          <select id="gp-town-filter">
+            <option value="">Select a town/city</option>
+          </select>
+        </div>
+        <p id="gp-loading" style="font-size:13px; color:var(--slate); margin-top:10px;">Loading GP practice directory…</p>
+        <div id="gp-suggestions"></div>
+        <div id="gp-detail"></div>
+        <div id="gp-town-results"></div>
+      </div>
+
+      <div class="guide-card" id="hospitals">
+        <span class="guide-label">Who to call</span>
+        <h2>Private hospital search</h2>
+        <p>Search by hospital name, or browse all hospitals in a county/area. <button type="button" id="suggest-hospital-link" style="text-decoration:underline; background:none; border:none; padding:0; font:inherit; color:var(--gold); cursor:pointer;">Something missing or wrong? Suggest an addition or correction →</button></p>
+        <input type="text" id="hospital-search" placeholder="Type a hospital name…" autocomplete="off">
+        <div class="field" style="margin-top:14px;">
+          <label for="hospital-area-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Or show all hospitals in a county/area</label>
+          <select id="hospital-area-filter">
+            <option value="">Select a county/area</option>
+          </select>
+        </div>
+        <div id="hospital-suggestions"></div>
+        <div id="hospital-detail"></div>
+        <div id="hospital-area-results"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-consultants">
+      <div class="guide-card" id="consultant-directory">
+        <span class="guide-label">Cross-referrals</span>
+        <h2>Find a consultant</h2>
+        <p>A reference directory for cross-referrals — look up a consultant's specialty, see who covers a given area, or check which hospitals someone works from. Consultants who've joined Veyn appear automatically; secretaries can also add someone they personally know who hasn't joined yet. <button type="button" id="add-consultant-hub-link" style="text-decoration:underline; display:none; background:none; border:none; padding:0; font:inherit; color:var(--gold); cursor:pointer;">Add a consultant you know →</button></p>
+        <input type="text" id="consultant-search" placeholder="Search by name or hospital…" autocomplete="off">
+        <div class="field" style="margin-top:14px;">
+          <label for="consultant-specialty-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Filter by specialty</label>
+          <select id="consultant-specialty-filter">
+            <option value="">Any specialty</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label for="consultant-hospital-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Filter by hospital</label>
+          <select id="consultant-hospital-filter">
+            <option value="">Any hospital</option>
+          </select>
+        </div>
+        <p id="consultant-results-count" style="font-size:13px; color:var(--slate); margin-top:14px;"></p>
+        <div id="consultant-results"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-billing">
+      <div class="guide-card" id="billing-codes-card">
+        <span class="guide-label">CCSD fee schedule</span>
+        <h2>Billing codes</h2>
+        <p>Search the full CCSD code list by code, description, chapter, or section. Healix's reimbursement fee is shown where available, pulled directly from Healix's own published fee schedule<span id="healix-synced-label"></span>. The other major insurers don't offer a public fee schedule we can pull from, so we link straight to their official lookup tools instead.</p>
+        <div id="insurer-links-row" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;"></div>
+        <input type="text" id="billing-search" placeholder="Search by code or description…" autocomplete="off">
+        <div class="field-row2" style="display:flex; gap:14px; margin-top:14px;">
+          <div class="field" style="flex:1;">
+            <label for="billing-chapter-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">CCSD chapter</label>
+            <select id="billing-chapter-filter">
+              <option value="">Any chapter</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1;">
+            <label for="billing-section-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">CCSD section</label>
+            <select id="billing-section-filter">
+              <option value="">Any section</option>
+            </select>
+          </div>
+        </div>
+        <p id="billing-results-count" style="font-size:13px; color:var(--slate); margin-top:14px;"></p>
+        <div id="billing-results"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Founded by a medical secretary, not a market gap.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script src="badges.js"></script>
+<script src="specialties-data.js"></script>
+<script src="billing-codes-data.js"></script>
+<script>
+  let currentUserId = null;
+  let isSecretaryOrAdmin = false;
+
+  // Hospitals live in the `hospitals` table (migration_49_hospitals_table.sql).
+  // Fetched once at login time — every consumer (hospital search, area
+  // filter, findHospitalWebsite, the "Add a consultant" modal's hospital
+  // autocomplete) just reads this variable.
+  let HOSPITALS = [];
+
+  async function loadHospitals() {
+    const { data } = await supabaseClient.from('hospitals').select('*');
+    HOSPITALS = data || [];
+
+    const areas = [...new Set(HOSPITALS.map(h => h.area))].sort();
+    const areaSelect = document.getElementById('hospital-area-filter');
+    areas.forEach(area => {
+      const opt = document.createElement('option');
+      opt.value = area;
+      opt.textContent = area;
+      areaSelect.appendChild(opt);
+    });
+  }
+
+  (async () => {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'daily-tools');
+    const loading = document.getElementById('loading');
+
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    currentUserId = navResult.session.user.id;
+    isSecretaryOrAdmin = navResult.profile.role === 'secretary' || navResult.isAdmin;
+    if (isSecretaryOrAdmin) document.getElementById('add-consultant-hub-link').style.display = 'inline';
+
+    await loadHospitals();
+    await loadSpellingTerms();
+
+    loading.style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+  })();
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+      if (btn.dataset.tab === 'contacts') loadGpData();
+      if (btn.dataset.tab === 'consultants') loadConsultantDirectory();
+    });
+  });
+
+  // ── Spelling search tab ──────────────────────────────────────────────
+  // Body-system taxonomy — spans both anatomy terms (where they are) and
+  // medications (what they act on), so filtering "Respiratory" surfaces
+  // both Trachea and Salbutamol. Keep in sync with the check constraint in
+  // migration_51_spelling_terms_filters.sql.
+  const BODY_AREAS = [
+    'Cardiovascular', 'Respiratory', 'Gastrointestinal', 'Musculoskeletal',
+    'Nervous system', 'Genitourinary', 'Reproductive', 'Endocrine', 'Skin',
+    'Eyes', 'Ears, nose & throat', 'Head & neck', 'Blood & immune',
+    'Mental health', 'General / systemic',
+  ];
+
+  let SPELLING_TERMS = [];
+  let activeCategory = 'all';
+  let activeBodyArea = '';
+  let activeSpecialty = '';
+
+  function populateSpellingFilterOptions() {
+    const bodyAreaSelect = document.getElementById('body-area-filter');
+    BODY_AREAS.forEach(area => {
+      const opt = document.createElement('option');
+      opt.value = area;
+      opt.textContent = area;
+      bodyAreaSelect.appendChild(opt);
+    });
+
+    const specialtySelect = document.getElementById('specialty-filter');
+    const suggestSpecialtySelect = document.getElementById('suggest-specialty');
+    SPECIALTIES.forEach(spec => {
+      const opt1 = document.createElement('option');
+      opt1.value = spec;
+      opt1.textContent = spec;
+      specialtySelect.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = spec;
+      opt2.textContent = spec;
+      suggestSpecialtySelect.appendChild(opt2);
+    });
+  }
+  populateSpellingFilterOptions();
+
+  async function loadSpellingTerms() {
+    const { data, error } = await supabaseClient
+      .from('spelling_terms')
+      .select('term, category, phonetic, aliases, body_area, specialty');
+
+    if (error) {
+      document.getElementById('result-count').textContent = '';
+      document.getElementById('result-list').innerHTML = `
+        <div class="empty-state">
+          <div class="big">Couldn't load the term list</div>
+          <div>${escapeHtml(error.message)}</div>
+        </div>`;
+      return;
+    }
+
+    SPELLING_TERMS = (data || []).map(row => ({ ...row, aliases: row.aliases || [] }));
+    renderSpellingResults();
+  }
+
+  function normalize(s) {
+    return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  // Levenshtein distance, capped for speed on short strings.
+  function editDistance(a, b) {
+    const m = a.length, n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    const prev = new Array(n + 1);
+    const curr = new Array(n + 1);
+    for (let j = 0; j <= n; j++) prev[j] = j;
+    for (let i = 1; i <= m; i++) {
+      curr[0] = i;
+      for (let j = 1; j <= n; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+      }
+      for (let j = 0; j <= n; j++) prev[j] = curr[j];
+    }
+    return prev[n];
+  }
+
+  function scoreEntry(entry, query) {
+    const nQuery = normalize(query);
+    if (!nQuery) return { score: 0, matchedVia: null };
+
+    const nTerm = normalize(entry.term);
+    if (nTerm.startsWith(nQuery)) return { score: 100, matchedVia: null };
+    if (nTerm.includes(nQuery)) return { score: 80, matchedVia: null };
+
+    for (const alias of entry.aliases) {
+      const nAlias = normalize(alias);
+      if (nAlias.startsWith(nQuery)) return { score: 70, matchedVia: alias };
+      if (nAlias.includes(nQuery)) return { score: 55, matchedVia: alias };
+    }
+
+    // Typo tolerance: only worth checking once the query has enough
+    // characters that a fuzzy hit is meaningful rather than noise.
+    if (nQuery.length >= 4) {
+      let best = Infinity;
+      let bestVia = null;
+      const dTerm = editDistance(nQuery, nTerm.slice(0, nQuery.length + 3));
+      if (dTerm < best) { best = dTerm; bestVia = null; }
+      for (const alias of entry.aliases) {
+        const nAlias = normalize(alias);
+        const d = editDistance(nQuery, nAlias.slice(0, nQuery.length + 3));
+        if (d < best) { best = d; bestVia = alias; }
+      }
+      const threshold = nQuery.length <= 5 ? 2 : 3;
+      if (best <= threshold) return { score: 30 - best, matchedVia: bestVia, fuzzy: true };
+    }
+
+    return null;
+  }
+
+  function highlightSpellingMatch(text, query) {
+    if (!query) return text;
+    const nQuery = normalize(query);
+    const nText = normalize(text);
+    const idx = nText.indexOf(nQuery);
+    if (idx === -1) return text;
+
+    // Map the normalized-string match back onto the original text by
+    // walking both in lockstep, since normalize() strips characters.
+    let normIdx = 0, start = -1, end = -1;
+    for (let i = 0; i < text.length; i++) {
+      if (/[a-zA-Z0-9]/.test(text[i])) {
+        if (normIdx === idx) start = i;
+        normIdx++;
+        if (normIdx === idx + nQuery.length) { end = i + 1; break; }
+      }
+    }
+    if (start === -1 || end === -1) return text;
+    return text.slice(0, start) + '<mark>' + text.slice(start, end) + '</mark>' + text.slice(end);
+  }
+
+  function renderSpellingResults() {
+    const query = document.getElementById('search-input').value.trim();
+    document.getElementById('clear-btn').classList.toggle('show', query.length > 0);
+    document.getElementById('filter-clear-btn').classList.toggle('show', !!(activeBodyArea || activeSpecialty));
+
+    let pool = activeCategory === 'all' ? SPELLING_TERMS : SPELLING_TERMS.filter(e => e.category === activeCategory);
+    if (activeBodyArea) pool = pool.filter(e => e.body_area === activeBodyArea);
+    if (activeSpecialty) pool = pool.filter(e => e.specialty === activeSpecialty);
+    const list = document.getElementById('result-list');
+    const countEl = document.getElementById('result-count');
+
+    let entries;
+    if (!query) {
+      entries = [...pool].sort((a, b) => a.term.localeCompare(b.term)).map(e => ({ entry: e, matchedVia: null, fuzzy: false }));
+      countEl.textContent = `${entries.length} terms — browse or start typing`;
+    } else {
+      const scored = [];
+      for (const entry of pool) {
+        const result = scoreEntry(entry, query);
+        if (result) scored.push({ entry, score: result.score, matchedVia: result.matchedVia, fuzzy: !!result.fuzzy });
+      }
+      scored.sort((a, b) => b.score - a.score || a.entry.term.localeCompare(b.entry.term));
+      entries = scored;
+      countEl.innerHTML = entries.length
+        ? `<strong>${entries.length}</strong> match${entries.length === 1 ? '' : 'es'} for "${escapeHtml(query)}"`
+        : `No matches for "${escapeHtml(query)}"`;
+    }
+
+    if (!entries.length) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="big">Nothing found</div>
+          <div>Try just the first few letters, or the way it sounds — "levo" or "levaraset" both work for Levetiracetam.</div>
+          ${query ? `<div class="suggest-row"><button class="suggest-link" data-suggest-query="${escapeHtml(query)}">Suggest "${escapeHtml(query)}" as a new term →</button></div>` : ''}
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = entries.map(({ entry, matchedVia, fuzzy }) => {
+      const termHtml = query ? highlightSpellingMatch(entry.term, query) : entry.term;
+      let noteHtml = '';
+      if (fuzzy) {
+        noteHtml = `<div class="result-note">Closest match to what you typed</div>`;
+      } else if (matchedVia) {
+        noteHtml = `<div class="result-note">Matches common spelling "${escapeHtml(matchedVia)}"</div>`;
+      }
+      return `
+        <div class="result-card">
+          <div class="result-main">
+            <div class="result-top">
+              <span class="result-term">${termHtml}</span>
+              <span class="category-tag ${entry.category}">${entry.category === 'medication' ? 'Medication' : 'Anatomy'}</span>
+            </div>
+            <div class="result-phonetic">${escapeHtml(entry.phonetic || '')}</div>
+            ${(entry.specialty || entry.body_area) ? `<div class="result-filters">${escapeHtml([entry.specialty, entry.body_area].filter(Boolean).join(' · '))}</div>` : ''}
+            ${noteHtml}
+          </div>
+          <button class="copy-btn" data-term="${escapeHtml(entry.term)}">Copy</button>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('search-input').addEventListener('input', renderSpellingResults);
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    const input = document.getElementById('search-input');
+    input.value = '';
+    input.focus();
+    renderSpellingResults();
+  });
+
+  document.getElementById('category-grid').addEventListener('click', (e) => {
+    const chip = e.target.closest('.category-chip');
+    if (!chip) return;
+    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeCategory = chip.dataset.cat;
+    renderSpellingResults();
+  });
+
+  document.getElementById('body-area-filter').addEventListener('change', (e) => {
+    activeBodyArea = e.target.value;
+    renderSpellingResults();
+  });
+
+  document.getElementById('specialty-filter').addEventListener('change', (e) => {
+    activeSpecialty = e.target.value;
+    renderSpellingResults();
+  });
+
+  document.getElementById('filter-clear-btn').addEventListener('click', () => {
+    activeBodyArea = '';
+    activeSpecialty = '';
+    document.getElementById('body-area-filter').value = '';
+    document.getElementById('specialty-filter').value = '';
+    renderSpellingResults();
+  });
+
+  document.getElementById('result-list').addEventListener('click', async (e) => {
+    const copyBtn = e.target.closest('.copy-btn');
+    if (copyBtn) {
+      try {
+        await navigator.clipboard.writeText(copyBtn.dataset.term);
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copied ✓';
+        copyBtn.classList.add('copied');
+        setTimeout(() => { copyBtn.textContent = original; copyBtn.classList.remove('copied'); }, 1200);
+      } catch (err) {
+        console.warn('Clipboard write failed:', err);
+      }
+      return;
+    }
+
+    const suggestBtn = e.target.closest('[data-suggest-query]');
+    if (suggestBtn) openSuggestSpellingPanel(suggestBtn.dataset.suggestQuery);
+  });
+
+  function openSuggestSpellingPanel(prefillTerm) {
+    const panel = document.getElementById('suggest-panel');
+    panel.classList.add('open');
+    if (prefillTerm) document.getElementById('suggest-term').value = prefillTerm;
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('suggest-toggle').addEventListener('click', () => {
+    const panel = document.getElementById('suggest-panel');
+    if (panel.classList.contains('open')) {
+      panel.classList.remove('open');
+    } else {
+      openSuggestSpellingPanel(document.getElementById('search-input').value.trim());
+    }
+  });
+
+  document.getElementById('suggest-cancel-btn').addEventListener('click', () => {
+    document.getElementById('suggest-panel').classList.remove('open');
+  });
+
+  document.getElementById('suggest-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('suggest-status');
+    const submitBtn = document.getElementById('suggest-submit-btn');
+    const term = document.getElementById('suggest-term').value.trim();
+    const category = document.getElementById('suggest-category').value;
+    const specialty = document.getElementById('suggest-specialty').value;
+    const note = document.getElementById('suggest-note').value.trim();
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    statusEl.textContent = '';
+    statusEl.className = 'suggest-status';
+
+    const { error } = await supabaseClient.from('spelling_term_suggestions').insert({
+      suggested_term: term,
+      category: category || null,
+      specialty: specialty || null,
+      note: note || null,
+      submitted_by_profile_id: currentUserId,
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit suggestion';
+
+    if (error) {
+      statusEl.textContent = error.message;
+      statusEl.className = 'suggest-status error';
+      return;
+    }
+
+    statusEl.textContent = 'Thanks — an admin will review this.';
+    statusEl.className = 'suggest-status success';
+    document.getElementById('suggest-form').reset();
+    setTimeout(() => { document.getElementById('suggest-panel').classList.remove('open'); }, 1500);
+  });
+
+  // ── Contacts tab ──────────────────────────────────────────────────────
+  const INSURERS = [
+    { name: 'Bupa UK', type: 'Private Medical Insurance', contact: '0345 609 0111', authorisation: 'Bupa authorisation team / provider portal', billing: 'Bupa provider billing team', website: 'bupa.co.uk/provider', usefulFor: 'Authorisations, claims, invoices, fee schedules, patient eligibility', notes: 'Major UK PMI provider' },
+    { name: 'AXA Health', type: 'Private Medical Insurance', contact: '0800 454 080', authorisation: 'AXA Health provider services / authorisations', billing: 'AXA provider billing support', website: 'axahealth.co.uk/provider', usefulFor: 'Pre-authorisation, invoices, consultant recognition, claims', notes: 'Formerly AXA PPP Healthcare' },
+    { name: 'Aviva Health', type: 'Private Medical Insurance', contact: '0800 068 3827', authorisation: 'Aviva Health claims authorisation', billing: 'Aviva provider billing enquiries', website: 'aviva.co.uk/health', usefulFor: 'Treatment approval, billing queries, claims', notes: 'Large PMI insurer' },
+    { name: 'Vitality Health', type: 'Private Medical Insurance', contact: '0345 602 3523', authorisation: 'Vitality provider authorisation services', billing: 'Vitality provider accounts team', website: 'vitality.co.uk/provider', usefulFor: 'Authorisation numbers, claims, invoices', notes: 'PMI and corporate health' },
+    { name: 'WPA (Western Provident Association)', type: 'Private Medical Insurance', contact: '0345 122 3100', authorisation: 'WPA authorisation team', billing: 'WPA provider accounts', website: 'wpa.org.uk', usefulFor: 'Open referrals, authorisations, invoices', notes: 'Popular with consultants' },
+    { name: 'The Exeter', type: 'Private Medical Insurance', contact: '0300 123 3201', authorisation: 'Claims/pre-authorisation team', billing: 'Provider payment queries', website: 'the-exeter.com', usefulFor: 'Treatment approval and billing', notes: 'Individual health insurance' },
+    { name: 'Freedom Health Insurance', type: 'Private Medical Insurance', contact: '01202 756350', authorisation: 'Claims authorisation', billing: 'Accounts/payment queries', website: 'freedomhealthinsurance.co.uk', usefulFor: 'Eligibility, authorisation and billing', notes: 'Independent PMI provider' },
+    { name: 'Cigna Healthcare UK', type: 'International / Corporate PMI', contact: '01475 788182', authorisation: 'Cigna authorisation services', billing: 'Cigna provider payments', website: 'cignahealthcare.com', usefulFor: 'International patients, guarantees of payment', notes: 'Common for international patients' },
+    { name: 'Healix Health Services', type: 'Corporate Healthcare Administrator', contact: '020 8481 7720', authorisation: 'Healix authorisation team', billing: 'Provider invoice queries', website: 'healix.com', usefulFor: 'Corporate schemes, authorisations, claims', notes: 'Third-party administrator' },
+    { name: 'WPA Protocol', type: 'Healthcare Administration', contact: '0345 122 3100', authorisation: 'Treatment approval team', billing: 'Provider billing route', website: 'wpa.org.uk', usefulFor: 'Corporate medical schemes', notes: 'Managed through WPA' },
+    { name: 'BHSF', type: 'Health Cash Plan / Insurance', contact: '0121 454 3601', authorisation: 'Claims services', billing: 'Payment queries', website: 'bhsf.co.uk', usefulFor: 'Claims and patient benefits', notes: 'Health benefits provider' },
+    { name: 'Simplyhealth', type: 'Health Cash Plan', contact: '0370 908 3481', authorisation: 'Claims support', billing: 'Payment queries', website: 'simplyhealth.co.uk', usefulFor: 'Patient reimbursement queries', notes: 'Cash plan provider' },
+    { name: 'Benenden Health', type: 'Healthcare Membership', contact: '0800 414 8450', authorisation: 'Treatment request team', billing: 'Accounts enquiries', website: 'benenden.co.uk', usefulFor: 'Authorisation eligibility checks', notes: 'Membership healthcare' },
+    { name: 'Health Shield', type: 'Health Cash Plan', contact: '01270 588555', authorisation: 'Claims department', billing: 'Payment queries', website: 'healthshield.co.uk', usefulFor: 'Cash plan claims', notes: 'Employee benefits' },
+    { name: 'Medicash', type: 'Health Cash Plan', contact: '0151 702 0265', authorisation: 'Claims team', billing: 'Accounts queries', website: 'medicash.org', usefulFor: 'Cash plan claims', notes: 'Employee benefits' },
+    { name: 'CS Healthcare / Bupa Transfer', type: 'PMI Legacy', contact: 'Contact Bupa', authorisation: 'Via Bupa', billing: 'Via Bupa', website: 'bupa.co.uk', usefulFor: 'Legacy policy queries', notes: 'Transferred to Bupa' },
+    { name: 'General & Medical Healthcare', type: 'Private Medical Insurance', contact: '0800 970 9442', authorisation: 'Claims authorisation team', billing: 'Provider accounts', website: 'generalandmedical.com', usefulFor: 'Authorisations and billing', notes: 'PMI provider' },
+    { name: 'April International UK', type: 'International PMI', contact: '020 3418 0470', authorisation: 'Authorisation / GOP team', billing: 'Provider payment enquiries', website: 'april-international.com', usefulFor: 'International billing and guarantees', notes: 'International patients' },
+    { name: 'Allianz Care', type: 'International PMI', contact: '020 8603 9407', authorisation: 'Medical services / GOP', billing: 'Provider claims', website: 'allianzcare.com', usefulFor: 'International authorisations', notes: 'Global insurance' },
+    { name: 'Aetna International', type: 'International PMI', contact: '0203 788 3288', authorisation: 'Precertification team', billing: 'Provider claims', website: 'aetnainternational.com', usefulFor: 'International referrals and billing', notes: 'Global insurer' },
+  ];
+
+  function renderInsurerDetail(ins) {
+    const detail = document.getElementById('insurer-detail');
+    if (!ins) {
+      detail.innerHTML = '';
+      return;
+    }
+    detail.innerHTML = `
+      <div class="insurer-card">
+        <h3>${ins.name}</h3>
+        <span class="insurer-type">${ins.type}</span>
+        <div class="insurer-row"><span>Main contact</span><span>${ins.contact}</span></div>
+        <div class="insurer-row"><span>Authorisation</span><span>${ins.authorisation}</span></div>
+        <div class="insurer-row"><span>Billing queries</span><span>${ins.billing}</span></div>
+        <div class="insurer-row"><span>Provider portal</span><span>${ins.website}</span></div>
+        <div class="insurer-notes">Useful for: ${ins.usefulFor}${ins.notes ? ` — ${ins.notes}` : ''}</div>
+      </div>
+    `;
+  }
+
+  function renderInsurerSuggestions(matches) {
+    const list = document.getElementById('insurer-suggestions');
+    if (matches.length === 0) {
+      list.innerHTML = `<div class="insurer-empty">No insurers match that search.</div>`;
+      return;
+    }
+    list.innerHTML = matches.map((ins, i) => `
+      <button type="button" class="insurer-suggestion" data-index="${i}">
+        <span class="suggestion-name">${ins.name}</span>
+        <span class="suggestion-type">${ins.type}</span>
+      </button>
+    `).join('');
+
+    list.querySelectorAll('.insurer-suggestion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ins = matches[Number(btn.dataset.index)];
+        document.getElementById('insurer-search').value = ins.name;
+        list.innerHTML = '';
+        renderInsurerDetail(ins);
+      });
+    });
+  }
+
+  document.getElementById('insurer-search').addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    renderInsurerDetail(null);
+
+    if (!query) {
+      document.getElementById('insurer-suggestions').innerHTML = '';
+      return;
+    }
+
+    const matches = INSURERS.filter(ins => ins.name.toLowerCase().includes(query));
+    renderInsurerSuggestions(matches);
+  });
+
+  let gpPractices = null;
+  let gpDataPromise = null;
+
+  function loadGpData() {
+    if (gpDataPromise) return gpDataPromise;
+    gpDataPromise = fetch('gp-practices.json')
+      .then(res => res.json())
+      .then(data => {
+        gpPractices = data;
+        document.getElementById('gp-loading').style.display = 'none';
+
+        const towns = [...new Set(data.map(p => p.town))].sort();
+        const townSelect = document.getElementById('gp-town-filter');
+        towns.forEach(town => {
+          const opt = document.createElement('option');
+          opt.value = town;
+          opt.textContent = town;
+          townSelect.appendChild(opt);
+        });
+      })
+      .catch(() => {
+        document.getElementById('gp-loading').textContent = 'Could not load the GP practice directory.';
+      });
+    return gpDataPromise;
+  }
+
+  function renderGpDetail(gp) {
+    const detail = document.getElementById('gp-detail');
+    if (!gp) {
+      detail.innerHTML = '';
+      return;
+    }
+    detail.innerHTML = `
+      <div class="insurer-card">
+        <h3>${gp.name}</h3>
+        <span class="insurer-type">${gp.town}${gp.postcode ? ' · ' + gp.postcode : ''}</span>
+        ${gp.address ? `<div class="insurer-row"><span>Address</span><span>${gp.address}</span></div>` : ''}
+        ${gp.phone ? `<div class="insurer-row"><span>Telephone</span><span>${gp.phone}</span></div>` : ''}
+        ${gp.email ? `<div class="insurer-row"><span>Email</span><span>${gp.email}</span></div>` : ''}
+        ${gp.website ? `<div class="insurer-row"><span>Website</span><span>${gp.website}</span></div>` : ''}
+      </div>
+    `;
+  }
+
+  function renderGpSuggestions(matches) {
+    const list = document.getElementById('gp-suggestions');
+    if (matches.length === 0) {
+      list.innerHTML = `<div class="insurer-empty">No GP practices match that search.</div>`;
+      return;
+    }
+    list.innerHTML = matches.slice(0, 25).map((gp, i) => `
+      <button type="button" class="insurer-suggestion" data-index="${i}">
+        <span class="suggestion-name">${gp.name}</span>
+        <span class="suggestion-type">${gp.town}</span>
+      </button>
+    `).join('');
+
+    list.querySelectorAll('.insurer-suggestion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const gp = matches[Number(btn.dataset.index)];
+        document.getElementById('gp-search').value = gp.name;
+        list.innerHTML = '';
+        renderGpDetail(gp);
+      });
+    });
+  }
+
+  document.getElementById('gp-search').addEventListener('input', async (e) => {
+    await loadGpData();
+    const query = e.target.value.trim().toLowerCase();
+    renderGpDetail(null);
+    document.getElementById('gp-town-results').innerHTML = '';
+
+    if (!query || !gpPractices) {
+      document.getElementById('gp-suggestions').innerHTML = '';
+      return;
+    }
+
+    const matches = gpPractices.filter(gp => gp.name.toLowerCase().includes(query));
+    renderGpSuggestions(matches);
+  });
+
+  document.getElementById('gp-town-filter').addEventListener('change', async (e) => {
+    await loadGpData();
+    const town = e.target.value;
+    document.getElementById('gp-search').value = '';
+    document.getElementById('gp-suggestions').innerHTML = '';
+    renderGpDetail(null);
+
+    const resultsEl = document.getElementById('gp-town-results');
+    if (!town || !gpPractices) {
+      resultsEl.innerHTML = '';
+      return;
+    }
+
+    const matches = gpPractices.filter(gp => gp.town === town);
+    resultsEl.innerHTML = `
+      <p style="font-size:13px; color:var(--slate); margin:14px 0 10px;">${matches.length} practice${matches.length === 1 ? '' : 's'} in ${town}</p>
+      ${matches.map(gp => `
+        <div class="insurer-card">
+          <h3>${gp.name}</h3>
+          <span class="insurer-type">${gp.town}${gp.postcode ? ' · ' + gp.postcode : ''}</span>
+          ${gp.address ? `<div class="insurer-row"><span>Address</span><span>${gp.address}</span></div>` : ''}
+          ${gp.phone ? `<div class="insurer-row"><span>Telephone</span><span>${gp.phone}</span></div>` : ''}
+          ${gp.email ? `<div class="insurer-row"><span>Email</span><span>${gp.email}</span></div>` : ''}
+          ${gp.website ? `<div class="insurer-row"><span>Website</span><span>${gp.website}</span></div>` : ''}
+        </div>
+      `).join('')}
+    `;
+  });
+
+  function renderHospitalCard(h) {
+    return `
+      <div class="insurer-card">
+        <h3>${h.name}</h3>
+        <span class="insurer-type">${h.type}${h.town ? ' · ' + h.town : ''}</span>
+        ${h.contact ? `<div class="insurer-row"><span>Main contact</span><span>${h.contact}</span></div>` : ''}
+        ${h.website ? `<div class="insurer-row"><span>Website</span><span>${h.website}</span></div>` : ''}
+        ${h.specialties ? `<div class="insurer-row"><span>Specialties</span><span>${h.specialties}</span></div>` : ''}
+        ${h.notes ? `<div class="insurer-notes">${h.notes}</div>` : ''}
+      </div>
+    `;
+  }
+
+  function renderHospitalDetail(h) {
+    document.getElementById('hospital-detail').innerHTML = h ? renderHospitalCard(h) : '';
+  }
+
+  function renderHospitalSuggestions(matches) {
+    const list = document.getElementById('hospital-suggestions');
+    if (matches.length === 0) {
+      list.innerHTML = `<div class="insurer-empty">No hospitals match that search.</div>`;
+      return;
+    }
+    list.innerHTML = matches.slice(0, 25).map((h, i) => `
+      <button type="button" class="insurer-suggestion" data-index="${i}">
+        <span class="suggestion-name">${h.name}</span>
+        <span class="suggestion-type">${h.area}</span>
+      </button>
+    `).join('');
+
+    list.querySelectorAll('.insurer-suggestion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const h = matches[Number(btn.dataset.index)];
+        document.getElementById('hospital-search').value = h.name;
+        list.innerHTML = '';
+        renderHospitalDetail(h);
+      });
+    });
+  }
+
+  document.getElementById('hospital-search').addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    renderHospitalDetail(null);
+    document.getElementById('hospital-area-results').innerHTML = '';
+
+    if (!query) {
+      document.getElementById('hospital-suggestions').innerHTML = '';
+      return;
+    }
+
+    const matches = HOSPITALS.filter(h => h.name.toLowerCase().includes(query));
+    renderHospitalSuggestions(matches);
+  });
+
+  document.getElementById('hospital-area-filter').addEventListener('change', (e) => {
+    const area = e.target.value;
+    document.getElementById('hospital-search').value = '';
+    document.getElementById('hospital-suggestions').innerHTML = '';
+    renderHospitalDetail(null);
+
+    const resultsEl = document.getElementById('hospital-area-results');
+    if (!area) {
+      resultsEl.innerHTML = '';
+      return;
+    }
+
+    const matches = HOSPITALS.filter(h => h.area === area);
+    resultsEl.innerHTML = `
+      <p style="font-size:13px; color:var(--slate); margin:14px 0 10px;">${matches.length} hospital${matches.length === 1 ? '' : 's'} in ${area}</p>
+      ${matches.map(renderHospitalCard).join('')}
+    `;
+  });
+
+  // ── Suggest an addition/correction (hospitals + GP practices) ───────────
+  // hospitals-data.js and gp-practices.json are static files, not database
+  // tables, so this is purely a review queue: an admin reads the suggestion
+  // and manually edits the source file if it checks out, then marks it
+  // applied in the admin Directory tab. Nothing here writes to the
+  // directories automatically.
+  function openSuggestContactModal(contactType) {
+    const typeLabel = contactType === 'gp' ? 'GP practice' : 'hospital';
+    const overlay = document.createElement('div');
+    overlay.id = 'suggest-contact-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(46,63,84,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; overflow-y:auto;';
+    overlay.innerHTML = `
+      <div style="background:#F7F4ED; border-radius:14px; padding:32px 36px; max-width:480px; width:100%; font-family:'Special Elite', cursive; box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+        <h3 style="font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:8px; color:#2E3F54;">Suggest a ${typeLabel} addition or correction</h3>
+        <p style="font-size:13.5px; color:#5C6470; line-height:1.6; margin-bottom:20px;">An admin reviews every suggestion before it's added to the directory.</p>
+
+        <p id="suggest-contact-error" style="display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:16px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;"></p>
+
+        <form id="suggest-contact-form">
+          <div style="margin-bottom:16px; display:flex; gap:16px;">
+            <label style="display:flex; align-items:center; gap:6px; font-size:13.5px; color:#2E3F54; cursor:pointer;"><input type="radio" name="suggestion-kind" value="addition" checked> A new ${typeLabel} that's missing</label>
+            <label style="display:flex; align-items:center; gap:6px; font-size:13.5px; color:#2E3F54; cursor:pointer;"><input type="radio" name="suggestion-kind" value="edit"> A fix to an existing one</label>
+          </div>
+
+          <div id="suggest-reference-field" style="margin-bottom:14px; display:none;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Which ${typeLabel}?</label>
+            <input type="text" id="suggest-reference-name" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+          </div>
+
+          <div style="margin-bottom:20px;">
+            <label id="suggest-details-label" style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">What should be added?</label>
+            <textarea id="suggest-details" required rows="5" placeholder="Name, address, phone, website, specialties — whatever you know." style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54; resize:vertical;"></textarea>
+          </div>
+
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" id="suggest-contact-cancel-btn" style="padding:11px 18px; border-radius:8px; border:1px solid rgba(46,63,84,0.15); background:#fff; color:#2E3F54; font-size:14px; font-family:'Special Elite', cursive; cursor:pointer;">Cancel</button>
+            <button type="submit" id="suggest-contact-submit-btn" style="padding:11px 20px; border-radius:8px; border:none; background:#2E3F54; color:#F7F4ED; font-size:14px; font-family:'Special Elite', cursive; font-weight:600; cursor:pointer;">Send suggestion</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const closeModal = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    document.getElementById('suggest-contact-cancel-btn').addEventListener('click', closeModal);
+
+    const referenceField = document.getElementById('suggest-reference-field');
+    const detailsLabel = document.getElementById('suggest-details-label');
+    document.querySelectorAll('input[name="suggestion-kind"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.checked) {
+          referenceField.style.display = radio.value === 'edit' ? 'block' : 'none';
+          detailsLabel.textContent = radio.value === 'edit' ? 'What needs fixing?' : 'What should be added?';
+        }
+      });
+    });
+
+    const errorBox = document.getElementById('suggest-contact-error');
+    const submitBtn = document.getElementById('suggest-contact-submit-btn');
+
+    document.getElementById('suggest-contact-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.style.display = 'none';
+
+      const kind = document.querySelector('input[name="suggestion-kind"]:checked').value;
+      const referenceName = document.getElementById('suggest-reference-name').value.trim();
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+
+      const { error } = await supabaseClient.from('contact_suggestions').insert({
+        contact_type: contactType,
+        suggestion_kind: kind,
+        reference_name: referenceName || null,
+        details: document.getElementById('suggest-details').value.trim(),
+        submitted_by_profile_id: currentUserId,
+      });
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send suggestion';
+        return;
+      }
+
+      closeModal();
+      alert('Thanks — an admin will review this.');
+    });
+  }
+
+  document.getElementById('suggest-gp-link').addEventListener('click', () => openSuggestContactModal('gp'));
+  document.getElementById('suggest-hospital-link').addEventListener('click', () => openSuggestContactModal('hospital'));
+
+  // ── Consultants tab ────────────────────────────────────────────────────
+  // Merges self-registered consultants (consultant_profiles) with
+  // secretary-added entries (consultant_directory_entries) — see
+  // migration_47_consultant_directory_entries.sql. This directory lives only
+  // here in Daily Tools (no separate standalone page).
+  let allDirectoryConsultants = [];
+  let consultantDataLoaded = false;
+  let consultantFiltersPopulated = false;
+
+  async function loadConsultantDirectory() {
+    if (consultantDataLoaded) return;
+    consultantDataLoaded = true;
+    await fetchAndRenderConsultants();
+  }
+
+  async function fetchAndRenderConsultants() {
+    if (!consultantFiltersPopulated) {
+      consultantFiltersPopulated = true;
+      SPECIALTIES.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        document.getElementById('consultant-specialty-filter').appendChild(opt);
+      });
+    }
+
+    const [{ data: registered, error: registeredError }, { data: directory }] = await Promise.all([
+      supabaseClient.from('consultant_profiles')
+        .select('profile_id, specialty, hospitals, profiles(first_name, last_name)'),
+      supabaseClient.from('consultant_directory_entries')
+        .select('id, first_name, last_name, specialty, hospitals, website_url'),
+    ]);
+
+    if (registeredError) {
+      document.getElementById('consultant-results').innerHTML = `<div class="insurer-empty">Could not load the directory: ${escapeHtml(registeredError.message)}</div>`;
+      return;
+    }
+
+    const fromRegistered = (registered || []).map(c => ({
+      source: 'registered',
+      id: c.profile_id,
+      name: `${c.profiles?.first_name || ''} ${c.profiles?.last_name || ''}`.trim() || 'Consultant',
+      specialty: c.specialty,
+      hospitals: c.hospitals || [],
+      website_url: null,
+    }));
+
+    const fromDirectory = (directory || []).map(c => ({
+      source: 'directory',
+      id: c.id,
+      name: `${c.first_name} ${c.last_name}`.trim(),
+      specialty: c.specialty,
+      hospitals: c.hospitals || [],
+      website_url: c.website_url,
+    }));
+
+    allDirectoryConsultants = [...fromRegistered, ...fromDirectory];
+
+    const hospitalFilter = document.getElementById('consultant-hospital-filter');
+    hospitalFilter.innerHTML = '<option value="">Any hospital</option>';
+    const hospitalSet = new Set();
+    allDirectoryConsultants.forEach(c => (c.hospitals || []).forEach(h => hospitalSet.add(h)));
+    [...hospitalSet].sort().forEach(h => {
+      const opt = document.createElement('option');
+      opt.value = h;
+      opt.textContent = h;
+      hospitalFilter.appendChild(opt);
+    });
+
+    renderConsultantDirectory();
+  }
+
+  function renderConsultantDirectory() {
+    const query = document.getElementById('consultant-search').value.trim().toLowerCase();
+    const specialty = document.getElementById('consultant-specialty-filter').value;
+    const hospital = document.getElementById('consultant-hospital-filter').value;
+
+    const filtered = allDirectoryConsultants.filter(c => {
+      if (query) {
+        const haystack = `${c.name} ${(c.hospitals || []).join(' ')}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      if (specialty && c.specialty !== specialty) return false;
+      if (hospital && !(c.hospitals || []).includes(hospital)) return false;
+      return true;
+    });
+
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+    document.getElementById('consultant-results-count').textContent = `${filtered.length} consultant${filtered.length === 1 ? '' : 's'}`;
+
+    const resultsEl = document.getElementById('consultant-results');
+    if (filtered.length === 0) {
+      resultsEl.innerHTML = `<div class="insurer-empty">No consultants match yet.${isSecretaryOrAdmin ? ' <button type="button" id="empty-state-add-link" style="background:none; border:none; padding:0; font:inherit; color:var(--gold); text-decoration:underline; cursor:pointer;">Add one you know</button>.' : ''}</div>`;
+      const emptyAddBtn = document.getElementById('empty-state-add-link');
+      if (emptyAddBtn) emptyAddBtn.addEventListener('click', openAddConsultantModal);
+      return;
+    }
+
+    resultsEl.innerHTML = filtered.map(renderConsultantCard).join('');
+
+    resultsEl.querySelectorAll('[data-report-consultant-id]').forEach(btn => {
+      btn.addEventListener('click', () => reportDirectoryEntry(btn.dataset.reportConsultantId));
+    });
+  }
+
+  // Links a hospital name to its own page where we have one on file
+  // (HOSPITALS, loaded above), falling back to plain text otherwise.
+  function findHospitalWebsite(name) {
+    const lower = name.toLowerCase();
+    let match = HOSPITALS.find(h => h.name.toLowerCase() === lower);
+    if (!match) match = HOSPITALS.find(h => h.name.toLowerCase().includes(lower) || lower.includes(h.name.toLowerCase()));
+    return match ? match.website : null;
+  }
+
+  function renderHospitalLinks(hospitals) {
+    if (!hospitals || hospitals.length === 0) return 'No hospitals listed';
+    return hospitals.map(h => {
+      const website = findHospitalWebsite(h);
+      if (!website) return escapeHtml(h);
+      const url = website.startsWith('http') ? website : `https://${website}`;
+      return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" style="color:var(--green); text-decoration:underline;">${escapeHtml(h)}</a>`;
+    }).join(', ');
+  }
+
+  // "Look this up" is a plain link to a pre-filled web search that opens in
+  // a new tab — never a fetch()/scrape call. See docs/phin-data-source.md
+  // and docs/hospital-group-directories-tos-findings.md.
+  function buildConsultantLookupUrl(name, specialty) {
+    const q = encodeURIComponent(`${name} ${specialty || ''} consultant UK hospital`.trim());
+    return `https://www.google.com/search?q=${q}`;
+  }
+
+  function renderConsultantCard(c) {
+    const website = c.website_url
+      ? `<div class="insurer-row"><span>Website</span><span><a href="${escapeHtml(c.website_url)}" target="_blank" rel="noopener" style="color:var(--gold); text-decoration:underline;">${escapeHtml(c.website_url)}</a></span></div>`
+      : '';
+    const badge = c.source === 'directory'
+      ? `<span style="display:inline-flex; align-items:center; gap:5px; font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate); background:rgba(46,63,84,0.06); padding:4px 10px; border-radius:999px; font-weight:600; margin-bottom:10px;">${unclaimedDirectoryBadgeIconSVG(12)} Unverified — added by a secretary</span>`
+      : '';
+    const report = c.source === 'directory' && isSecretaryOrAdmin
+      ? `<div style="margin-top:8px;"><button type="button" style="background:none; border:none; font-family:inherit; font-size:12px; color:var(--slate); text-decoration:underline; cursor:pointer; padding:0;" data-report-consultant-id="${c.id}">Report</button></div>`
+      : '';
+
+    return `
+      <div class="insurer-card">
+        <div>${badge}</div>
+        <h3>${escapeHtml(c.name)}${c.specialty ? ` <span style="font-family:'Cormorant Garamond', serif; font-weight:400; font-size:16px; color:var(--slate);">— ${escapeHtml(c.specialty)}</span>` : ''}</h3>
+        <div class="insurer-row"><span>Hospitals</span><span>${renderHospitalLinks(c.hospitals)}</span></div>
+        ${website}
+        <div style="margin-top:8px;"><a href="${buildConsultantLookupUrl(c.name, c.specialty)}" target="_blank" rel="noopener" style="font-size:12.5px; color:var(--gold); text-decoration:underline;">Look this up ↗</a></div>
+        ${report}
+      </div>
+    `;
+  }
+
+  async function reportDirectoryEntry(entryId) {
+    const reason = window.prompt("What's the issue with this listing? (optional)") || '';
+    const { error } = await supabaseClient.from('consultant_directory_entry_reports')
+      .insert({ entry_id: entryId, reporter_id: currentUserId, reason });
+    alert(error ? `Could not submit report: ${error.message}` : 'Thanks — this has been reported for review.');
+  }
+
+  // "Add a consultant" as a pop-up rather than a separate page — the
+  // directory only lives here in Daily Tools, so adding to it shouldn't
+  // navigate away. Built with inline styles/DOM, matching the existing
+  // account-nav.js confirmIfUnavailable() modal pattern in this codebase.
+  function openAddConsultantModal() {
+    const overlay = document.createElement('div');
+    overlay.id = 'add-consultant-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(46,63,84,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; overflow-y:auto;';
+    overlay.innerHTML = `
+      <div style="background:#F7F4ED; border-radius:14px; padding:32px 36px; max-width:480px; width:100%; font-family:'Special Elite', cursive; box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+        <h3 style="font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:8px; color:#2E3F54;">Add a consultant</h3>
+        <p style="font-size:13.5px; color:#5C6470; line-height:1.6; margin-bottom:20px;">Add a consultant you personally work with who hasn't joined Veyn yet. Only add people you actually know — this isn't a place to copy in details from another website.</p>
+
+        <p id="modal-form-error" style="display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:16px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;"></p>
+        <p id="modal-duplicate-warning" style="display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:16px; background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.35); color:#8F6F36; line-height:1.6;"></p>
+
+        <form id="modal-add-form">
+          <div style="display:flex; gap:12px; margin-bottom:14px;">
+            <div style="flex:1;">
+              <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">First name</label>
+              <input type="text" id="modal-first-name" required style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Last name</label>
+              <input type="text" id="modal-last-name" required style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            </div>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Specialty</label>
+            <select id="modal-specialty" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+              <option value="">Select a specialty</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Hospitals they work at</label>
+            <div id="modal-hospital-tags" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;"></div>
+            <input type="text" id="modal-hospital-tag-input" placeholder="Type a hospital name — pick a suggestion to match exactly" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            <div id="modal-hospital-suggestions" style="margin-top:4px;"></div>
+            <a href="#" id="modal-lookup-link-hospitals" target="_blank" rel="noopener" style="font-size:12.5px; color:#B8924A; text-decoration:underline; display:inline-block; margin-top:6px;">Look this up ↗</a>
+          </div>
+
+          <div style="margin-bottom:20px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Their website (optional)</label>
+            <input type="url" id="modal-website-url" placeholder="https://..." style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">
+            <a href="#" id="modal-lookup-link-website" target="_blank" rel="noopener" style="font-size:12.5px; color:#B8924A; text-decoration:underline; display:inline-block; margin-top:6px;">Look this up ↗</a>
+          </div>
+
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" id="modal-cancel-btn" style="padding:11px 18px; border-radius:8px; border:1px solid rgba(46,63,84,0.15); background:#fff; color:#2E3F54; font-size:14px; font-family:'Special Elite', cursive; cursor:pointer;">Cancel</button>
+            <button type="submit" id="modal-submit-btn" style="padding:11px 20px; border-radius:8px; border:none; background:#2E3F54; color:#F7F4ED; font-size:14px; font-family:'Special Elite', cursive; font-weight:600; cursor:pointer;">Add to directory</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const closeModal = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+
+    const specialtySelect = document.getElementById('modal-specialty');
+    SPECIALTIES.forEach(s => {
+      const opt = document.createElement('option');
+      opt.textContent = s;
+      specialtySelect.appendChild(opt);
+    });
+
+    const firstNameInput = document.getElementById('modal-first-name');
+    const lastNameInput = document.getElementById('modal-last-name');
+    const websiteInput = document.getElementById('modal-website-url');
+
+    function updateLookupLinks() {
+      const name = `${firstNameInput.value.trim()} ${lastNameInput.value.trim()}`.trim();
+      const url = buildConsultantLookupUrl(name, specialtySelect.value);
+      document.getElementById('modal-lookup-link-hospitals').href = url;
+      document.getElementById('modal-lookup-link-website').href = url;
+    }
+    [firstNameInput, lastNameInput, specialtySelect].forEach(el => el.addEventListener('input', updateLookupLinks));
+    updateLookupLinks();
+
+    let hospitalTags = [];
+    const hospitalTagsEl = document.getElementById('modal-hospital-tags');
+    const hospitalInput = document.getElementById('modal-hospital-tag-input');
+    const hospitalSuggestionsEl = document.getElementById('modal-hospital-suggestions');
+
+    function renderModalHospitalTags() {
+      hospitalTagsEl.innerHTML = hospitalTags.map((h, i) => `
+        <span style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:500; background:#2E3F54; color:#F7F4ED; padding:6px 10px 6px 14px; border-radius:999px;">${escapeHtml(h)}<button type="button" data-remove="${i}" style="background:none; border:none; color:#F7F4ED; cursor:pointer; font-size:14px; line-height:1; padding:2px; opacity:0.7;">&times;</button></span>
+      `).join('');
+      hospitalTagsEl.querySelectorAll('[data-remove]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          hospitalTags.splice(Number(btn.dataset.remove), 1);
+          renderModalHospitalTags();
+        });
+      });
+    }
+
+    // Suggests exact matches from HOSPITALS as the secretary types, so
+    // picking one guarantees the name matches what renderHospitalLinks()
+    // looks up later — freeform typing still works via Enter/comma for
+    // hospitals not in the list.
+    function renderModalHospitalSuggestions(query) {
+      if (!query) { hospitalSuggestionsEl.innerHTML = ''; return; }
+      // hospitals-data.js has a handful of accidental duplicate names — dedupe
+      // by name so the same hospital doesn't appear twice in the list.
+      const seen = new Set();
+      const matches = HOSPITALS.filter(h => {
+        if (!h.name.toLowerCase().includes(query.toLowerCase())) return false;
+        if (seen.has(h.name)) return false;
+        seen.add(h.name);
+        return true;
+      }).slice(0, 8);
+      if (matches.length === 0) { hospitalSuggestionsEl.innerHTML = ''; return; }
+      hospitalSuggestionsEl.innerHTML = matches.map((h, i) => `
+        <button type="button" class="insurer-suggestion" data-index="${i}">
+          <span class="suggestion-name">${escapeHtml(h.name)}</span>
+          <span class="suggestion-type">${escapeHtml(h.area)}</span>
+        </button>
+      `).join('');
+      hospitalSuggestionsEl.querySelectorAll('.insurer-suggestion').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const h = matches[Number(btn.dataset.index)];
+          if (!hospitalTags.includes(h.name)) { hospitalTags.push(h.name); renderModalHospitalTags(); }
+          hospitalInput.value = '';
+          hospitalSuggestionsEl.innerHTML = '';
+          hospitalInput.focus();
+        });
+      });
+    }
+
+    hospitalInput.addEventListener('input', () => renderModalHospitalSuggestions(hospitalInput.value.trim()));
+
+    hospitalInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ',') return;
+      e.preventDefault();
+      const value = hospitalInput.value.trim().replace(/,$/, '');
+      if (value && !hospitalTags.includes(value)) {
+        hospitalTags.push(value);
+        renderModalHospitalTags();
+      }
+      hospitalInput.value = '';
+      hospitalSuggestionsEl.innerHTML = '';
+    });
+
+    const duplicateWarning = document.getElementById('modal-duplicate-warning');
+
+    async function checkForDuplicates() {
+      const firstName = firstNameInput.value.trim();
+      const lastName = lastNameInput.value.trim();
+      if (!firstName || !lastName) { duplicateWarning.style.display = 'none'; return; }
+
+      const [{ data: directoryMatches }, { data: registeredMatches }] = await Promise.all([
+        supabaseClient.from('consultant_directory_entries')
+          .select('first_name, last_name, specialty')
+          .ilike('first_name', firstName).ilike('last_name', lastName),
+        supabaseClient.from('consultant_profiles')
+          .select('specialty, profiles!inner(first_name, last_name)')
+          .ilike('profiles.first_name', firstName).ilike('profiles.last_name', lastName),
+      ]);
+
+      const matches = [
+        ...(directoryMatches || []).map(m => `${m.first_name} ${m.last_name} (${m.specialty || 'no specialty listed'})`),
+        ...(registeredMatches || []).map(m => `${m.profiles.first_name} ${m.profiles.last_name} (${m.specialty || 'no specialty listed'})`),
+      ];
+
+      if (matches.length > 0) {
+        duplicateWarning.textContent = `Already listed — is this who you mean? ${matches.join(', ')}.`;
+        duplicateWarning.style.display = 'block';
+      } else {
+        duplicateWarning.style.display = 'none';
+      }
+    }
+    lastNameInput.addEventListener('blur', checkForDuplicates);
+
+    const errorBox = document.getElementById('modal-form-error');
+    const submitBtn = document.getElementById('modal-submit-btn');
+
+    document.getElementById('modal-add-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.style.display = 'none';
+
+      const pendingHospital = hospitalInput.value.trim();
+      if (pendingHospital && !hospitalTags.includes(pendingHospital)) hospitalTags.push(pendingHospital);
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Adding…';
+
+      const { error } = await supabaseClient.from('consultant_directory_entries').insert({
+        first_name: firstNameInput.value.trim(),
+        last_name: lastNameInput.value.trim(),
+        specialty: specialtySelect.value || null,
+        hospitals: hospitalTags,
+        website_url: websiteInput.value.trim() || null,
+        added_by_profile_id: currentUserId,
+      });
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add to directory';
+        return;
+      }
+
+      closeModal();
+      consultantDataLoaded = true;
+      await fetchAndRenderConsultants();
+    });
+
+    firstNameInput.focus();
+  }
+
+  document.getElementById('add-consultant-hub-link').addEventListener('click', openAddConsultantModal);
+
+  document.getElementById('consultant-search').addEventListener('input', renderConsultantDirectory);
+  document.getElementById('consultant-specialty-filter').addEventListener('change', renderConsultantDirectory);
+  document.getElementById('consultant-hospital-filter').addEventListener('change', renderConsultantDirectory);
+
+  // ── Billing codes tab ──────────────────────────────────────────────────
+  const INSURER_LINKS = [
+    { name: 'Bupa', url: 'https://www.bupa.co.uk/healthcare-professionals/for-your-role/consultants/fees-explained', synced: false },
+    { name: 'AXA Health', url: 'https://provider.axahealth.co.uk/schedule-of-procedures-and-fees/', synced: false },
+    { name: 'Vitality', url: 'https://www.vitality.co.uk/healthcare-providers/fee-finder/', synced: false },
+    { name: 'WPA', url: 'https://www.wpa.org.uk/healthcare-providers/medical-fees', synced: false },
+    { name: 'Aviva', url: 'https://www.aviva.co.uk/health-insurance/providers/practitioners/fee-schedule/details', synced: false },
+  ];
+  document.getElementById('insurer-links-row').innerHTML = INSURER_LINKS.map(ins => `
+    <a class="insurer-link-pill" href="${ins.url}" target="_blank" rel="noopener">${escapeHtml(ins.name)} fee schedule ↗</a>
+  `).join('');
+
+  let healixFeesByCode = {};
+
+  async function loadHealixFees() {
+    // Supabase caps a single response at 1000 rows (project max_rows setting)
+    // — healix_fees has ~3,000+, so this has to page through in batches.
+    const PAGE_SIZE = 1000;
+    let allRows = [];
+    let from = 0;
+    while (true) {
+      const { data } = await supabaseClient
+        .from('healix_fees')
+        .select('ccsd_code, procedure_fee, anaesthetic_fee, synced_at')
+        .range(from, from + PAGE_SIZE - 1);
+      allRows = allRows.concat(data || []);
+      if (!data || data.length < PAGE_SIZE) break;
+      from += PAGE_SIZE;
+    }
+    allRows.forEach(f => { healixFeesByCode[f.ccsd_code] = f; });
+    const latestSync = allRows.reduce((latest, f) => !latest || f.synced_at > latest ? f.synced_at : latest, null);
+    if (latestSync) {
+      const label = new Date(latestSync).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      document.getElementById('healix-synced-label').textContent = ` — last updated ${label}`;
+    }
+    filterBillingCodes();
+  }
+
+  const BILLING_CHAPTERS = [...new Set(BILLING_CODES.map(c => c.chapter))].sort();
+  BILLING_CHAPTERS.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    document.getElementById('billing-chapter-filter').appendChild(opt);
+  });
+
+  const BILLING_SECTIONS = [...new Set(BILLING_CODES.map(c => c.section))].sort();
+  BILLING_SECTIONS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    document.getElementById('billing-section-filter').appendChild(opt);
+  });
+
+  function renderBillingCodes(list, cap) {
+    const resultsEl = document.getElementById('billing-results');
+    document.getElementById('billing-results-count').textContent = `${list.length} of ${BILLING_CODES.length} codes`;
+    if (list.length === 0) {
+      resultsEl.innerHTML = `<div class="insurer-empty">No billing codes match that search.</div>`;
+      return;
+    }
+    const shown = cap ? list.slice(0, cap) : list;
+    resultsEl.innerHTML = shown.map(c => {
+      const healix = healixFeesByCode[c.code];
+      const healixRow = healix
+        ? `<div class="insurer-row"><span>Healix fee</span><span>£${healix.procedure_fee ?? '—'}${healix.anaesthetic_fee != null ? ` (+£${healix.anaesthetic_fee} anaesthetic)` : ''}</span></div>`
+        : '';
+      return `
+      <div class="insurer-card">
+        <h3>${escapeHtml(c.code)} — ${escapeHtml(c.description)}</h3>
+        <div class="insurer-row"><span>Chapter</span><span>${escapeHtml(c.chapter)}</span></div>
+        <div class="insurer-row"><span>Section</span><span>${escapeHtml(c.section)}</span></div>
+        ${healixRow}
+      </div>
+    `;
+    }).join('');
+    if (cap && list.length > cap) {
+      resultsEl.innerHTML += `<div class="insurer-empty">Showing first ${cap} of ${list.length} matches — narrow your search to see more.</div>`;
+    }
+  }
+
+  function filterBillingCodes() {
+    const query = document.getElementById('billing-search').value.trim().toLowerCase();
+    const chapter = document.getElementById('billing-chapter-filter').value;
+    const section = document.getElementById('billing-section-filter').value;
+
+    const filtered = BILLING_CODES.filter(c => {
+      if (query && !c.code.toLowerCase().includes(query) && !c.description.toLowerCase().includes(query)) return false;
+      if (chapter && c.chapter !== chapter) return false;
+      if (section && c.section !== section) return false;
+      return true;
+    });
+    // Only cap unfiltered free-text browsing — selecting a chapter/section
+    // is an explicit request to see everything in it, however many codes.
+    const cap = (chapter || section) ? null : 200;
+    renderBillingCodes(filtered, cap);
+  }
+
+  document.getElementById('billing-search').addEventListener('input', filterBillingCodes);
+  document.getElementById('billing-chapter-filter').addEventListener('change', filterBillingCodes);
+  document.getElementById('billing-section-filter').addEventListener('change', filterBillingCodes);
+  renderBillingCodes(BILLING_CODES, 200);
+  loadHealixFees();
+</script>
+
+<script src="../mobile-nav.js"></script>
+<script src="../cookie-consent.js"></script>
+</body>
+</html>
