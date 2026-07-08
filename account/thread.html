@@ -35,7 +35,7 @@
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
   .nav-left{ display:flex; align-items:center; gap:48px; }
-  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links{ display:flex; flex-wrap:wrap; row-gap:8px; column-gap:20px; font-size:14px; font-weight:500; color:var(--slate); }
   .nav-links a:hover{ color:var(--ink); }
   .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
   @media (max-width:760px){ .nav-links{ display:none; } }

@@ -1,9 +1,10 @@
 // Veyn: renders the role-aware account nav (My profile / Messages / Search /
-// Post a job / My postings / Edit profile for consultants; My profile /
-// Messages / Job board / Academy / Business Hub / Community / Edit profile
-// for secretaries) in place of the public marketing nav, once a session is
-// found. Pages with no session keep the marketing nav-links already in their
-// markup — this script does nothing.
+// Post a job / My postings for consultants; My profile / Messages / Job
+// board / Academy / Daily Tools / Business Hub / Community for secretaries)
+// in place of the public marketing nav, once a session is found. Pages with
+// no session keep the marketing nav-links already in their markup — this
+// script does nothing. Editing a profile happens via the "Edit profile"
+// button on profile.html itself, not a standalone nav entry.
 
 const CONSULTANT_NAV_LINKS = [
   { label: 'My profile', href: 'profile.html', key: 'profile' },
@@ -13,7 +14,6 @@ const CONSULTANT_NAV_LINKS = [
   { label: 'My postings', href: 'my-postings.html', key: 'my-postings' },
   { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
   { label: 'Support', href: 'support.html', key: 'support' },
-  { label: 'Edit profile', href: 'edit-profile.html', key: 'edit-profile' },
 ];
 
 const SECRETARY_NAV_LINKS = [
@@ -26,7 +26,6 @@ const SECRETARY_NAV_LINKS = [
   { label: 'Community', href: 'community.html', key: 'community' },
   { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
   { label: 'Support', href: 'support.html', key: 'support' },
-  { label: 'Edit profile', href: 'edit-profile.html', key: 'edit-profile' },
 ];
 
 const ADMIN_NAV_LINKS = [
@@ -63,10 +62,12 @@ function buildAccountNavHtml(role, activeKey) {
 }
 
 // Call with the <nav class="nav-links"> element, the page's nav key
-// ('profile', 'messages', 'search', 'post-job', 'my-postings', 'edit-profile',
-// 'job-board', or null if this page isn't one of those), and the Supabase
-// client. Returns { session, profile } if logged in, otherwise null —
-// callers can reuse this instead of re-fetching session/profile themselves.
+// ('profile', 'messages', 'search', 'post-job', 'my-postings', 'job-board',
+// or null if this page isn't one of those — edit-profile.html has no nav
+// entry of its own, so it passes a key that matches nothing), and the
+// Supabase client. Returns { session, profile } if logged in, otherwise
+// null — callers can reuse this instead of re-fetching session/profile
+// themselves.
 // Hide the nav immediately to prevent the logged-out links flashing before
 // the session check completes. Revealed in renderAccountNav once the correct
 // links (or the original public links) are ready to show.

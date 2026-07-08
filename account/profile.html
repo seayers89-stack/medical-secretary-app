@@ -44,7 +44,7 @@
   }
   .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
   .nav-left{ display:flex; align-items:center; gap:48px; }
-  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links{ display:flex; flex-wrap:wrap; row-gap:8px; column-gap:20px; font-size:14px; font-weight:500; color:var(--slate); }
   .nav-links a:hover{ color:var(--ink); }
   .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
   @media (max-width:760px){ .nav-links{ display:none; } }
@@ -208,6 +208,7 @@
   <div class="eyebrow">Your account</div>
   <h1 id="greeting">Welcome</h1>
   <p class="sub">This is your profile snapshot. Consultants search against this information — keep it current.</p>
+  <a href="edit-profile.html" class="btn btn-primary" style="margin-bottom:20px;">Edit profile</a>
   <div id="staff-badge-row" style="margin-bottom:8px;"></div>
   <div id="skills-tested-badge-row" style="margin-bottom:8px;"></div>
   <div id="rating-row" style="margin-bottom:20px; font-size:14px; color:var(--slate);"></div>
