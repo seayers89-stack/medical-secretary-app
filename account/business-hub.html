@@ -145,6 +145,17 @@
     .file-download-row{ flex-direction:column; align-items:flex-start; gap:10px; }
   }
 
+  .template-header{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:16px; cursor:pointer;
+  }
+  .template-header p{ margin-bottom:0; }
+  .template-chevron{
+    font-size:13px; color:var(--slate); flex-shrink:0; margin-top:5px; transition:transform 0.15s ease;
+  }
+  .template-header[aria-expanded="true"] .template-chevron{ transform:rotate(180deg); }
+  .template-body{ margin-top:18px; padding-top:18px; border-top:1px solid rgba(46,63,84,0.08); }
+  .template-body[hidden]{ display:none; }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
@@ -312,32 +323,51 @@
 
     <div class="tab-panel" id="tab-templates">
     <div class="guide-card" id="templates">
-      <span class="guide-label">Ready to use</span>
-      <h2>Invoice template</h2>
-      <p>A starting point covering what most consultants and practices expect to see. Edit the placeholders in [brackets], then copy or download.</p>
-      <textarea class="template-box" id="invoice-template" readonly rows="20"></textarea>
-      <div class="template-actions">
-        <button class="template-btn" data-copy-target="invoice-template">Copy to clipboard</button>
-        <button class="template-btn template-btn-primary" data-docx-target="invoice-template" data-docx-name="invoice-template.docx" data-docx-title="INVOICE">Download as Word doc</button>
+      <div class="template-header" data-toggle="body-invoice" role="button" tabindex="0" aria-expanded="false">
+        <span>
+          <span class="guide-label">Ready to use</span>
+          <h2>Invoice template</h2>
+          <p>A starting point covering what most consultants and practices expect to see. Edit the placeholders in [brackets], then copy or download.</p>
+        </span>
+        <span class="template-chevron" aria-hidden="true">▼</span>
+      </div>
+      <div class="template-body" id="body-invoice" hidden>
+        <textarea class="template-box" id="invoice-template" readonly rows="20"></textarea>
+        <div class="template-actions">
+          <button class="template-btn" data-copy-target="invoice-template">Copy to clipboard</button>
+          <button class="template-btn template-btn-primary" data-docx-target="invoice-template" data-docx-name="invoice-template.docx" data-docx-title="INVOICE">Download as Word doc</button>
+        </div>
       </div>
     </div>
 
     <div class="guide-card">
-      <span class="guide-label">Ready to use</span>
-      <h2>Engagement letter / service agreement</h2>
-      <p>A short letter you can send before starting work with a new consultant or practice, setting out the basics in writing. This is a plain-English starting point, not a substitute for legal advice on anything unusual or high-value.</p>
-      <textarea class="template-box" id="contract-template" readonly rows="26"></textarea>
-      <div class="template-actions">
-        <button class="template-btn" data-copy-target="contract-template">Copy to clipboard</button>
-        <button class="template-btn template-btn-primary" data-docx-target="contract-template" data-docx-name="engagement-letter-template.docx" data-docx-title="ENGAGEMENT LETTER">Download as Word doc</button>
+      <div class="template-header" data-toggle="body-letter" role="button" tabindex="0" aria-expanded="false">
+        <span>
+          <span class="guide-label">Ready to use</span>
+          <h2>Engagement letter / service agreement</h2>
+          <p>A short letter you can send before starting work with a new consultant or practice, setting out the basics in writing. This is a plain-English starting point, not a substitute for legal advice on anything unusual or high-value.</p>
+        </span>
+        <span class="template-chevron" aria-hidden="true">▼</span>
+      </div>
+      <div class="template-body" id="body-letter" hidden>
+        <textarea class="template-box" id="contract-template" readonly rows="26"></textarea>
+        <div class="template-actions">
+          <button class="template-btn" data-copy-target="contract-template">Copy to clipboard</button>
+          <button class="template-btn template-btn-primary" data-docx-target="contract-template" data-docx-name="engagement-letter-template.docx" data-docx-title="ENGAGEMENT LETTER">Download as Word doc</button>
+        </div>
       </div>
     </div>
 
     <div class="guide-card">
-      <span class="guide-label">Ready to use</span>
-      <h2>Spreadsheet trackers</h2>
-      <p>Ready-made Excel workbooks for the day-to-day — each has a "How to Use" tab, calculates its own flags and totals, and only needs the blue cells filled in.</p>
-
+      <div class="template-header" data-toggle="body-sheets" role="button" tabindex="0" aria-expanded="false">
+        <span>
+          <span class="guide-label">Ready to use</span>
+          <h2>Spreadsheet trackers</h2>
+          <p>Ready-made Excel workbooks for the day-to-day — each has a "How to Use" tab, calculates its own flags and totals, and only needs the blue cells filled in.</p>
+        </span>
+        <span class="template-chevron" aria-hidden="true">▼</span>
+      </div>
+      <div class="template-body" id="body-sheets" hidden>
       <div class="file-download-row">
         <div class="file-download-info">
           <h3>Results Tracker</h3>
@@ -376,6 +406,7 @@
           <p>Every self-pay and insurer invoice in one place — outstanding balance, days outstanding and status all calculate themselves.</p>
         </div>
         <a class="template-btn template-btn-primary" href="templates/billing-insurer-tracker.xlsx" download="Veyn — Billing &amp; Insurer Tracker.xlsx">Download .xlsx</a>
+      </div>
       </div>
     </div>
     </div>
@@ -590,6 +621,22 @@ This is a plain-English starting template, not a substitute for legal advice —
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+    });
+  });
+
+  function toggleTemplateBody(header) {
+    const body = document.getElementById(header.dataset.toggle);
+    const expanded = header.getAttribute('aria-expanded') === 'true';
+    header.setAttribute('aria-expanded', String(!expanded));
+    body.hidden = expanded;
+  }
+  document.querySelectorAll('.template-header').forEach(header => {
+    header.addEventListener('click', () => toggleTemplateBody(header));
+    header.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleTemplateBody(header);
+      }
     });
   });
 </script>
