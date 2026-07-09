@@ -383,7 +383,7 @@
       window.location.href = 'login.html';
       return;
     }
-    if (navResult.profile.role !== 'secretary') {
+    if (navResult.profile.role !== 'secretary' && navResult.profile.role !== 'admin') {
       loading.textContent = 'The Academy is available for secretary accounts.';
       return;
     }
