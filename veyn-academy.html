@@ -120,6 +120,16 @@
   }
   .card .sys-name{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:16px; margin-bottom:8px; }
   .card p{ color:var(--slate); font-size:13px; line-height:1.55; }
+  .sys-grid .card{ justify-content:space-between; aspect-ratio:unset; min-height:8cm; }
+  .vid-link{
+    display:inline-flex; align-items:center; gap:6px; margin-top:16px;
+    font-family:'Special Elite', cursive; font-size:11px; letter-spacing:0.05em;
+    color:var(--gold); border:1px solid rgba(184,146,74,0.4); border-radius:999px;
+    padding:5px 12px; transition:background .2s, border-color .2s;
+    text-decoration:none; align-self:center;
+  }
+  .vid-link:hover{ background:rgba(184,146,74,0.12); border-color:var(--gold); }
+  .vid-link svg{ flex-shrink:0; }
 
   /* premium specialty packs */
   .pack-card{
@@ -270,22 +280,46 @@
     <h2>The systems consultants already expect</h2>
     <p>Short, practical guides — not generic software tutorials, but how these systems are actually used in private practice.</p>
   </div>
-  <div class="grid3">
+  <div class="grid3 sys-grid">
     <div class="card">
-      <div class="sys-name">Healthcode</div>
-      <p>Insurer billing and claims processing for private practice</p>
+      <div>
+        <div class="sys-name">Healthcode</div>
+        <p>Insurer billing and claims processing for private practice</p>
+      </div>
+      <a class="vid-link" href="https://www.youtube.com/results?search_query=Healthcode+private+practice+tutorial" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#B8924A" stroke-width="1.8"/><path d="M10 8l6 4-6 4V8z" fill="#B8924A"/></svg>
+        Watch tutorial
+      </a>
     </div>
     <div class="card">
-      <div class="sys-name">DGL Practice Manager</div>
-      <p>One of the most frequently named systems in private secretary job ads</p>
+      <div>
+        <div class="sys-name">DGL Practice Manager</div>
+        <p>One of the most frequently named systems in private secretary job ads</p>
+      </div>
+      <a class="vid-link" href="https://www.youtube.com/results?search_query=DGL+Practice+Manager+tutorial" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#B8924A" stroke-width="1.8"/><path d="M10 8l6 4-6 4V8z" fill="#B8924A"/></svg>
+        Watch tutorial
+      </a>
     </div>
     <div class="card">
-      <div class="sys-name">Carebit</div>
-      <p>Clinic and patient management for private clinics and consultants</p>
+      <div>
+        <div class="sys-name">Carebit</div>
+        <p>Clinic and patient management for private clinics and consultants</p>
+      </div>
+      <a class="vid-link" href="https://www.youtube.com/results?search_query=Carebit+practice+management+tutorial" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#B8924A" stroke-width="1.8"/><path d="M10 8l6 4-6 4V8z" fill="#B8924A"/></svg>
+        Watch tutorial
+      </a>
     </div>
     <div class="card">
-      <div class="sys-name">Semble</div>
-      <p>Practice management for clinics, from scheduling to records</p>
+      <div>
+        <div class="sys-name">Semble</div>
+        <p>Practice management for clinics, from scheduling to records</p>
+      </div>
+      <a class="vid-link" href="https://www.youtube.com/results?search_query=Semble+practice+management+tutorial" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#B8924A" stroke-width="1.8"/><path d="M10 8l6 4-6 4V8z" fill="#B8924A"/></svg>
+        Watch tutorial
+      </a>
     </div>
   </div>
 </section>
