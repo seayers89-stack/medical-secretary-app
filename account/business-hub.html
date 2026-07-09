@@ -133,6 +133,18 @@
   .template-btn-primary:hover{ background:#A17F3F; border-color:#A17F3F; color:var(--white); }
   .template-btn-primary:disabled{ opacity:0.65; cursor:not-allowed; }
 
+  .file-download-row{
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+    padding:16px 0; border-top:1px solid rgba(46,63,84,0.08);
+  }
+  .file-download-row:first-of-type{ border-top:none; padding-top:6px; }
+  .file-download-info h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:16px; margin-bottom:3px; }
+  .file-download-info p{ color:var(--slate); font-size:13px; line-height:1.55; margin:0; }
+  .file-download-row .template-btn{ flex-shrink:0; }
+  @media (max-width:560px){
+    .file-download-row{ flex-direction:column; align-items:flex-start; gap:10px; }
+  }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
@@ -318,6 +330,52 @@
       <div class="template-actions">
         <button class="template-btn" data-copy-target="contract-template">Copy to clipboard</button>
         <button class="template-btn template-btn-primary" data-docx-target="contract-template" data-docx-name="engagement-letter-template.docx" data-docx-title="ENGAGEMENT LETTER">Download as Word doc</button>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <span class="guide-label">Ready to use</span>
+      <h2>Spreadsheet trackers</h2>
+      <p>Ready-made Excel workbooks for the day-to-day — each has a "How to Use" tab, calculates its own flags and totals, and only needs the blue cells filled in.</p>
+
+      <div class="file-download-row">
+        <div class="file-download-info">
+          <h3>Results Tracker</h3>
+          <p>Log investigations sent from consultation to results received — flags anything outstanding after two weeks and results not yet reviewed.</p>
+        </div>
+        <a class="template-btn template-btn-primary" href="templates/results-tracker.xlsx" download="Veyn — Results Tracker.xlsx">Download .xlsx</a>
+      </div>
+
+      <div class="file-download-row">
+        <div class="file-download-info">
+          <h3>Income &amp; Expense Log</h3>
+          <p>Money in and money out in one place, with a running net-income summary — useful for self-assessment records.</p>
+        </div>
+        <a class="template-btn template-btn-primary" href="templates/income-expense-log.xlsx" download="Veyn — Income &amp; Expense Log.xlsx">Download .xlsx</a>
+      </div>
+
+      <div class="file-download-row">
+        <div class="file-download-info">
+          <h3>Dictation-to-Letter Tracker</h3>
+          <p>Follows each letter from dictated through to sent, with status and turnaround time calculated automatically.</p>
+        </div>
+        <a class="template-btn template-btn-primary" href="templates/dictation-to-letter-tracker.xlsx" download="Veyn — Dictation-to-Letter Tracker.xlsx">Download .xlsx</a>
+      </div>
+
+      <div class="file-download-row">
+        <div class="file-download-info">
+          <h3>Clinic List &amp; Referral Tracker</h3>
+          <p>A daily clinic list (booked, attended, DNA'd) plus a referral and waiting-list tab with days-waiting flags.</p>
+        </div>
+        <a class="template-btn template-btn-primary" href="templates/clinic-referral-tracker.xlsx" download="Veyn — Clinic List &amp; Referral Tracker.xlsx">Download .xlsx</a>
+      </div>
+
+      <div class="file-download-row">
+        <div class="file-download-info">
+          <h3>Billing &amp; Insurer Tracker</h3>
+          <p>Every self-pay and insurer invoice in one place — outstanding balance, days outstanding and status all calculate themselves.</p>
+        </div>
+        <a class="template-btn template-btn-primary" href="templates/billing-insurer-tracker.xlsx" download="Veyn — Billing &amp; Insurer Tracker.xlsx">Download .xlsx</a>
       </div>
     </div>
     </div>
