@@ -158,32 +158,55 @@
     font-family:'Special Elite', cursive; font-size:12.5px; padding:6px 14px;
     border:1.5px solid rgba(46,63,84,0.18); border-radius:999px; cursor:pointer;
     background:none; color:var(--slate); transition:border-color .15s, color .15s, background .15s;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
   }
+  .sys-chip .chip-name{ line-height:1.2; }
+  .sys-chip .chip-sub{ font-size:10px; color:var(--gold); opacity:0.8; letter-spacing:0.04em; }
   .sys-chip:hover{ border-color:var(--ink); color:var(--ink); }
   .sys-chip.active{ border-color:var(--gold); background:rgba(184,146,74,0.1); color:var(--ink); }
-  .sys-chip.has-guide{ border-color:rgba(63,107,79,0.35); }
-  .sys-chip.has-guide.active{ border-color:var(--green); background:rgba(63,107,79,0.08); }
+  .sys-chip.has-content{ border-color:rgba(63,107,79,0.35); }
+  .sys-chip.has-content.active{ border-color:var(--green); background:rgba(63,107,79,0.08); }
+
   .sys-panel{
     background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:14px;
     padding:28px 32px; display:none;
   }
   .sys-panel.visible{ display:block; }
-  .sys-panel h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; margin-bottom:10px; }
-  .sys-panel p{ color:var(--slate); font-size:14.5px; line-height:1.65; margin-bottom:18px; }
-  .sys-panel .guide-link{
-    display:inline-block; font-family:'Special Elite', cursive; font-size:13.5px; font-weight:600;
-    color:var(--green); border:1.5px solid rgba(63,107,79,0.35); border-radius:8px;
-    padding:10px 18px; text-decoration:none; margin-right:10px; margin-bottom:8px;
-    transition:background .15s, border-color .15s;
+  .sys-panel-title{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; margin-bottom:4px; }
+  .sys-panel-sub{ font-family:'Special Elite', cursive; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:20px; display:block; }
+
+  /* accordion */
+  .acc{ border-top:1px solid rgba(46,63,84,0.08); margin-bottom:20px; }
+  .acc-item{ border-bottom:1px solid rgba(46,63,84,0.08); }
+  .acc-hdr{
+    width:100%; text-align:left; background:none; border:none; cursor:pointer;
+    padding:14px 0; display:flex; justify-content:space-between; align-items:center;
+    font-family:'Cormorant Garamond', serif; font-size:17px; font-weight:600; color:var(--ink);
   }
-  .sys-panel .guide-link:hover{ background:rgba(63,107,79,0.07); border-color:var(--green); }
-  .sys-panel .contrib-link{
-    display:inline-block; font-family:'Special Elite', cursive; font-size:13px;
-    color:var(--gold); border:1px solid rgba(184,146,74,0.35); border-radius:8px;
-    padding:9px 16px; text-decoration:none; margin-right:10px; margin-bottom:8px;
-    transition:background .15s;
+  .acc-hdr .acc-count{ font-family:'Special Elite',cursive; font-size:11px; color:var(--slate); font-weight:400; margin-left:8px; }
+  .acc-arrow{ font-size:12px; color:var(--slate); transition:transform .2s; }
+  .acc-hdr.open .acc-arrow{ transform:rotate(180deg); }
+  .acc-body{ display:none; padding-bottom:16px; }
+  .acc-body.open{ display:block; }
+  .acc-entry{
+    padding:14px 16px; background:var(--paper); border-radius:8px; margin-bottom:10px;
   }
-  .sys-panel .contrib-link:hover{ background:rgba(184,146,74,0.08); }
+  .acc-entry-title{ font-family:'Cormorant Garamond', serif; font-size:15px; font-weight:600; color:var(--ink); margin-bottom:5px; }
+  .acc-entry-desc{ font-size:13.5px; color:var(--slate); line-height:1.6; margin-bottom:10px; }
+  .acc-entry a{ font-family:'Special Elite',cursive; font-size:13px; font-weight:600; color:var(--green); text-decoration:none; }
+  .acc-entry a:hover{ text-decoration:underline; }
+  .acc-empty{ font-family:'Special Elite',cursive; font-size:13px; color:var(--slate); padding:10px 0 4px; }
+
+  /* no-info state */
+  .sys-no-info{ text-align:center; padding:12px 0 8px; }
+  .sys-no-info p{ color:var(--slate); font-size:14.5px; line-height:1.65; margin-bottom:20px; }
+  .sys-no-info h4{ font-family:'Cormorant Garamond', serif; font-size:19px; font-weight:600; margin-bottom:10px; color:var(--ink); }
+  .contrib-link{
+    display:inline-block; font-family:'Special Elite', cursive; font-size:13px; font-weight:600;
+    color:var(--gold); border:1px solid rgba(184,146,74,0.4); border-radius:8px;
+    padding:9px 16px; text-decoration:none; margin:4px 6px; transition:background .15s;
+  }
+  .contrib-link:hover{ background:rgba(184,146,74,0.08); }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
   .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
@@ -691,22 +714,34 @@
     { slug: 'ultragenda', label: 'Ultragenda' },
   ];
 
-  const GUIDE_DATA = {
+  // To add content: add entries to guides[] and/or videos[] for a slug.
+  // Each entry: { title, desc, link, linkText }
+  const SYS_CONTENT = {
     carebit: {
-      desc: 'Calendar, patient records, billing, and Compose correspondence — plus the failure points that actually trip up new users. Based on real working-secretary experience, not vendor copy.',
-      link: 'system-guide.html?slug=carebit', linkText: 'Read the guide →',
+      guides: [
+        { title: 'Carebit — full system guide', desc: 'Calendar, patient records, billing, and Compose correspondence — plus the failure points that actually trip up new users. Based on real working-secretary experience, not vendor copy.', link: 'system-guide.html?slug=carebit', linkText: 'Read the guide →' },
+      ],
+      videos: [
+        { title: 'Carebit walkthrough', desc: 'Video walkthrough of Carebit covering the core workflows used in private practice.', link: 'system-guide.html?slug=carebit#video', linkText: 'Watch →' },
+      ],
     },
     semble: {
-      desc: 'A full written guide is in progress. In the meantime, watch a secretary actually using it day to day.',
-      link: 'system-guide.html?slug=semble', linkText: 'Watch it in use →',
+      guides: [],
+      videos: [
+        { title: 'Semble in use — day-to-day walkthrough', desc: 'Watch a secretary actually using Semble day to day in a private practice setting.', link: 'system-guide.html?slug=semble', linkText: 'Watch →' },
+      ],
     },
     pabau: {
-      desc: 'A full written guide is in progress. In the meantime, watch the official walkthrough of the core features.',
-      link: 'system-guide.html?slug=pabau', linkText: 'Watch it in use →',
+      guides: [],
+      videos: [
+        { title: 'Pabau — core features overview', desc: 'The official walkthrough of Pabau\'s core features and modules.', link: 'system-guide.html?slug=pabau', linkText: 'Watch →' },
+      ],
     },
     dgl: {
-      desc: 'A full written guide is in progress. In the meantime, watch the official overview and tutorial playlist.',
-      link: 'system-guide.html?slug=dgl', linkText: 'Watch it in use →',
+      guides: [],
+      videos: [
+        { title: 'DGL Practice Manager — tutorial playlist', desc: 'Official overview and tutorial playlist covering the key DGL workflows.', link: 'system-guide.html?slug=dgl', linkText: 'Watch →' },
+      ],
     },
   };
 
@@ -716,35 +751,73 @@
     if (!nav || !panel) return;
 
     ALL_SYSTEMS.forEach(sys => {
+      const hasContent = !!SYS_CONTENT[sys.slug];
       const btn = document.createElement('button');
-      btn.className = 'sys-chip' + (GUIDE_DATA[sys.slug] ? ' has-guide' : '');
-      btn.textContent = sys.label;
+      btn.className = 'sys-chip' + (hasContent ? ' has-content' : '');
+      btn.innerHTML = `<span class="chip-name">${sys.label}</span><span class="chip-sub">Guides &amp; videos</span>`;
       btn.addEventListener('click', () => {
         nav.querySelectorAll('.sys-chip').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
-        renderSysPanel(sys);
+        renderSysPanel(sys, hasContent);
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       });
       nav.appendChild(btn);
     });
 
-    function renderSysPanel(sys) {
-      const data = GUIDE_DATA[sys.slug];
+    function makeAccordion(label, items) {
+      const count = items.length;
+      const id = 'acc-' + label.toLowerCase() + '-' + Math.random().toString(36).slice(2);
+      const bodyId = id + '-body';
+      const inner = count === 0
+        ? `<div class="acc-empty">Nothing here yet — be the first to contribute.</div>`
+        : items.map(item => `
+            <div class="acc-entry">
+              <div class="acc-entry-title">${item.title}</div>
+              <div class="acc-entry-desc">${item.desc}</div>
+              <a href="${item.link}">${item.linkText}</a>
+            </div>`).join('');
+      return `
+        <div class="acc-item">
+          <button class="acc-hdr" data-body="${bodyId}">
+            ${label} <span class="acc-count">(${count})</span>
+            <span class="acc-arrow">▾</span>
+          </button>
+          <div class="acc-body" id="${bodyId}">${inner}</div>
+        </div>`;
+    }
+
+    function renderSysPanel(sys, hasContent) {
       panel.classList.add('visible');
-      if (data) {
+      if (hasContent) {
+        const d = SYS_CONTENT[sys.slug];
         panel.innerHTML = `
-          <h3>${sys.label}</h3>
-          <p>${data.desc}</p>
-          <a class="guide-link" href="${data.link}">${data.linkText}</a>
+          <div class="sys-panel-title">${sys.label}</div>
+          <span class="sys-panel-sub">Guides &amp; videos</span>
+          <div class="acc">
+            ${makeAccordion('Guides', d.guides)}
+            ${makeAccordion('Videos', d.videos)}
+          </div>
           <a class="contrib-link" href="share-knowledge.html">Share your knowledge →</a>
-        `;
+          <a class="contrib-link" href="share-knowledge.html">Suggest a video →</a>`;
       } else {
         panel.innerHTML = `
-          <h3>${sys.label}</h3>
-          <p>We don't have any information about this system yet. If you use it in your day-to-day work, you can help — your real experience is exactly what makes these guides useful.</p>
-          <a class="contrib-link" href="share-knowledge.html">Share your knowledge →</a>
-          <a class="contrib-link" href="share-knowledge.html">Suggest a video →</a>
-        `;
+          <div class="sys-panel-title">${sys.label}</div>
+          <span class="sys-panel-sub">Guides &amp; videos</span>
+          <div class="sys-no-info">
+            <h4>No guides or videos yet</h4>
+            <p>We don't have any guides or videos for ${sys.label} yet. If you use it day to day, your real-world knowledge is exactly what makes these resources useful for other secretaries.</p>
+            <a class="contrib-link" href="share-knowledge.html">Suggest a video →</a>
+            <a class="contrib-link" href="share-knowledge.html">Share your knowledge →</a>
+          </div>`;
       }
+      // Wire accordion toggles
+      panel.querySelectorAll('.acc-hdr').forEach(hdr => {
+        hdr.addEventListener('click', () => {
+          const body = document.getElementById(hdr.dataset.body);
+          const open = body.classList.toggle('open');
+          hdr.classList.toggle('open', open);
+        });
+      });
     }
   })();
 </script>
