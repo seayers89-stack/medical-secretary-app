@@ -135,6 +135,24 @@
             <option value="semble">Semble</option>
             <option value="pabau">Pabau</option>
             <option value="dgl">DGL Practice Manager</option>
+            <option value="cliniko">Cliniko</option>
+            <option value="writeupp">WriteUpp</option>
+            <option value="tm3">TM3</option>
+            <option value="zesty">Zesty</option>
+            <option value="meddbase">Meddbase</option>
+            <option value="healthcode">Healthcode / ePractice</option>
+            <option value="medesk">Medesk</option>
+            <option value="midexpro">MidexPRO</option>
+            <option value="compucare">Compucare</option>
+            <option value="cerner">Cerner</option>
+            <option value="epic">Epic</option>
+            <option value="lorenzo">Lorenzo</option>
+            <option value="systmone">SystmOne</option>
+            <option value="emis">EMIS</option>
+            <option value="pacs">PACS/RIS systems</option>
+            <option value="ers">eRS (NHS e-Referral Service)</option>
+            <option value="imsmaxims">IMS MAXIMS</option>
+            <option value="ultragenda">Ultragenda</option>
             <option value="other">Other (not listed)</option>
           </select>
         </div>
@@ -209,7 +227,14 @@
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
 <script>
-  const SYSTEM_NAMES = { carebit: 'Carebit', semble: 'Semble', pabau: 'Pabau', dgl: 'DGL Practice Manager' };
+  const SYSTEM_NAMES = {
+    carebit: 'Carebit', semble: 'Semble', pabau: 'Pabau', dgl: 'DGL Practice Manager',
+    cliniko: 'Cliniko', writeupp: 'WriteUpp', tm3: 'TM3', zesty: 'Zesty',
+    meddbase: 'Meddbase', healthcode: 'Healthcode / ePractice', medesk: 'Medesk',
+    midexpro: 'MidexPRO', compucare: 'Compucare', cerner: 'Cerner', epic: 'Epic',
+    lorenzo: 'Lorenzo', systmone: 'SystmOne', emis: 'EMIS', pacs: 'PACS/RIS systems',
+    ers: 'eRS (NHS e-Referral Service)', imsmaxims: 'IMS MAXIMS', ultragenda: 'Ultragenda',
+  };
   let userId = null;
 
   document.getElementById('system-select').addEventListener('change', (e) => {

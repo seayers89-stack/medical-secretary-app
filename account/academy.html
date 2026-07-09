@@ -152,6 +152,39 @@
   .past-item .past-meta{ font-size:12px; color:var(--slate); margin-bottom:4px; }
   .past-item .past-system{ font-weight:600; font-size:14px; }
 
+  /* system guide chip selector */
+  .sys-nav{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+  .sys-chip{
+    font-family:'Special Elite', cursive; font-size:12.5px; padding:6px 14px;
+    border:1.5px solid rgba(46,63,84,0.18); border-radius:999px; cursor:pointer;
+    background:none; color:var(--slate); transition:border-color .15s, color .15s, background .15s;
+  }
+  .sys-chip:hover{ border-color:var(--ink); color:var(--ink); }
+  .sys-chip.active{ border-color:var(--gold); background:rgba(184,146,74,0.1); color:var(--ink); }
+  .sys-chip.has-guide{ border-color:rgba(63,107,79,0.35); }
+  .sys-chip.has-guide.active{ border-color:var(--green); background:rgba(63,107,79,0.08); }
+  .sys-panel{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:14px;
+    padding:28px 32px; display:none;
+  }
+  .sys-panel.visible{ display:block; }
+  .sys-panel h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; margin-bottom:10px; }
+  .sys-panel p{ color:var(--slate); font-size:14.5px; line-height:1.65; margin-bottom:18px; }
+  .sys-panel .guide-link{
+    display:inline-block; font-family:'Special Elite', cursive; font-size:13.5px; font-weight:600;
+    color:var(--green); border:1.5px solid rgba(63,107,79,0.35); border-radius:8px;
+    padding:10px 18px; text-decoration:none; margin-right:10px; margin-bottom:8px;
+    transition:background .15s, border-color .15s;
+  }
+  .sys-panel .guide-link:hover{ background:rgba(63,107,79,0.07); border-color:var(--green); }
+  .sys-panel .contrib-link{
+    display:inline-block; font-family:'Special Elite', cursive; font-size:13px;
+    color:var(--gold); border:1px solid rgba(184,146,74,0.35); border-radius:8px;
+    padding:9px 16px; text-decoration:none; margin-right:10px; margin-bottom:8px;
+    transition:background .15s;
+  }
+  .sys-panel .contrib-link:hover{ background:rgba(184,146,74,0.08); }
+
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
   .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
 
@@ -244,28 +277,12 @@
     </div>
 
     <div class="tab-panel" id="tab-guides">
-      <div class="skills-grid">
-        <div class="skill-card">
-          <h3>Carebit</h3>
-          <p>Calendar, patient records, billing, and Compose correspondence — plus the failure points that actually trip up new users. Based on real working-secretary experience, not vendor copy.</p>
-          <a href="system-guide.html?slug=carebit">Read the guide →</a>
-        </div>
-        <div class="skill-card">
-          <h3>Semble</h3>
-          <p>Written guide not up yet — in the meantime, watch a secretary actually using it day to day.</p>
-          <a href="system-guide.html?slug=semble">Watch it in use →</a>
-        </div>
-        <div class="skill-card">
-          <h3>Pabau</h3>
-          <p>Written guide not up yet — in the meantime, watch the official walkthrough of the core features.</p>
-          <a href="system-guide.html?slug=pabau">Watch it in use →</a>
-        </div>
-        <div class="skill-card">
-          <h3>DGL Practice Manager</h3>
-          <p>Written guide not up yet — in the meantime, watch the official overview and tutorial playlist.</p>
-          <a href="system-guide.html?slug=dgl">Watch it in use →</a>
-        </div>
+      <div style="margin-bottom:20px; padding:14px 18px; background:rgba(184,146,74,0.08); border:1px solid rgba(184,146,74,0.25); border-radius:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <span style="font-size:13.5px; color:var(--slate); line-height:1.5;">Used one of these systems? Your real-world knowledge helps us improve the guides and quizzes for everyone.</span>
+        <a href="share-knowledge.html" style="font-family:'Special Elite',cursive; font-size:12.5px; font-weight:600; color:var(--gold); border:1px solid rgba(184,146,74,0.4); border-radius:999px; padding:6px 14px; white-space:nowrap; text-decoration:none;">Share your knowledge →</a>
       </div>
+      <div class="sys-nav" id="sys-nav"></div>
+      <div class="sys-panel" id="sys-panel"></div>
     </div>
 
     <div class="tab-panel" id="tab-modules">
@@ -647,6 +664,89 @@
       document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
     });
   });
+
+  // System guides chip selector
+  const ALL_SYSTEMS = [
+    { slug: 'carebit',    label: 'Carebit' },
+    { slug: 'semble',     label: 'Semble' },
+    { slug: 'pabau',      label: 'Pabau' },
+    { slug: 'dgl',        label: 'DGL Practice Manager' },
+    { slug: 'cliniko',    label: 'Cliniko' },
+    { slug: 'writeupp',   label: 'WriteUpp' },
+    { slug: 'tm3',        label: 'TM3' },
+    { slug: 'zesty',      label: 'Zesty' },
+    { slug: 'meddbase',   label: 'Meddbase' },
+    { slug: 'healthcode', label: 'Healthcode / ePractice' },
+    { slug: 'medesk',     label: 'Medesk' },
+    { slug: 'midexpro',   label: 'MidexPRO' },
+    { slug: 'compucare',  label: 'Compucare' },
+    { slug: 'cerner',     label: 'Cerner' },
+    { slug: 'epic',       label: 'Epic' },
+    { slug: 'lorenzo',    label: 'Lorenzo' },
+    { slug: 'systmone',   label: 'SystmOne' },
+    { slug: 'emis',       label: 'EMIS' },
+    { slug: 'pacs',       label: 'PACS/RIS systems' },
+    { slug: 'ers',        label: 'eRS (NHS e-Referral Service)' },
+    { slug: 'imsmaxims',  label: 'IMS MAXIMS' },
+    { slug: 'ultragenda', label: 'Ultragenda' },
+  ];
+
+  const GUIDE_DATA = {
+    carebit: {
+      desc: 'Calendar, patient records, billing, and Compose correspondence — plus the failure points that actually trip up new users. Based on real working-secretary experience, not vendor copy.',
+      link: 'system-guide.html?slug=carebit', linkText: 'Read the guide →',
+    },
+    semble: {
+      desc: 'A full written guide is in progress. In the meantime, watch a secretary actually using it day to day.',
+      link: 'system-guide.html?slug=semble', linkText: 'Watch it in use →',
+    },
+    pabau: {
+      desc: 'A full written guide is in progress. In the meantime, watch the official walkthrough of the core features.',
+      link: 'system-guide.html?slug=pabau', linkText: 'Watch it in use →',
+    },
+    dgl: {
+      desc: 'A full written guide is in progress. In the meantime, watch the official overview and tutorial playlist.',
+      link: 'system-guide.html?slug=dgl', linkText: 'Watch it in use →',
+    },
+  };
+
+  (function buildSysNav() {
+    const nav = document.getElementById('sys-nav');
+    const panel = document.getElementById('sys-panel');
+    if (!nav || !panel) return;
+
+    ALL_SYSTEMS.forEach(sys => {
+      const btn = document.createElement('button');
+      btn.className = 'sys-chip' + (GUIDE_DATA[sys.slug] ? ' has-guide' : '');
+      btn.textContent = sys.label;
+      btn.addEventListener('click', () => {
+        nav.querySelectorAll('.sys-chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        renderSysPanel(sys);
+      });
+      nav.appendChild(btn);
+    });
+
+    function renderSysPanel(sys) {
+      const data = GUIDE_DATA[sys.slug];
+      panel.classList.add('visible');
+      if (data) {
+        panel.innerHTML = `
+          <h3>${sys.label}</h3>
+          <p>${data.desc}</p>
+          <a class="guide-link" href="${data.link}">${data.linkText}</a>
+          <a class="contrib-link" href="share-knowledge.html">Share your knowledge →</a>
+        `;
+      } else {
+        panel.innerHTML = `
+          <h3>${sys.label}</h3>
+          <p>We don't have any information about this system yet. If you use it in your day-to-day work, you can help — your real experience is exactly what makes these guides useful.</p>
+          <a class="contrib-link" href="share-knowledge.html">Share your knowledge →</a>
+          <a class="contrib-link" href="share-knowledge.html">Suggest a video →</a>
+        `;
+      }
+    }
+  })();
 </script>
 
 <script src="../mobile-nav.js"></script>
