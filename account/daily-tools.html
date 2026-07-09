@@ -489,6 +489,36 @@
     });
   }
 
+  // Department contact numbers (migration_55_hospital_departments.sql),
+  // keyed by hospital_id so renderHospitalCard can look up a hospital's
+  // departments without a query per card.
+  const DEPARTMENT_LABELS = {
+    outpatients: 'Outpatients',
+    ward: 'Ward',
+    pathology: 'Pathology',
+    theatre_bookings: 'Theatre bookings',
+    nurses: 'Nurses',
+  };
+  let HOSPITAL_DEPARTMENTS = {};
+
+  async function loadHospitalDepartments() {
+    const { data } = await supabaseClient.from('hospital_departments').select('*').order('created_at', { ascending: true });
+    HOSPITAL_DEPARTMENTS = {};
+    (data || []).forEach(d => {
+      if (!HOSPITAL_DEPARTMENTS[d.hospital_id]) HOSPITAL_DEPARTMENTS[d.hospital_id] = [];
+      HOSPITAL_DEPARTMENTS[d.hospital_id].push(d);
+    });
+  }
+
+  function formatShortDate(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function isUkMobileNumber(phone) {
+    return /^\s*(\+?44\s?)?0?7/.test(phone);
+  }
+
   (async () => {
     const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'daily-tools');
     const loading = document.getElementById('loading');
@@ -503,6 +533,7 @@
     if (isSecretaryOrAdmin) document.getElementById('add-consultant-hub-link').style.display = 'inline';
 
     await loadHospitals();
+    await loadHospitalDepartments();
     await loadSpellingTerms();
 
     loading.style.display = 'none';
@@ -1021,7 +1052,43 @@
     `;
   });
 
-  function renderHospitalCard(h) {
+  const FORM_INPUT_STYLE = "width:100%; padding:9px 11px; font-family:'Special Elite', cursive; font-size:13.5px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;";
+
+  function renderDepartmentRow(d) {
+    const label = DEPARTMENT_LABELS[d.department_type] || d.department_type;
+    const title = d.label ? `${label} — ${escapeHtml(d.label)}` : label;
+    return `
+      <div class="insurer-row" data-department-id="${d.id}">
+        <span>${title}</span>
+        <span>${escapeHtml(d.phone)}
+          <div style="font-size:11px; color:var(--slate); font-weight:400; margin-top:2px;">
+            Added ${formatShortDate(d.created_at)}
+            · <button type="button" data-flag-department="${d.id}" style="background:none; border:none; padding:0; font:inherit; color:var(--slate); text-decoration:underline; cursor:pointer;">Flag as incorrect</button>
+          </div>
+        </span>
+      </div>
+    `;
+  }
+
+  function renderAddDepartmentForm(hospitalId) {
+    const options = Object.entries(DEPARTMENT_LABELS).map(([value, text]) => `<option value="${value}">${text}</option>`).join('');
+    return `
+      <form data-add-department-form="${hospitalId}" style="margin-top:14px; padding-top:12px; border-top:1px solid rgba(46,63,84,0.1);">
+        <p style="font-size:12.5px; font-weight:600; color:var(--slate); margin-bottom:8px;">Add a department contact</p>
+        <p class="add-department-error" style="display:none; font-size:12.5px; padding:8px 10px; border-radius:6px; margin-bottom:8px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;"></p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <select name="department_type" required style="${FORM_INPUT_STYLE} flex:1; min-width:130px;">${options}</select>
+          <input type="text" name="label" placeholder="Label (optional, e.g. Ward 4B)" style="${FORM_INPUT_STYLE} flex:1; min-width:130px;">
+          <input type="tel" name="phone" placeholder="Landline number" required style="${FORM_INPUT_STYLE} flex:1; min-width:130px;">
+          <button type="submit" style="padding:9px 16px; font-family:'Special Elite', cursive; font-size:13px; border:none; border-radius:8px; background:var(--gold); color:#2E3F54; cursor:pointer; font-weight:600;">Add</button>
+        </div>
+      </form>
+    `;
+  }
+
+  function renderHospitalCard(h, opts) {
+    const showAddForm = !!(opts && opts.showAddForm);
+    const departments = HOSPITAL_DEPARTMENTS[h.id] || [];
     return `
       <div class="insurer-card">
         <h3>${h.name}</h3>
@@ -1030,12 +1097,73 @@
         ${h.website ? `<div class="insurer-row"><span>Website</span><span>${h.website}</span></div>` : ''}
         ${h.specialties ? `<div class="insurer-row"><span>Specialties</span><span>${h.specialties}</span></div>` : ''}
         ${h.notes ? `<div class="insurer-notes">${h.notes}</div>` : ''}
+        ${departments.map(renderDepartmentRow).join('')}
+        ${showAddForm && isSecretaryOrAdmin ? renderAddDepartmentForm(h.id) : ''}
       </div>
     `;
   }
 
+  function wireHospitalCardActions(container, onDepartmentAdded) {
+    container.querySelectorAll('[data-flag-department]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const note = window.prompt("What's wrong with this number? (leave blank to just flag it as incorrect)");
+        if (note === null) return;
+        btn.disabled = true;
+        const { error } = await supabaseClient.from('hospital_department_flags').insert({
+          department_id: btn.dataset.flagDepartment,
+          flagged_by_profile_id: currentUserId,
+          suggested_correction: note.trim() || null,
+        });
+        alert(error ? `Could not submit flag: ${error.message}` : 'Thanks — this has been flagged for admin review.');
+        btn.disabled = false;
+      });
+    });
+
+    container.querySelectorAll('[data-add-department-form]').forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const hospitalId = form.dataset.addDepartmentForm;
+        const errorBox = form.querySelector('.add-department-error');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const phone = form.querySelector('[name="phone"]').value.trim();
+
+        errorBox.style.display = 'none';
+        if (isUkMobileNumber(phone)) {
+          errorBox.textContent = 'Please enter a landline/switchboard number — mobile numbers aren\'t allowed here.';
+          errorBox.style.display = 'block';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Adding…';
+
+        const { data, error } = await supabaseClient.from('hospital_departments').insert({
+          hospital_id: hospitalId,
+          department_type: form.querySelector('[name="department_type"]').value,
+          label: form.querySelector('[name="label"]').value.trim() || null,
+          phone,
+          added_by_profile_id: currentUserId,
+        }).select().single();
+
+        if (error) {
+          errorBox.textContent = error.message;
+          errorBox.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Add';
+          return;
+        }
+
+        if (!HOSPITAL_DEPARTMENTS[hospitalId]) HOSPITAL_DEPARTMENTS[hospitalId] = [];
+        HOSPITAL_DEPARTMENTS[hospitalId].push(data);
+        if (onDepartmentAdded) onDepartmentAdded();
+      });
+    });
+  }
+
   function renderHospitalDetail(h) {
-    document.getElementById('hospital-detail').innerHTML = h ? renderHospitalCard(h) : '';
+    const container = document.getElementById('hospital-detail');
+    container.innerHTML = h ? renderHospitalCard(h, { showAddForm: true }) : '';
+    if (h) wireHospitalCardActions(container, () => renderHospitalDetail(h));
   }
 
   function renderHospitalSuggestions(matches) {
@@ -1090,8 +1218,9 @@
     const matches = HOSPITALS.filter(h => h.area === area);
     resultsEl.innerHTML = `
       <p style="font-size:13px; color:var(--slate); margin:14px 0 10px;">${matches.length} hospital${matches.length === 1 ? '' : 's'} in ${area}</p>
-      ${matches.map(renderHospitalCard).join('')}
+      ${matches.map(h => renderHospitalCard(h)).join('')}
     `;
+    wireHospitalCardActions(resultsEl);
   });
 
   // ── Suggest an addition/correction (hospitals + GP practices) ───────────

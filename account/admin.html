@@ -314,6 +314,7 @@
       <button class="tab-btn" data-tab="consultants">Consultants</button>
       <button class="tab-btn" data-tab="directory">Directory <span class="tab-badge" id="badge-directory" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="contact-suggestions">Contact suggestions <span class="tab-badge" id="badge-contact-suggestions" style="display:none;"></span></button>
+      <button class="tab-btn" data-tab="dept-contacts">Department contacts <span class="tab-badge" id="badge-dept-contacts" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="spelling">Spelling terms <span class="tab-badge" id="badge-spelling" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="videos">System videos <span class="tab-badge" id="badge-videos" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="support">Support <span class="tab-badge" id="support-unread-badge" style="display:none;"></span></button>
@@ -364,6 +365,15 @@
     <div class="tab-panel" id="tab-contact-suggestions">
       <p style="font-size:13.5px; color:var(--slate); margin-bottom:16px;">Suggested additions/corrections to the Business Hub hospital and GP directories (hospitals-data.js / gp-practices.json — static files, not database tables). Review each, edit the source file yourself if it checks out, then mark it applied.</p>
       <div id="contact-suggestions-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-dept-contacts">
+      <p style="font-size:13.5px; color:var(--slate); margin-bottom:16px;">Secretary-added hospital department contact numbers (outpatients, ward, pathology, theatre bookings, nurses). Secretaries add these directly — anyone can flag one as incorrect, and only admin can amend or remove an entry.</p>
+      <h3 style="font-family:'Cormorant Garamond', serif; font-size:17px; margin-bottom:12px;">Flagged entries</h3>
+      <div id="dept-flags-list"></div>
+
+      <h3 style="font-family:'Cormorant Garamond', serif; font-size:17px; margin:28px 0 12px;">All department contacts</h3>
+      <div id="dept-contacts-all-list"></div>
     </div>
 
     <div class="tab-panel" id="tab-spelling">
@@ -1530,6 +1540,220 @@
     }
   }
 
+  // ── Department contacts tab ─────────────────────────────────────────────
+  // Secretary-added hospital department numbers (migration_55_hospital_departments.sql).
+  // Secretaries write these directly — no approval needed to go live — but
+  // have no edit/delete rights of their own; corrections only happen here,
+  // via a flag (hospital_department_flags) that points at a specific entry.
+  const DEPT_TYPE_LABELS = {
+    outpatients: 'Outpatients',
+    ward: 'Ward',
+    pathology: 'Pathology',
+    theatre_bookings: 'Theatre bookings',
+    nurses: 'Nurses',
+  };
+
+  async function loadDeptContactsTab() {
+    const { data: departments, error } = await supabaseClient
+      .from('hospital_departments')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      document.getElementById('dept-contacts-all-list').innerHTML = `<div class="empty-state">Could not load department contacts: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+
+    const { data: flags } = await supabaseClient
+      .from('hospital_department_flags')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const departmentsById = {};
+    (departments || []).forEach(d => { departmentsById[d.id] = d; });
+
+    const hospitalsById = {};
+    HOSPITALS.forEach(h => { hospitalsById[h.id] = h; });
+
+    const addedByIds = (departments || []).map(d => d.added_by_profile_id);
+    const flaggedByIds = (flags || []).map(f => f.flagged_by_profile_id);
+    const profilesById = await fetchProfilesByIds([...addedByIds, ...flaggedByIds]);
+
+    function nameFor(id) {
+      const p = profilesById[id];
+      return p ? `${p.first_name} ${p.last_name}` : 'Unknown';
+    }
+
+    setTabBadge('badge-dept-contacts', (flags || []).filter(f => !f.resolved).length);
+
+    renderDeptFlags(flags || [], departmentsById, hospitalsById, nameFor);
+    renderDeptContactsAll(departments || [], hospitalsById, nameFor);
+  }
+
+  function deptEntryLabel(d) {
+    const type = DEPT_TYPE_LABELS[d.department_type] || d.department_type;
+    return d.label ? `${type} — ${escapeHtml(d.label)}` : type;
+  }
+
+  function renderDeptFlags(flags, departmentsById, hospitalsById, nameFor) {
+    const list = document.getElementById('dept-flags-list');
+    if (flags.length === 0) { list.innerHTML = '<div class="empty-state">No flags yet.</div>'; return; }
+
+    list.innerHTML = flags.map(f => {
+      const entry = departmentsById[f.department_id];
+      const hospital = entry ? hospitalsById[entry.hospital_id] : null;
+      return `
+        <div class="card ${f.resolved ? 'resolved' : ''}" data-flag-id="${f.id}">
+          <div class="item-meta">
+            <span>Flagged by ${escapeHtml(nameFor(f.flagged_by_profile_id))}</span>
+            <span>${formatDate(f.created_at)}</span>
+            ${f.resolved ? '<span>· Resolved</span>' : ''}
+          </div>
+          <div class="quoted-content">
+            ${entry
+              ? `<strong>${hospital ? escapeHtml(hospital.name) : 'Unknown hospital'}</strong> — ${deptEntryLabel(entry)}: ${escapeHtml(entry.phone)}`
+              : '<em>Entry no longer exists.</em>'}
+          </div>
+          ${f.suggested_correction ? `<div class="report-reason"><strong>Suggested correction:</strong> ${escapeHtml(f.suggested_correction)}</div>` : '<div class="report-reason"><em>No correction given — just flagged as incorrect.</em></div>'}
+          <div class="row-actions">
+            ${!f.resolved ? `<button type="button" class="success" data-resolve-dept-flag="${f.id}">Mark resolved</button>` : ''}
+            ${entry ? `<button type="button" data-edit-dept-entry-from-flag="${entry.id}">Edit entry</button>` : ''}
+            ${entry ? `<button type="button" class="danger" data-delete-dept-entry-from-flag="${entry.id}">Delete entry</button>` : ''}
+            <button type="button" class="danger" data-remove-dept-flag="${f.id}">Remove flag</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('[data-edit-dept-entry-from-flag]').forEach(btn => {
+      btn.addEventListener('click', () => openEditDeptContactModal(departmentsById[btn.dataset.editDeptEntryFromFlag]));
+    });
+    list.querySelectorAll('[data-resolve-dept-flag]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        await supabaseClient.from('hospital_department_flags').update({ resolved: true }).eq('id', btn.dataset.resolveDeptFlag);
+        await loadDeptContactsTab();
+      });
+    });
+    list.querySelectorAll('[data-delete-dept-entry-from-flag]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this department contact?')) return;
+        btn.disabled = true;
+        await supabaseClient.from('hospital_departments').delete().eq('id', btn.dataset.deleteDeptEntryFromFlag);
+        await loadDeptContactsTab();
+      });
+    });
+    list.querySelectorAll('[data-remove-dept-flag]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remove this flag? The underlying entry will not be affected.')) return;
+        btn.disabled = true;
+        await supabaseClient.from('hospital_department_flags').delete().eq('id', btn.dataset.removeDeptFlag);
+        await loadDeptContactsTab();
+      });
+    });
+  }
+
+  function renderDeptContactsAll(departments, hospitalsById, nameFor) {
+    const list = document.getElementById('dept-contacts-all-list');
+    if (departments.length === 0) { list.innerHTML = '<div class="empty-state">No department contacts yet.</div>'; return; }
+
+    list.innerHTML = `
+      <table class="data-table">
+        <thead><tr>
+          <th>Hospital</th><th>Department</th><th>Phone</th><th>Added by</th><th>Added</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${departments.map(d => `<tr>
+            <td><strong>${hospitalsById[d.hospital_id] ? escapeHtml(hospitalsById[d.hospital_id].name) : 'Unknown'}</strong></td>
+            <td>${deptEntryLabel(d)}</td>
+            <td>${escapeHtml(d.phone)}</td>
+            <td>${escapeHtml(nameFor(d.added_by_profile_id))}</td>
+            <td style="white-space:nowrap;">${formatDate(d.created_at)}</td>
+            <td style="white-space:nowrap;">
+              <button type="button" data-edit-dept-entry="${d.id}">Edit</button>
+              <button type="button" class="danger" data-delete-dept-entry="${d.id}">Delete</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+
+    list.querySelectorAll('[data-edit-dept-entry]').forEach(btn => {
+      btn.addEventListener('click', () => openEditDeptContactModal(departments.find(d => d.id === btn.dataset.editDeptEntry)));
+    });
+    list.querySelectorAll('[data-delete-dept-entry]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this department contact?')) return;
+        btn.disabled = true;
+        await supabaseClient.from('hospital_departments').delete().eq('id', btn.dataset.deleteDeptEntry);
+        await loadDeptContactsTab();
+      });
+    });
+  }
+
+  function openEditDeptContactModal(entry) {
+    if (!entry) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'edit-dept-entry-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(46,63,84,0.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; overflow-y:auto;';
+    const options = Object.entries(DEPT_TYPE_LABELS).map(([value, text]) =>
+      `<option value="${value}" ${entry.department_type === value ? 'selected' : ''}>${text}</option>`).join('');
+    overlay.innerHTML = `
+      <div style="background:#F7F4ED; border-radius:14px; padding:32px 36px; max-width:440px; width:100%; font-family:'Special Elite', cursive; box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+        <h3 style="font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:8px; color:#2E3F54;">Edit department contact</h3>
+        <p id="edit-dept-form-error" style="display:none; font-size:13.5px; padding:12px 14px; border-radius:8px; margin-bottom:16px; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;"></p>
+        <form id="edit-dept-form">
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Department</label>
+            <select id="edit-dept-type" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;">${options}</select>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Label (optional)</label>
+            <input type="text" id="edit-dept-label" style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;" value="${entry.label ? escapeHtml(entry.label) : ''}">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#2E3F54;">Phone</label>
+            <input type="text" id="edit-dept-phone" required style="width:100%; padding:10px 12px; font-family:'Special Elite', cursive; font-size:14px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:#fff; color:#2E3F54;" value="${escapeHtml(entry.phone)}">
+          </div>
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" id="edit-dept-cancel-btn" style="padding:10px 18px; border-radius:8px; border:1.5px solid rgba(46,63,84,0.2); background:none; font-family:inherit; cursor:pointer;">Cancel</button>
+            <button type="submit" id="edit-dept-submit-btn" style="padding:10px 18px; border-radius:8px; border:none; background:var(--gold); color:#2E3F54; font-family:inherit; font-weight:600; cursor:pointer;">Save changes</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const closeModal = () => overlay.remove();
+    document.getElementById('edit-dept-cancel-btn').addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+    document.getElementById('edit-dept-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById('edit-dept-form-error');
+      const submitBtn = document.getElementById('edit-dept-submit-btn');
+      errorBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving…';
+
+      const { error } = await supabaseClient.from('hospital_departments').update({
+        department_type: document.getElementById('edit-dept-type').value,
+        label: document.getElementById('edit-dept-label').value.trim() || null,
+        phone: document.getElementById('edit-dept-phone').value.trim(),
+      }).eq('id', entry.id);
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save changes';
+        return;
+      }
+
+      closeModal();
+      await loadDeptContactsTab();
+    });
+  }
+
   // ── Spelling terms tab ────────────────────────────────────────────────────
   // Admin-managed reference data for the spelling search tool in Daily Tools
   // (account/daily-tools.html), backed by spelling_terms and
@@ -2244,6 +2468,7 @@
     await loadConsultants();
     await loadDirectoryTab();
     await loadContactSuggestions();
+    await loadDeptContactsTab();
     await loadSpellingSuggestions();
     await loadSpellingTerms();
     await loadVideoSuggestions();
