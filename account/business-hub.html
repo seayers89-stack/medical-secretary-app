@@ -116,9 +116,10 @@
   }
 
   .template-box{
-    width:100%; font-family:'Special Elite', cursive; font-size:12.5px; line-height:1.6;
-    color:var(--ink); background:var(--paper); border:1.5px solid rgba(46,63,84,0.12); border-radius:10px;
-    padding:16px 18px; resize:vertical; margin-top:6px;
+    width:100%; font-family:'Georgia', 'Times New Roman', serif; font-size:13.5px; line-height:1.75;
+    color:var(--ink); background:var(--white); border:1.5px solid rgba(46,63,84,0.1); border-top:3px solid var(--gold);
+    border-radius:8px; box-shadow:0 2px 10px rgba(46,63,84,0.06);
+    padding:24px 28px; resize:vertical; margin-top:6px;
   }
   .template-box:focus{ outline:none; border-color:var(--gold); }
   .template-actions{ display:flex; gap:10px; margin-top:12px; }
@@ -128,6 +129,9 @@
   }
   .template-btn:hover{ border-color:var(--gold); color:#8F6F36; }
   .template-btn.copied{ border-color:var(--green); color:var(--green); }
+  .template-btn-primary{ background:var(--gold); border-color:var(--gold); color:var(--white); }
+  .template-btn-primary:hover{ background:#A17F3F; border-color:#A17F3F; color:var(--white); }
+  .template-btn-primary:disabled{ opacity:0.65; cursor:not-allowed; }
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
@@ -302,7 +306,7 @@
       <textarea class="template-box" id="invoice-template" readonly rows="20"></textarea>
       <div class="template-actions">
         <button class="template-btn" data-copy-target="invoice-template">Copy to clipboard</button>
-        <button class="template-btn" data-download-target="invoice-template" data-download-name="invoice-template.txt">Download .txt</button>
+        <button class="template-btn template-btn-primary" data-docx-target="invoice-template" data-docx-name="invoice-template.docx" data-docx-title="INVOICE">Download as Word doc</button>
       </div>
     </div>
 
@@ -313,7 +317,7 @@
       <textarea class="template-box" id="contract-template" readonly rows="26"></textarea>
       <div class="template-actions">
         <button class="template-btn" data-copy-target="contract-template">Copy to clipboard</button>
-        <button class="template-btn" data-download-target="contract-template" data-download-name="engagement-letter-template.txt">Download .txt</button>
+        <button class="template-btn template-btn-primary" data-docx-target="contract-template" data-docx-name="engagement-letter-template.docx" data-docx-title="ENGAGEMENT LETTER">Download as Word doc</button>
       </div>
     </div>
     </div>
@@ -328,6 +332,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.7.1/dist/index.iife.min.js"></script>
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
 <script>
@@ -476,16 +481,48 @@ This is a plain-English starting template, not a substitute for legal advice —
     });
   });
 
-  document.querySelectorAll('.template-btn[data-download-target]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = document.getElementById(btn.dataset.downloadTarget);
-      const blob = new Blob([target.value], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = btn.dataset.downloadName;
-      a.click();
-      URL.revokeObjectURL(url);
+  // Word doc export for templates — plain text with [bracket] placeholders,
+  // so rather than restructuring the templates into fields, convert
+  // line-by-line: the title line goes bold, lines with fixed-width spacing
+  // (the invoice's line-item table, the letter's signature row) get a
+  // monospace font so their alignment survives the conversion, everything
+  // else is a normal document paragraph.
+  function textToDocxParagraphs(text, titleLine) {
+    return text.split('\n').map((line, i) => {
+      if (i === 0 && line.trim() === titleLine) {
+        return new docx.Paragraph({ children: [new docx.TextRun({ text: line, bold: true, size: 32 })], spacing: { after: 200 } });
+      }
+      const isTableish = /\s{2,}/.test(line) && line.trim().length > 0;
+      return new docx.Paragraph({
+        children: [new docx.TextRun({ text: line || ' ', font: isTableish ? 'Consolas' : 'Georgia', size: isTableish ? 20 : 22 })],
+      });
+    });
+  }
+
+  async function downloadTemplateAsDocx(text, filename, titleLine) {
+    const doc = new docx.Document({ sections: [{ children: textToDocxParagraphs(text, titleLine) }] });
+    const blob = await docx.Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.querySelectorAll('.template-btn[data-docx-target]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const target = document.getElementById(btn.dataset.docxTarget);
+      const original = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Preparing…';
+      try {
+        await downloadTemplateAsDocx(target.value, btn.dataset.docxName, btn.dataset.docxTitle);
+      } catch (err) {
+        alert('Could not generate the Word document: ' + err.message);
+      }
+      btn.disabled = false;
+      btn.textContent = original;
     });
   });
 
