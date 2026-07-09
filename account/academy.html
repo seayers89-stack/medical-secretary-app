@@ -714,35 +714,12 @@
     { slug: 'ultragenda', label: 'Ultragenda' },
   ];
 
-  // To add content: add entries to guides[] and/or videos[] for a slug.
-  // Each entry: { title, desc, link, linkText }
-  const SYS_CONTENT = {
-    carebit: {
-      guides: [
-        { title: 'Carebit — full system guide', desc: 'Calendar, patient records, billing, and Compose correspondence — plus the failure points that actually trip up new users. Based on real working-secretary experience, not vendor copy.', link: 'system-guide.html?slug=carebit', linkText: 'Read the guide →' },
-      ],
-      videos: [
-        { title: 'Carebit walkthrough', desc: 'Video walkthrough of Carebit covering the core workflows used in private practice.', link: 'system-guide.html?slug=carebit#video', linkText: 'Watch →' },
-      ],
-    },
-    semble: {
-      guides: [],
-      videos: [
-        { title: 'Semble in use — day-to-day walkthrough', desc: 'Watch a secretary actually using Semble day to day in a private practice setting.', link: 'system-guide.html?slug=semble', linkText: 'Watch →' },
-      ],
-    },
-    pabau: {
-      guides: [],
-      videos: [
-        { title: 'Pabau — core features overview', desc: 'The official walkthrough of Pabau\'s core features and modules.', link: 'system-guide.html?slug=pabau', linkText: 'Watch →' },
-      ],
-    },
-    dgl: {
-      guides: [],
-      videos: [
-        { title: 'DGL Practice Manager — tutorial playlist', desc: 'Official overview and tutorial playlist covering the key DGL workflows.', link: 'system-guide.html?slug=dgl', linkText: 'Watch →' },
-      ],
-    },
+  // To add a written guide for a system, add an entry to SYS_GUIDES[slug].
+  // Videos are fetched live from the system_videos table — no changes needed here when a new video is added.
+  const SYS_GUIDES = {
+    carebit: [
+      { title: 'Carebit — full system guide', desc: 'Calendar, patient records, billing, and Compose correspondence — plus the failure points that actually trip up new users. Based on real working-secretary experience, not vendor copy.', link: 'system-guide.html?slug=carebit', linkText: 'Read the guide →' },
+    ],
   };
 
   (function buildSysNav() {
@@ -751,55 +728,94 @@
     if (!nav || !panel) return;
 
     ALL_SYSTEMS.forEach(sys => {
-      const hasContent = !!SYS_CONTENT[sys.slug];
+      const hasGuide = !!SYS_GUIDES[sys.slug];
       const btn = document.createElement('button');
-      btn.className = 'sys-chip' + (hasContent ? ' has-content' : '');
+      btn.className = 'sys-chip' + (hasGuide ? ' has-content' : '');
       btn.innerHTML = `<span class="chip-name">${sys.label}</span><span class="chip-sub">Guides &amp; videos</span>`;
       btn.addEventListener('click', () => {
         nav.querySelectorAll('.sys-chip').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
-        renderSysPanel(sys, hasContent);
+        renderSysPanel(sys);
         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       });
       nav.appendChild(btn);
     });
 
-    function makeAccordion(label, items) {
-      const count = items.length;
-      const id = 'acc-' + label.toLowerCase() + '-' + Math.random().toString(36).slice(2);
-      const bodyId = id + '-body';
-      const inner = count === 0
-        ? `<div class="acc-empty">Nothing here yet — be the first to contribute.</div>`
-        : items.map(item => `
-            <div class="acc-entry">
-              <div class="acc-entry-title">${item.title}</div>
-              <div class="acc-entry-desc">${item.desc}</div>
-              <a href="${item.link}">${item.linkText}</a>
-            </div>`).join('');
+    function makeAccordionShell(label, bodyId, initialHtml) {
       return `
         <div class="acc-item">
           <button class="acc-hdr" data-body="${bodyId}">
-            ${label} <span class="acc-count">(${count})</span>
+            ${label} <span class="acc-count" id="${bodyId}-count"></span>
             <span class="acc-arrow">▾</span>
           </button>
-          <div class="acc-body" id="${bodyId}">${inner}</div>
+          <div class="acc-body" id="${bodyId}">${initialHtml}</div>
         </div>`;
     }
 
-    function renderSysPanel(sys, hasContent) {
+    function renderGuideItems(guides) {
+      if (!guides || guides.length === 0) return '<div class="acc-empty">No written guide yet — check back soon.</div>';
+      return guides.map(g => `
+        <div class="acc-entry">
+          <div class="acc-entry-title">${g.title}</div>
+          <div class="acc-entry-desc">${g.desc}</div>
+          <a href="${g.link}">${g.linkText}</a>
+        </div>`).join('');
+    }
+
+    function renderVideoItems(videos) {
+      if (!videos || videos.length === 0) return '<div class="acc-empty">No videos yet — suggest one below.</div>';
+      return videos.map(v => `
+        <div class="acc-entry">
+          <div class="acc-entry-title">${escapeHtml(v.label)}</div>
+          <div class="acc-entry-desc">${v.source === 'official' ? 'Official vendor video' : 'Recorded by a practising secretary — not an official vendor video'}</div>
+          <a href="${escapeHtml(v.url)}" target="_blank" rel="noopener">Watch →</a>
+        </div>`).join('');
+    }
+
+    async function renderSysPanel(sys) {
+      const guides = SYS_GUIDES[sys.slug] || [];
+      const guideBodyId = 'acc-guides-' + sys.slug;
+      const videoBodyId = 'acc-videos-' + sys.slug;
+
       panel.classList.add('visible');
-      if (hasContent) {
-        const d = SYS_CONTENT[sys.slug];
-        panel.innerHTML = `
-          <div class="sys-panel-title">${sys.label}</div>
-          <span class="sys-panel-sub">Guides &amp; videos</span>
-          <div class="acc">
-            ${makeAccordion('Guides', d.guides)}
-            ${makeAccordion('Videos', d.videos)}
-          </div>
-          <a class="contrib-link" href="share-knowledge.html">Share your knowledge →</a>
-          <a class="contrib-link" href="share-knowledge.html">Suggest a video →</a>`;
-      } else {
+      panel.innerHTML = `
+        <div class="sys-panel-title">${sys.label}</div>
+        <span class="sys-panel-sub">Guides &amp; videos</span>
+        <div class="acc">
+          ${makeAccordionShell('Guides', guideBodyId, renderGuideItems(guides))}
+          ${makeAccordionShell('Videos', videoBodyId, '<div class="acc-empty" style="color:var(--slate);opacity:0.6;">Loading…</div>')}
+        </div>
+        <a class="contrib-link" href="share-knowledge.html">Share your knowledge →</a>
+        <a class="contrib-link" href="share-knowledge.html">Suggest a video →</a>`;
+
+      // Update guide count badge
+      const gCount = document.getElementById(guideBodyId + '-count');
+      if (gCount) gCount.textContent = '(' + guides.length + ')';
+
+      // Wire accordion toggles
+      panel.querySelectorAll('.acc-hdr').forEach(hdr => {
+        hdr.addEventListener('click', () => {
+          const body = document.getElementById(hdr.dataset.body);
+          const open = body.classList.toggle('open');
+          hdr.classList.toggle('open', open);
+        });
+      });
+
+      // Fetch videos from DB
+      const { data: videos, error } = await supabaseClient
+        .from('system_videos')
+        .select('label, url, source')
+        .eq('system_slug', sys.slug)
+        .order('created_at', { ascending: true });
+
+      const videoBody = document.getElementById(videoBodyId);
+      const vCount = document.getElementById(videoBodyId + '-count');
+      const vList = error ? [] : (videos || []);
+      if (videoBody) videoBody.innerHTML = renderVideoItems(vList);
+      if (vCount) vCount.textContent = '(' + vList.length + ')';
+
+      // If no guides and no videos, show no-info state instead
+      if (guides.length === 0 && vList.length === 0) {
         panel.innerHTML = `
           <div class="sys-panel-title">${sys.label}</div>
           <span class="sys-panel-sub">Guides &amp; videos</span>
@@ -810,14 +826,6 @@
             <a class="contrib-link" href="share-knowledge.html">Share your knowledge →</a>
           </div>`;
       }
-      // Wire accordion toggles
-      panel.querySelectorAll('.acc-hdr').forEach(hdr => {
-        hdr.addEventListener('click', () => {
-          const body = document.getElementById(hdr.dataset.body);
-          const open = body.classList.toggle('open');
-          hdr.classList.toggle('open', open);
-        });
-      });
     }
   })();
 </script>
