@@ -197,6 +197,23 @@
   .acc-entry a:hover{ text-decoration:underline; }
   .acc-empty{ font-family:'Special Elite',cursive; font-size:13px; color:var(--slate); padding:10px 0 4px; }
 
+  /* inner section accordion (guide sections within the Guides dropdown) */
+  .sec-item{ border-bottom:1px solid rgba(46,63,84,0.06); }
+  .sec-item:last-child{ border-bottom:none; }
+  .sec-hdr{
+    width:100%; text-align:left; background:none; border:none; cursor:pointer;
+    padding:11px 0; display:flex; justify-content:space-between; align-items:center;
+    font-family:'Special Elite', cursive; font-size:13px; font-weight:600; color:var(--ink);
+  }
+  .sec-arrow{ font-size:11px; color:var(--slate); transition:transform .2s; flex-shrink:0; margin-left:10px; }
+  .sec-hdr.open .sec-arrow{ transform:rotate(180deg); }
+  .sec-body{ display:none; padding:4px 0 14px; font-size:13.5px; line-height:1.7; color:var(--ink); }
+  .sec-body.open{ display:block; }
+  .sec-body p{ margin-bottom:10px; color:var(--slate); }
+  .sec-body p:last-child{ margin-bottom:0; }
+  .sec-body ul{ padding-left:18px; margin-bottom:10px; color:var(--slate); }
+  .sec-body strong{ color:var(--ink); }
+
   /* no-info state */
   .sys-no-info{ text-align:center; padding:12px 0 8px; }
   .sys-no-info p{ color:var(--slate); font-size:14.5px; line-height:1.65; margin-bottom:20px; }
@@ -409,6 +426,7 @@
 <script src="account-nav.js"></script>
 <script src="training-modules-data.js"></script>
 <script src="specialist-courses-data.js"></script>
+<script src="system-skills-data.js"></script>
 <script>
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
@@ -714,13 +732,9 @@
     { slug: 'ultragenda', label: 'Ultragenda' },
   ];
 
-  // To add a written guide for a system, add an entry to SYS_GUIDES[slug].
-  // Videos are fetched live from the system_videos table — no changes needed here when a new video is added.
-  const SYS_GUIDES = {
-    carebit: [
-      { title: 'Carebit — full system guide', desc: 'Calendar, patient records, billing, and Compose correspondence — plus the failure points that actually trip up new users. Based on real working-secretary experience, not vendor copy.', link: 'system-guide.html?slug=carebit', linkText: 'Read the guide →' },
-    ],
-  };
+  // Systems with written guide sections in system-skills-data.js.
+  // Videos are fetched live from system_videos table — no code change needed when a new video is added.
+  const SYSTEMS_WITH_GUIDES = new Set(['carebit']);
 
   (function buildSysNav() {
     const nav = document.getElementById('sys-nav');
@@ -728,7 +742,7 @@
     if (!nav || !panel) return;
 
     ALL_SYSTEMS.forEach(sys => {
-      const hasGuide = !!SYS_GUIDES[sys.slug];
+      const hasGuide = SYSTEMS_WITH_GUIDES.has(sys.slug);
       const btn = document.createElement('button');
       btn.className = 'sys-chip' + (hasGuide ? ' has-content' : '');
       btn.innerHTML = `<span class="chip-name">${sys.label}</span><span class="chip-sub">Guides &amp; videos</span>`;
@@ -745,21 +759,26 @@
       return `
         <div class="acc-item">
           <button class="acc-hdr" data-body="${bodyId}">
-            ${label} <span class="acc-count" id="${bodyId}-count"></span>
+            ${label}<span class="acc-count" id="${bodyId}-count"></span>
             <span class="acc-arrow">▾</span>
           </button>
           <div class="acc-body" id="${bodyId}">${initialHtml}</div>
         </div>`;
     }
 
-    function renderGuideItems(guides) {
-      if (!guides || guides.length === 0) return '<div class="acc-empty">No written guide yet — check back soon.</div>';
-      return guides.map(g => `
-        <div class="acc-entry">
-          <div class="acc-entry-title">${g.title}</div>
-          <div class="acc-entry-desc">${g.desc}</div>
-          <a href="${g.link}">${g.linkText}</a>
-        </div>`).join('');
+    function renderSectionItems(sections) {
+      if (!sections || sections.length === 0) return '<div class="acc-empty">No written guide yet — check back soon.</div>';
+      return sections.map((s, i) => {
+        const bodyId = 'sec-body-' + i + '-' + Math.random().toString(36).slice(2);
+        return `
+          <div class="sec-item">
+            <button class="sec-hdr" data-body="${bodyId}">
+              <span>${escapeHtml(s.heading)}</span>
+              <span class="sec-arrow">▾</span>
+            </button>
+            <div class="sec-body" id="${bodyId}">${s.body}</div>
+          </div>`;
+      }).join('');
     }
 
     function renderVideoItems(videos) {
@@ -772,8 +791,19 @@
         </div>`).join('');
     }
 
+    function wireToggles(container, hdrClass, bodyAttr) {
+      container.querySelectorAll('.' + hdrClass).forEach(hdr => {
+        hdr.addEventListener('click', () => {
+          const body = document.getElementById(hdr.dataset[bodyAttr] || hdr.dataset.body);
+          const open = body.classList.toggle('open');
+          hdr.classList.toggle('open', open);
+        });
+      });
+    }
+
     async function renderSysPanel(sys) {
-      const guides = SYS_GUIDES[sys.slug] || [];
+      const sysData = (typeof SYSTEM_SKILLS !== 'undefined') ? SYSTEM_SKILLS[sys.slug] : null;
+      const sections = sysData ? (sysData.sections || []) : [];
       const guideBodyId = 'acc-guides-' + sys.slug;
       const videoBodyId = 'acc-videos-' + sys.slug;
 
@@ -782,24 +812,19 @@
         <div class="sys-panel-title">${sys.label}</div>
         <span class="sys-panel-sub">Guides &amp; videos</span>
         <div class="acc">
-          ${makeAccordionShell('Guides', guideBodyId, renderGuideItems(guides))}
-          ${makeAccordionShell('Videos', videoBodyId, '<div class="acc-empty" style="color:var(--slate);opacity:0.6;">Loading…</div>')}
+          ${makeAccordionShell('Guides', guideBodyId, renderSectionItems(sections))}
+          ${makeAccordionShell('Videos', videoBodyId, '<div class="acc-empty" style="opacity:0.5;">Loading…</div>')}
         </div>
         <a class="contrib-link" href="share-knowledge.html">Share your knowledge →</a>
         <a class="contrib-link" href="share-knowledge.html">Suggest a video →</a>`;
 
-      // Update guide count badge
       const gCount = document.getElementById(guideBodyId + '-count');
-      if (gCount) gCount.textContent = '(' + guides.length + ')';
+      if (gCount) gCount.textContent = sections.length ? ' (' + sections.length + ')' : '';
 
-      // Wire accordion toggles
-      panel.querySelectorAll('.acc-hdr').forEach(hdr => {
-        hdr.addEventListener('click', () => {
-          const body = document.getElementById(hdr.dataset.body);
-          const open = body.classList.toggle('open');
-          hdr.classList.toggle('open', open);
-        });
-      });
+      // Wire outer (Guides/Videos) accordion toggles
+      wireToggles(panel, 'acc-hdr', 'body');
+      // Wire inner (section) accordion toggles
+      wireToggles(panel, 'sec-hdr', 'body');
 
       // Fetch videos from DB
       const { data: videos, error } = await supabaseClient
@@ -812,10 +837,10 @@
       const vCount = document.getElementById(videoBodyId + '-count');
       const vList = error ? [] : (videos || []);
       if (videoBody) videoBody.innerHTML = renderVideoItems(vList);
-      if (vCount) vCount.textContent = '(' + vList.length + ')';
+      if (vCount) vCount.textContent = vList.length ? ' (' + vList.length + ')' : '';
 
-      // If no guides and no videos, show no-info state instead
-      if (guides.length === 0 && vList.length === 0) {
+      // No content at all — replace with no-info state
+      if (sections.length === 0 && vList.length === 0) {
         panel.innerHTML = `
           <div class="sys-panel-title">${sys.label}</div>
           <span class="sys-panel-sub">Guides &amp; videos</span>
