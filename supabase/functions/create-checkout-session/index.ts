@@ -15,10 +15,10 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const PASS_PLANS: Record<string, { label: string; amount: number; days: number }> = {
-  '2week':  { label: '2-Week Pass',  amount: 7500,  days: 14  },
-  '1month': { label: '1-Month Pass', amount: 13000, days: 30  },
-  '6month': { label: '6-Month Pass', amount: 60000, days: 182 },
+const PASS_PLANS: Record<string, { label: string; amount: number; days: number; jobPostingCredits: number }> = {
+  '2week':  { label: '2-Week Pass',  amount: 7500,  days: 14,  jobPostingCredits: 1 },
+  '1month': { label: '1-Month Pass', amount: 13000, days: 30,  jobPostingCredits: 3 },
+  '6month': { label: '6-Month Pass', amount: 60000, days: 182, jobPostingCredits: 0 }, // unlimited — granted via pass_type check, not a credit count
 }
 
 serve(async (req) => {
@@ -75,6 +75,7 @@ serve(async (req) => {
     }
     metadata.plan = plan
     metadata.days = String(p.days)
+    metadata.job_posting_credits = String(p.jobPostingCredits)
     successUrl = `${SITE_URL}/account/payment-success.html?type=pass`
     cancelUrl = `${SITE_URL}/account/search-secretaries.html`
 
@@ -87,6 +88,46 @@ serve(async (req) => {
       .select('id')
       .single()
     if (draftError) return new Response('Could not save job draft', { status: 500, headers: CORS })
+
+    const jobPostingSuccessUrl = `${SITE_URL}/account/payment-success.html?type=job_posting`
+
+    // A consultant with an active pass gets job postings included — redeem
+    // instantly against the pass instead of charging the standalone £29.
+    const { data: cp } = await adminClient
+      .from('consultant_profiles')
+      .select('pass_type, pass_expires_at, job_posting_credits')
+      .eq('profile_id', userId)
+      .single()
+    const passActive = !!(cp?.pass_expires_at && new Date(cp.pass_expires_at) > new Date())
+    const isUnlimited = passActive && cp?.pass_type === '6month'
+    const credits = cp?.job_posting_credits ?? 0
+    const hasCredit = passActive && credits > 0
+
+    if (isUnlimited || hasCredit) {
+      if (!isUnlimited) {
+        const { error: creditError, count } = await adminClient
+          .from('consultant_profiles')
+          .update({ job_posting_credits: credits - 1 }, { count: 'exact' })
+          .eq('profile_id', userId)
+          .eq('job_posting_credits', credits)
+        if (creditError || !count) {
+          return new Response(JSON.stringify({ error: 'Could not redeem your included posting — please try again.' }), {
+            status: 409, headers: { ...CORS, 'Content-Type': 'application/json' },
+          })
+        }
+      }
+      try {
+        await grantPurchaseEffect(adminClient, 'job_posting', userId, { draft_id: savedDraft.id }, null)
+        return new Response(JSON.stringify({ url: jobPostingSuccessUrl }), {
+          headers: { ...CORS, 'Content-Type': 'application/json' },
+        })
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
     lineItem = {
       price_data: {
         currency: 'gbp',

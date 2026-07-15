@@ -62,7 +62,8 @@ create table consultant_profiles (
   specialty text,
   hospitals text[],
   pass_type text,
-  pass_expires_at timestamptz
+  pass_expires_at timestamptz,
+  job_posting_credits integer not null default 0
 );
 
 create table unlocks (

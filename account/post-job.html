@@ -114,7 +114,7 @@
 
   <p id="loading">Checking your account…</p>
   <div class="form-card" id="form-card" style="display:none;">
-    <div class="price-note">£29 one-time — live on the board for 30 days, plus unlimited contact with every respondent.</div>
+    <div class="price-note" id="price-note">£29 one-time — live on the board for 30 days, plus unlimited contact with every respondent.</div>
     <form id="post-form">
       <div class="field">
         <label for="title">Job title</label>
@@ -186,6 +186,27 @@
     if (!profile || profile.role !== 'consultant') {
       document.getElementById('loading').textContent = 'Only consultant accounts can post jobs.';
       return;
+    }
+
+    const { data: cp } = await supabaseClient
+      .from('consultant_profiles')
+      .select('pass_type, pass_expires_at, job_posting_credits')
+      .eq('profile_id', userId)
+      .single();
+
+    const passActive = !!(cp?.pass_expires_at && new Date(cp.pass_expires_at) > new Date());
+    const isUnlimited = passActive && cp?.pass_type === '6month';
+    const credits = cp?.job_posting_credits || 0;
+    const hasCredit = passActive && credits > 0;
+
+    const priceNote = document.getElementById('price-note');
+    const submitBtn = document.getElementById('submit-btn');
+    if (isUnlimited) {
+      priceNote.textContent = 'Free — included with your 6-month pass. Live on the board for 30 days, plus unlimited contact with every respondent.';
+      submitBtn.textContent = 'Post job — free';
+    } else if (hasCredit) {
+      priceNote.textContent = `Free — included with your pass (${credits} posting${credits !== 1 ? 's' : ''} left). Live on the board for 30 days, plus unlimited contact with every respondent.`;
+      submitBtn.textContent = 'Post job — free';
     }
 
     document.getElementById('loading').style.display = 'none';

@@ -37,8 +37,11 @@ export async function grantPurchaseEffect(
     const days = parseInt(meta.days, 10)
     if (isNaN(days) || days < 1 || days > 365) throw new Error('Invalid pass duration')
     const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+    const jobPostingCredits = parseInt(meta.job_posting_credits ?? '0', 10)
+    // Set (not add) — unused credits from a prior, now-expired pass are
+    // forfeited rather than carried into the new one.
     await db.from('consultant_profiles')
-      .update({ pass_type: meta.plan, pass_expires_at: expires })
+      .update({ pass_type: meta.plan, pass_expires_at: expires, job_posting_credits: isNaN(jobPostingCredits) ? 0 : jobPostingCredits })
       .eq('profile_id', userId)
 
   } else if (type === 'job_posting') {

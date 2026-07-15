@@ -124,12 +124,23 @@
     } else if (type === 'job_posting') {
       const draftRaw = sessionStorage.getItem('veyn_job_draft');
       if (!draftRaw) { document.getElementById('checkout-desc').textContent = 'Could not find your job details — please fill out the form again.'; return; }
+
+      const { data: cp } = await supabaseClient
+        .from('consultant_profiles')
+        .select('pass_type, pass_expires_at, job_posting_credits')
+        .eq('profile_id', session.user.id)
+        .single();
+      const passActive = !!(cp?.pass_expires_at && new Date(cp.pass_expires_at) > new Date());
+      const isFree = passActive && (cp?.pass_type === '6month' || (cp?.job_posting_credits || 0) > 0);
+
       document.getElementById('checkout-title').textContent = 'Post a job';
-      document.getElementById('checkout-desc').textContent = 'One posting, with unlimited messaging to anyone who responds.';
+      document.getElementById('checkout-desc').textContent = isFree
+        ? 'Included with your pass — unlimited messaging to anyone who responds.'
+        : 'One posting, with unlimited messaging to anyone who responds.';
       document.getElementById('summary-label').textContent = 'Job posting bundle';
-      document.getElementById('summary-price').textContent = '£29.00';
-      document.getElementById('summary-total').textContent = '£29.00';
-      document.getElementById('pay-btn').textContent = 'Pay £29.00';
+      document.getElementById('summary-price').textContent = isFree ? 'Free (included with pass)' : '£29.00';
+      document.getElementById('summary-total').textContent = isFree ? '£0.00' : '£29.00';
+      document.getElementById('pay-btn').textContent = isFree ? 'Post job' : 'Pay £29.00';
       checkoutPayload = { type: 'job_posting', draft: JSON.parse(draftRaw) };
 
     } else if (type === 'premium_boost') {
