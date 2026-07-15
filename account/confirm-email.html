@@ -146,18 +146,36 @@
       .maybeSingle();
 
     if (!existing) {
+      let referrerId = null;
+      if (draft.ref) {
+        const { data: referrer } = await supabaseClient
+          .from('profiles')
+          .select('id')
+          .eq('referral_code', draft.ref)
+          .maybeSingle();
+        if (referrer && referrer.id !== userId) referrerId = referrer.id;
+      }
+
       const { error: profileErr } = await supabaseClient.from('profiles').insert({
         id: userId,
         role: draft.role,
         first_name: draft.firstName,
         last_name: draft.lastName,
         email: draft.email,
+        referred_by: referrerId,
       });
 
       if (profileErr) {
         document.getElementById('completing').innerHTML = 'Could not create your profile: ' + profileErr.message + '<br>Please contact <a href="mailto:hello@veyn.uk" style="color:var(--gold)">hello@veyn.uk</a>';
         completing = false;
         return;
+      }
+
+      if (referrerId) {
+        await supabaseClient.from('referrals').insert({
+          referrer_id: referrerId,
+          referee_id: userId,
+        });
       }
 
       if (draft.role === 'secretary') {

@@ -281,10 +281,13 @@
     const pendingHospital = hospitalInput.value.trim();
     if (pendingHospital && !hospitalTags.includes(pendingHospital)) hospitalTags.push(pendingHospital);
 
+    const refCode = new URLSearchParams(window.location.search).get('ref');
+
     const conDraft = {
       role: 'consultant',
       firstName, lastName, email,
       practice, specialty, hospitals: hospitalTags,
+      ref: refCode || null,
     };
 
     const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({

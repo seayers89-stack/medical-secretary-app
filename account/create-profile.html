@@ -131,12 +131,12 @@
     <div class="cta-card secretary">
       <h3>I'm a secretary</h3>
       <p>Build a searchable profile, take your skills tests, and get found by consultants — free, permanently.</p>
-      <a class="btn btn-gold" href="create-profile-secretary.html">Continue as a secretary</a>
+      <a class="btn btn-gold" id="secretary-cta" href="create-profile-secretary.html">Continue as a secretary</a>
     </div>
     <div class="cta-card consultant">
       <h3>I'm a consultant</h3>
       <p>Set up your practice profile and start searching by system, specialty, and tested skills.</p>
-      <a class="btn btn-primary" href="create-profile-consultant.html">Continue as a consultant</a>
+      <a class="btn btn-primary" id="consultant-cta" href="create-profile-consultant.html">Continue as a consultant</a>
     </div>
   </div>
   <div class="auth-switch">Already have an account? <a href="login.html">Log in</a></div>
@@ -149,6 +149,15 @@
   </div>
 </footer>
 
+<script>
+  const refCode = new URLSearchParams(window.location.search).get('ref');
+  if (refCode) {
+    ['secretary-cta', 'consultant-cta'].forEach((id) => {
+      const link = document.getElementById(id);
+      link.href = link.href + '?ref=' + encodeURIComponent(refCode);
+    });
+  }
+</script>
 <script src="../mobile-nav.js"></script>
 <script src="../cookie-consent.js"></script>
 </body>

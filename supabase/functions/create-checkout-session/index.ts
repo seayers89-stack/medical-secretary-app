@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14'
+import { STRIPE_MIN_GBP_PENCE, getCreditBalance, grantPurchaseEffect } from '../_shared/grant-purchase.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2024-06-20' })
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -144,6 +145,44 @@ serve(async (req) => {
   } else {
     return new Response('Unknown type', { status: 400, headers: CORS })
   }
+
+  const price = lineItem.price_data!.unit_amount!
+  const balance = await getCreditBalance(adminClient, userId)
+  let creditApplied = Math.min(Math.max(balance, 0), price)
+  let finalAmount = price - creditApplied
+
+  if (finalAmount > 0 && finalAmount < STRIPE_MIN_GBP_PENCE) {
+    // Never leave a residual below Stripe's minimum chargeable amount —
+    // cap the credit applied instead so the Stripe leg is always valid.
+    creditApplied = price - STRIPE_MIN_GBP_PENCE
+    finalAmount = STRIPE_MIN_GBP_PENCE
+  }
+
+  if (finalAmount === 0) {
+    // Credit fully covers the price — grant the purchase directly, no
+    // Stripe session needed (Stripe Checkout can't create a £0 session).
+    try {
+      await grantPurchaseEffect(adminClient, type, userId, metadata, null)
+      if (creditApplied > 0) {
+        await adminClient.from('account_credit_ledger').insert({
+          profile_id: userId,
+          amount_pence: -creditApplied,
+          reason: 'spend',
+        })
+      }
+      return new Response(JSON.stringify({ url: successUrl }), {
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      })
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        status: 500,
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
+  lineItem.price_data!.unit_amount = finalAmount
+  if (creditApplied > 0) metadata.credit_applied = String(creditApplied)
 
   try {
     const session = await stripe.checkout.sessions.create({

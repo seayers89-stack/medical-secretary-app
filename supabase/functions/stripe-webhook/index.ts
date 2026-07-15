@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14'
+import { grantPurchaseEffect } from '../_shared/grant-purchase.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2024-06-20' })
 const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
@@ -41,70 +42,19 @@ serve(async (req) => {
 
   const db = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
+  const paymentIntentId = (session.payment_intent as string) ?? null
+
   try {
-    if (type === 'contact') {
-      await db.from('unlocks').insert({
-        consultant_id: user_id,
-        secretary_id: meta.secretary_id,
-        price_paid: 12,
-        stripe_payment_intent_id: (session.payment_intent as string) ?? null,
-      })
+    await grantPurchaseEffect(db, type, user_id, meta, paymentIntentId)
 
-    } else if (type === 'pass') {
-      const days = parseInt(meta.days, 10)
-      if (isNaN(days) || days < 1 || days > 365) throw new Error('Invalid pass duration')
-      const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
-      await db.from('consultant_profiles')
-        .update({ pass_type: meta.plan, pass_expires_at: expires })
-        .eq('profile_id', user_id)
-
-    } else if (type === 'job_posting') {
-      // Atomically claim the draft (DELETE + RETURNING) to prevent replay processing
-      const { data: saved } = await db
-        .from('pending_job_drafts')
-        .delete()
-        .eq('id', meta.draft_id)
-        .select('draft')
-        .single()
-      if (saved?.draft) {
-        const d = saved.draft
-        if (!d.title || typeof d.title !== 'string' || d.title.length > 500) throw new Error('Invalid job title')
-        if (d.day_rate !== undefined && (typeof d.day_rate !== 'number' || d.day_rate < 0 || d.day_rate > 100000)) throw new Error('Invalid day rate')
-        await db.from('job_postings').insert({
-          consultant_id: user_id,
-          title: String(d.title).slice(0, 500),
-          specialty: d.specialty,
-          systems: Array.isArray(d.systems) ? d.systems : [],
-          location: d.location,
-          day_rate: d.day_rate,
-          description: d.description ? String(d.description).slice(0, 5000) : null,
-          status: 'open',
-        })
-      }
-
-    } else if (type === 'premium_boost') {
-      const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-      await db.from('secretary_profiles')
-        .update({ premium_active: true, premium_expires_at: expires })
-        .eq('profile_id', user_id)
-
-    } else if (type === 'specialist_course') {
-      const price = parseFloat(meta.price)
-      if (isNaN(price) || price <= 0 || price > 1000) throw new Error('Invalid course price')
-      await db.from('specialist_course_purchases').insert({
+    const creditApplied = parseInt(meta.credit_applied ?? '', 10)
+    if (!isNaN(creditApplied) && creditApplied > 0) {
+      await db.from('account_credit_ledger').insert({
         profile_id: user_id,
-        course_slug: meta.slug,
-        price_paid: price,
+        amount_pence: -creditApplied,
+        reason: 'spend',
+        stripe_payment_intent_id: paymentIntentId,
       })
-
-    } else if (type === 'specialist_bundle') {
-      const slugs = meta.slugs.split(',')
-      const rows = slugs.map((slug: string) => ({
-        profile_id: user_id,
-        course_slug: slug,
-        price_paid: parseFloat((35 / 3).toFixed(2)),
-      }))
-      await db.from('specialist_course_purchases').insert(rows)
     }
   } catch (err) {
     console.error('Webhook handler error:', err)

@@ -82,6 +82,23 @@ serve(async (req) => {
       .update({ refunded_at: new Date().toISOString() })
       .eq('id', unlock.id)
 
+    // If referral credit was applied toward this purchase, restore it —
+    // the consultant shouldn't lose credit for a purchase that got refunded.
+    const { data: spendRow } = await db
+      .from('account_credit_ledger')
+      .select('amount_pence')
+      .eq('stripe_payment_intent_id', unlock.stripe_payment_intent_id)
+      .eq('reason', 'spend')
+      .maybeSingle()
+    if (spendRow) {
+      await db.from('account_credit_ledger').insert({
+        profile_id: unlock.consultant_id,
+        amount_pence: -spendRow.amount_pence,
+        reason: 'refund_reversal',
+        stripe_payment_intent_id: unlock.stripe_payment_intent_id,
+      })
+    }
+
     // Send explanation email to the consultant via Resend
     const esc = (s: string) => String(s || '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')

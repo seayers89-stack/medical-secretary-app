@@ -12,6 +12,7 @@ const CONSULTANT_NAV_LINKS = [
   { label: 'Search', href: 'search-secretaries.html', key: 'search' },
   { label: 'Post a job', href: 'post-job.html', key: 'post-job' },
   { label: 'My postings', href: 'my-postings.html', key: 'my-postings' },
+  { label: 'Refer & earn', href: 'referrals.html', key: 'referrals' },
   { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
   { label: 'Support', href: 'support.html', key: 'support' },
 ];
@@ -24,6 +25,7 @@ const SECRETARY_NAV_LINKS = [
   { label: 'Daily Tools', href: 'daily-tools.html', key: 'daily-tools' },
   { label: 'Business Hub', href: 'business-hub.html', key: 'business-hub' },
   { label: 'Community', href: 'community.html', key: 'community' },
+  { label: 'Refer & earn', href: 'referrals.html', key: 'referrals' },
   { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
   { label: 'Support', href: 'support.html', key: 'support' },
 ];
@@ -47,7 +49,7 @@ const ADMIN_ALLOWLIST = [
   'specialist-course-quiz.html', 'specialist-course-flashcards.html', 'specialist-course-printables.html',
   'support.html', 'job-board.html', 'academy.html', 'specialist-courses.html',
   'daily-tools.html', 'business-hub.html', 'community.html', 'community-post.html', 'ideas.html',
-  'messages.html', 'thread.html', 'post-job.html', 'my-postings.html',
+  'messages.html', 'thread.html', 'post-job.html', 'my-postings.html', 'referrals.html',
 ];
 
 function buildAccountNavHtml(role, activeKey) {
