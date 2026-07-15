@@ -78,8 +78,11 @@
   .job-status-badge.open{ background:rgba(63,107,79,0.1); color:#3F6B4F; }
   .job-status-badge.closed{ background:rgba(92,100,112,0.1); color:var(--slate); }
   .job-status-badge.unpublished{ background:rgba(184,146,74,0.12); color:#8F6F36; }
+  .job-status-badge.expired{ background:rgba(193,57,60,0.1); color:#a33; }
   .job-card.closed{ opacity:0.65; }
   .job-card.unpublished{ opacity:0.75; }
+  .job-card.expired{ opacity:0.65; }
+  .expires-note{ font-size:12.5px; color:var(--slate); margin-bottom:12px; }
   .card-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
   .btn-action{
     font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:8px 16px;
@@ -180,13 +183,24 @@
 
     for (const job of jobs) {
       const card = document.createElement('div');
-      const statusClass = job.status === 'closed' ? 'closed' : job.status === 'unpublished' ? 'unpublished' : '';
+      const isExpired = job.status !== 'closed' && job.expires_at && new Date(job.expires_at) < new Date();
+      const statusClass = isExpired ? 'expired' : job.status === 'closed' ? 'closed' : job.status === 'unpublished' ? 'unpublished' : '';
       card.className = `job-card${statusClass ? ' ' + statusClass : ''}`;
       card.dataset.jobId = job.id;
       const metaParts = [job.specialty, job.location, job.day_rate].filter(Boolean);
-      const badgeLabel = job.status === 'closed' ? 'Position filled' : job.status === 'unpublished' ? 'Unpublished' : 'Open';
+      const badgeClass = isExpired ? 'expired' : job.status;
+      const badgeLabel = isExpired ? 'Expired' : job.status === 'closed' ? 'Position filled' : job.status === 'unpublished' ? 'Unpublished' : 'Open';
 
-      const activeActions = job.status === 'open' ? `
+      let expiresNote = '';
+      if (!isExpired && job.status !== 'closed' && job.expires_at) {
+        const daysLeft = Math.max(0, Math.ceil((new Date(job.expires_at) - new Date()) / (1000 * 60 * 60 * 24)));
+        const expiryDate = new Date(job.expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        expiresNote = `<div class="expires-note">Expires ${expiryDate} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)</div>`;
+      }
+
+      const activeActions = isExpired ? `
+        <a href="post-job.html" class="btn-action" style="text-decoration:none;display:inline-block;">Repost — £29</a>
+      ` : job.status === 'open' ? `
         <button class="btn-action btn-edit">Edit</button>
         <button class="btn-action btn-unpublish">Unpublish</button>
         <button class="btn-action danger btn-close">Mark as filled</button>
@@ -199,7 +213,8 @@
       card.innerHTML = `
         <div class="job-title">${job.title}</div>
         <div class="job-meta">${metaParts.join(' · ')}</div>
-        <span class="job-status-badge ${job.status}">${badgeLabel}</span>
+        <span class="job-status-badge ${badgeClass}">${badgeLabel}</span>
+        ${expiresNote}
         <span class="respondents-label">Respondents</span>
         <div class="respondents-list">Loading…</div>
         <div class="card-actions">${activeActions}</div>

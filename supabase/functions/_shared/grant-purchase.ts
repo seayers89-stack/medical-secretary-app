@@ -62,6 +62,7 @@ export async function grantPurchaseEffect(
         day_rate: d.day_rate,
         description: d.description ? String(d.description).slice(0, 5000) : null,
         status: 'open',
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       })
     }
 

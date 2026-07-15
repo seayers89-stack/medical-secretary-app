@@ -343,6 +343,7 @@
       .from('job_postings')
       .select('*, profiles(first_name, last_name)')
       .eq('status', 'open')
+      .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false });
 
     document.getElementById('loading').style.display = 'none';

@@ -167,7 +167,8 @@ create table job_postings (
   location text,
   day_rate text,
   status text not null default 'open',
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '30 days')
 );
 
 create table job_responses (
