@@ -156,6 +156,12 @@
   .template-body{ margin-top:18px; padding-top:18px; border-top:1px solid rgba(46,63,84,0.08); }
   .template-body[hidden]{ display:none; }
 
+  .info-table{ width:100%; border-collapse:collapse; margin:6px 0 16px; }
+  .info-table th, .info-table td{ text-align:left; padding:10px 12px; border-bottom:1px solid rgba(46,63,84,0.08); vertical-align:top; font-size:13.5px; line-height:1.6; color:var(--ink); }
+  .info-table th{ font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--slate); }
+  .info-table td:first-child, .info-table th:first-child{ white-space:nowrap; font-weight:600; }
+  @media (max-width:560px){ .info-table{ font-size:12.5px; } .info-table th, .info-table td{ padding:8px; } }
+
   #loading{ color:var(--slate); font-size:14.5px; }
 
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
@@ -318,6 +324,72 @@
       <span class="guide-label">One more threshold to know</span>
       <h2>Do you need to register for VAT?</h2>
       <p>You only need to register for VAT once your taxable turnover goes over the current VAT registration threshold in any rolling 12-month period (check the current figure on gov.uk, as it's reviewed periodically). Below that threshold, registration is optional. Most secretaries starting out won't need to think about this immediately, but it's worth keeping an eye on your turnover as your client list grows.</p>
+    </div>
+
+    <div class="guide-card">
+      <div class="template-header" data-toggle="body-insurance" role="button" tabindex="0" aria-expanded="false">
+        <span>
+          <span class="guide-label">Protecting your work</span>
+          <h2>Insurance</h2>
+          <p>Cover is your own responsibility as a self-employed contractor — Veyn does not arrange, check, or hold proof of any policy. The two that matter most are professional indemnity and public liability.</p>
+        </span>
+        <span class="template-chevron" aria-hidden="true">▼</span>
+      </div>
+      <div class="template-body" id="body-insurance" hidden>
+        <table class="info-table">
+          <thead>
+            <tr><th>Cover</th><th>Typical cost</th><th>What it covers</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Professional Indemnity</td>
+              <td>£100–£300/yr</td>
+              <td>Protects against claims arising from mistakes in your work — a missed referral, a transcription error, a scheduling mix-up that costs the consultant or their practice money. Worth having from your very first paid engagement, not just once you're "established."</td>
+            </tr>
+            <tr>
+              <td>Public Liability</td>
+              <td>£50–£150/yr</td>
+              <td>Covers injury or property damage caused by you being physically present somewhere for work. Matters most if any engagement involves attending a clinic or consulting room in person; less relevant for fully remote work, though some clinics ask for it regardless as a condition of on-site access.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <span class="guide-label">Getting cover</span>
+        <ul>
+          <li>Search "professional indemnity insurance virtual assistant" or "administrative freelancer" rather than "medical secretary" — insurers price by occupation, and that category often isn't listed by name. Add healthcare-sector clients in the detail once you're quoting.</li>
+          <li>Get two or three comparison quotes before choosing. Cover limits (commonly £250,000 or £500,000) and exclusions vary more than price does — read what's excluded before you read what it costs.</li>
+          <li>Mention any on-site work explicitly when quoting. It's the detail that determines whether public liability is added automatically or needs to be requested separately.</li>
+        </ul>
+        <p style="font-size:12.5px; color:var(--slate);">Cost ranges above are typical UK figures and will vary by provider, cover limit, and your own circumstances.</p>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="template-header" data-toggle="body-ico" role="button" tabindex="0" aria-expanded="false">
+        <span>
+          <span class="guide-label">Data protection</span>
+          <h2>ICO registration</h2>
+          <p>If you handle any patient-identifiable information — even just typing it into a letter — you most likely need to register with the Information Commissioner's Office (ICO).</p>
+        </span>
+        <span class="template-chevron" aria-hidden="true">▼</span>
+      </div>
+      <div class="template-body" id="body-ico" hidden>
+        <div class="disclaimer-note" style="margin-bottom:16px;">
+          <strong>This isn't insurance.</strong> It's easy to assume one covers the other because both come up in the same conversation — they don't overlap at all. ICO registration is a legal data-protection registration, not a policy a broker sells you.
+        </div>
+        <p>The fee is a yearly one, currently in the region of £40–£60 depending on your turnover, set by a short self-assessment on the ICO's own site.</p>
+
+        <span class="guide-label">Registering</span>
+        <ul>
+          <li>Go to ico.org.uk and complete the self-assessment — it tells you directly whether you need to register and which fee tier applies to you.</li>
+          <li>Registration is done independently of Veyn. Veyn does not collect, hold, or review evidence of ICO registration for any user.</li>
+          <li>Keep your registration current — insurers may ask to confirm it's in place when you come to quote for professional indemnity cover.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="disclaimer-note">
+      <strong>General guidance only.</strong> This page is general information, not legal, financial, or insurance advice. Veyn does not arrange, review, or hold the results of any policy or registration you take out — carrying out your own due diligence on insurance, ICO registration, and any other legal compliance for your work is your responsibility, as set out in Veyn's <a href="../veyn-terms.html" target="_blank" rel="noopener" style="text-decoration:underline; color:var(--ink);">Terms and Conditions</a>.
     </div>
     </div>
 
