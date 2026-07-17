@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>How to Price Your Day Rate as a Private Medical Secretary — Veyn</title>
+<meta name="description" content="The core day-rate pricing formula UK private medical secretaries use — target income, expenses, and billable days — plus what actually moves your rate up or down.">
+<link rel="canonical" href="https://www.veyn.uk/business-hub/day-rate-guide">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#2E3F54;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --gold-soft:#E7D9BC;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Special Elite', cursive;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(46,63,84,0.08);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px; max-width:1180px; margin:0 auto;
+  }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{
+    font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; gap:36px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  .btn-login{
+    font-family:'Special Elite', cursive; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px;
+    transition:border-color .2s ease, background .2s ease; white-space:nowrap;
+  }
+  .btn-login:hover{ border-color:var(--ink); background:rgba(46,63,84,0.04); }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+
+  .btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:15px; padding:15px 30px;
+    border-radius:8px; cursor:pointer; border:none; transition:transform .2s ease, box-shadow .2s ease;
+    display:inline-block;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-primary{ background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(46,63,84,0.5); }
+  .btn-primary:hover{ box-shadow:0 12px 24px -8px rgba(46,63,84,0.6); }
+
+  .guide-hero{ padding:48px 32px 8px; }
+  .guide-head{ max-width:720px; margin:0 auto; }
+  .back-link{
+    display:inline-block; font-family:'Special Elite', cursive; font-size:13px; color:var(--slate);
+    margin-bottom:22px; transition:color .15s ease;
+  }
+  .back-link:hover{ color:var(--ink); }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Special Elite', cursive; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.3);
+    padding:7px 16px; border-radius:999px; margin-bottom:22px;
+  }
+  .guide-head h1{
+    font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(30px, 4.6vw, 46px);
+    line-height:1.14; letter-spacing:-0.01em; margin-bottom:20px;
+  }
+  .lede{ font-size:17px; line-height:1.7; color:var(--slate); margin-bottom:8px; }
+
+  article.guide-body{ padding:32px 32px 8px; }
+  .guide-wrap{ max-width:720px; margin:0 auto; }
+  .guide-wrap h2{
+    font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(22px,3vw,28px);
+    line-height:1.2; margin:44px 0 18px;
+  }
+  .guide-wrap h2:first-of-type{ margin-top:12px; }
+  .guide-wrap p{ font-size:15.5px; line-height:1.75; color:var(--ink); margin-bottom:16px; }
+  .guide-wrap p.muted{ color:var(--slate); }
+
+  .formula-box{
+    background:var(--white); border:1.5px solid rgba(184,146,74,0.4); border-radius:14px;
+    padding:26px 24px; margin:0 0 22px; text-align:center;
+    font-size:15px; line-height:1.6; color:var(--ink); font-weight:600;
+  }
+
+  .guide-list{ padding-left:0; list-style:none; margin-bottom:20px; }
+  .guide-list li{
+    display:flex; gap:12px; align-items:flex-start; font-size:15.5px; line-height:1.7;
+    color:var(--ink); margin-bottom:14px; padding-left:0;
+  }
+  ol.guide-list{ counter-reset:step; }
+  ol.guide-list li{ counter-increment:step; }
+  ol.guide-list li::before{
+    content:counter(step); flex:0 0 auto; width:24px; height:24px; border-radius:50%;
+    background:var(--ink); color:var(--paper); font-family:'Special Elite', cursive; font-size:12px;
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+  ul.guide-list li::before{
+    content:''; flex:0 0 auto; width:8px; height:8px; border-radius:50%; background:var(--gold);
+    margin-top:8px;
+  }
+  .guide-list li strong{ color:var(--ink); }
+
+  .guide-cta{
+    background:var(--ink); color:var(--paper); border-radius:20px; padding:40px 36px;
+    margin:44px 0 28px;
+  }
+  .guide-cta h3{
+    font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; margin-bottom:12px;
+  }
+  .guide-cta p{ color:rgba(247,244,237,0.75); font-size:14.5px; line-height:1.7; margin-bottom:22px; }
+  .guide-cta .btn-primary{ background:var(--gold); color:var(--ink); box-shadow:none; }
+  .guide-cta .btn-primary:hover{ background:var(--gold-soft); }
+
+  .disclaimer{ font-size:12.5px; color:var(--slate); font-style:italic; margin-top:8px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:56px 32px 32px; margin-top:64px; }
+  .foot-inner{ max-width:1180px; margin:0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap:32px; }
+  .foot-logo{ font-family:'Cormorant Garamond', serif; color:var(--paper); font-size:20px; font-weight:600; margin-bottom:10px; }
+  .foot-col h5{ font-family:'Special Elite', cursive; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
+  .foot-col a{ display:block; font-size:13.5px; margin-bottom:9px; color:rgba(247,244,237,0.65); }
+  .foot-col a:hover{ color:var(--paper); }
+  .foot-bottom{ max-width:1180px; margin:40px auto 0; padding-top:24px; border-top:1px solid rgba(247,244,237,0.1); font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  svg{ display:block; }
+
+</style>
+<link rel="stylesheet" href="../veyn-buttons.css"></head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">How it works</a>
+        <a href="../veyn-pricing-secretaries.html">Pricing</a>
+        <a href="../veyn-academy.html">Academy</a>
+        <a href="../veyn-daily-tools.html">Daily Tools</a>
+        <a href="../veyn-community.html">Community</a>
+        <a href="../veyn-business-hub.html" class="active">Business Hub</a>
+      </nav>
+    </div>
+    <a href="../account/login.html" class="btn-login">Log in</a>
+  </div>
+</header>
+
+<section class="guide-hero">
+  <div class="guide-head">
+    <a href="../veyn-business-hub.html" class="back-link">← Back to Business Hub</a>
+    <div class="eyebrow">Pricing guide</div>
+    <h1>How to Price Your Day Rate as a Private Medical Secretary</h1>
+    <p class="lede">Pricing your own work is one of the harder parts of going self-employed — and it's easy to under-price out of caution, especially early on. Here's the core formula most UK freelancers use, and what actually moves your number up or down.</p>
+  </div>
+</section>
+
+<article class="guide-body">
+  <div class="guide-wrap">
+    <h2>The basic formula</h2>
+    <div class="formula-box">(Target annual income + business expenses + a buffer for gaps) ÷ billable days per year = your day rate</div>
+    <p>Broken down:</p>
+    <ol class="guide-list">
+      <li><span><strong>Start with your target income</strong> — what you actually want to take home this year, before tax.</span></li>
+      <li><span><strong>Add your expenses</strong> — insurance, equipment, software, training, accountancy fees.</span></li>
+      <li><span><strong>Add a buffer for gaps</strong> — most freelancers plan around 220–230 working days a year, not 260+, to account for holiday, illness, and quiet periods.</span></li>
+      <li><span><strong>Divide by billable days</strong>, not calendar days.</span></li>
+    </ol>
+    <p>The result is a starting point, not a ceiling — your specialty experience, local demand, and how much notice you need all shift it from there.</p>
+
+    <h2>What actually moves your rate</h2>
+    <ul class="guide-list">
+      <li><span><strong>Specialty experience</strong> — deeper experience in a specific area is worth pricing for, not giving away.</span></li>
+      <li><span><strong>System proficiency</strong> — genuine experience with the practice management systems a consultant already uses removes onboarding friction for them, which is worth something.</span></li>
+      <li><span><strong>Urgency and notice</strong> — same-day or short-notice cover reasonably commands more than a booking made weeks out.</span></li>
+      <li><span><strong>Minimum booking length</strong> — hourly bookings price differently than half- or full-day minimums.</span></li>
+    </ul>
+
+    <div class="guide-cta">
+      <h3>Want to work the actual numbers?</h3>
+      <p>This is the framework — the harder part is applying it honestly to your own situation. Veyn's Business Hub has a free day-rate calculator that walks through this formula step by step with your real numbers, plus worked examples by specialty and a breakdown of the three pricing models secretaries actually use (day rate, hourly, and percentage-of-billed-revenue).</p>
+      <a class="btn btn-primary" href="../account/create-profile-secretary.html">Register free to use the calculator →</a>
+    </div>
+
+    <p class="disclaimer">General guidance only, not legal or tax advice for your specific situation.</p>
+  </div>
+</article>
+
+<footer>
+  <div class="foot-inner">
+    <div style="max-width:260px;">
+      <div class="foot-logo">veyn</div>
+      <p style="font-size:13.5px;line-height:1.6;color:rgba(247,244,237,0.55);">The UK platform connecting private medical secretaries and consultants — found for what they can prove, not just what they say.</p>
+    </div>
+    <div class="foot-col">
+      <h5>Platform</h5>
+      <a href="../veyn-for-secretaries.html">For Secretaries</a>
+      <a href="../veyn-for-consultants.html">For Consultants</a>
+      <a href="../veyn-pricing-secretaries.html">Pricing</a>
+    </div>
+    <div class="foot-col">
+      <h5>Company</h5>
+      <a href="../index.html">Home</a>
+      <a href="../veyn-about.html">About</a>
+      <a href="../veyn-academy.html">Academy</a>
+      <a href="../veyn-daily-tools.html">Daily Tools</a>
+      <a href="../veyn-community.html">Community</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="foot-col">
+      <h5>Legal</h5>
+      <a href="../veyn-privacy.html">Privacy</a>
+      <a href="../veyn-terms.html">Terms</a>
+      <a href="../veyn-cookie-policy.html">Cookies</a> · <a href="../veyn-accessibility.html">Accessibility</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved. VeynUK Ltd is a professional directory platform, not an employment agency.</span>
+    <span>Free skills tests, always.</span>
+  </div>
+</footer>
+
+<script src="../mobile-nav.js"></script>
+<script src="../cookie-consent.js"></script>
+</body>
+</html>
