@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /account/
+Allow: /account/login.html
+
+Sitemap: https://www.veyn.uk/sitemap.xml
