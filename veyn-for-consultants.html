@@ -171,11 +171,21 @@
   .price-card ul li{ display:flex; gap:9px; align-items:flex-start; }
   .price-card ul li .tick{ color:var(--green); flex:0 0 auto; margin-top:2px; }
 
-  .coverage-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:22px; margin-top:8px; }
-  .coverage-item{ background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:14px; padding:28px 26px; }
-  .coverage-item h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:19px; margin-bottom:10px; line-height:1.25; }
-  .coverage-item p{ color:var(--slate); font-size:14px; line-height:1.65; }
-  @media (max-width:760px){ .coverage-grid{ grid-template-columns:1fr; } }
+  .coverage-acc{ max-width:820px; margin:0 auto; border-top:1px solid rgba(46,63,84,0.1); background:var(--white); border-radius:14px; border:1px solid rgba(46,63,84,0.08); overflow:hidden; }
+  .coverage-item{ border-bottom:1px solid rgba(46,63,84,0.08); }
+  .coverage-item:last-child{ border-bottom:none; }
+  .coverage-hdr{
+    width:100%; text-align:left; background:none; border:none; cursor:pointer;
+    padding:20px 26px; display:flex; justify-content:space-between; align-items:center; gap:16px;
+    transition:background .15s ease;
+  }
+  .coverage-hdr:hover{ background:rgba(46,63,84,0.03); }
+  .coverage-hdr h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:19px; line-height:1.25; }
+  .coverage-arrow{ font-size:13px; color:var(--slate); transition:transform .2s ease; flex:0 0 auto; }
+  .coverage-hdr.open .coverage-arrow{ transform:rotate(180deg); }
+  .coverage-body{ display:none; padding:0 26px 22px; }
+  .coverage-body.open{ display:block; }
+  .coverage-body p{ color:var(--slate); font-size:14px; line-height:1.65; }
 
   .honesty-card{
     background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:16px;
@@ -336,30 +346,60 @@
     <h2>Where we operate</h2>
     <p>Our deepest pools sit at the intersection of three specialties and two regions. Here's what searching actually looks like in each.</p>
   </div>
-  <div class="coverage-grid">
+  <div class="coverage-acc" id="coverage-acc">
     <div class="coverage-item">
-      <h3>Orthopaedics secretary in London</h3>
-      <p>An orthopaedics secretary in London is typically corresponding daily on joint replacement lists, arthroscopy, and sports injury clinics, with insurer pre-authorisation for procedures like total knee and hip arthroplasty going to Bupa, AXA Health, and Vitality. DGL and Healthcode system experience is standard here, and MDT letters and post-op physio referrals make up a steady share of the typing. London's private ortho caseload tends to run at higher volume, so expect faster turnaround on insurer correspondence than elsewhere.</p>
+      <button class="coverage-hdr open" type="button" aria-expanded="true">
+        <h3>Orthopaedics secretary in London</h3>
+        <span class="coverage-arrow">▾</span>
+      </button>
+      <div class="coverage-body open">
+        <p>An orthopaedics secretary in London is typically corresponding daily on joint replacement lists, arthroscopy, and sports injury clinics, with insurer pre-authorisation for procedures like total knee and hip arthroplasty going to Bupa, AXA Health, and Vitality. DGL and Healthcode system experience is standard here, and MDT letters and post-op physio referrals make up a steady share of the typing. London's private ortho caseload tends to run at higher volume, so expect faster turnaround on insurer correspondence than elsewhere.</p>
+      </div>
     </div>
     <div class="coverage-item">
-      <h3>Orthopaedics secretary in Milton Keynes</h3>
-      <p>Search for an orthopaedics secretary in Milton Keynes and you'll find a smaller but genuine pool, often supporting consultants who split time between MK private clinics and NHS ortho lists. The core skills are the same — arthroplasty coding, insurer pre-auth, clinic letter turnaround — but caseloads here are usually lighter, and secretaries more often cover a mix of fracture clinic and elective ortho work within a single week.</p>
+      <button class="coverage-hdr" type="button" aria-expanded="false">
+        <h3>Orthopaedics secretary in Milton Keynes</h3>
+        <span class="coverage-arrow">▾</span>
+      </button>
+      <div class="coverage-body">
+        <p>Search for an orthopaedics secretary in Milton Keynes and you'll find a smaller but genuine pool, often supporting consultants who split time between MK private clinics and NHS ortho lists. The core skills are the same — arthroplasty coding, insurer pre-auth, clinic letter turnaround — but caseloads here are usually lighter, and secretaries more often cover a mix of fracture clinic and elective ortho work within a single week.</p>
+      </div>
     </div>
     <div class="coverage-item">
-      <h3>General surgery secretary in London</h3>
-      <p>A general surgery secretary in London manages correspondence for high-volume elective lists — hernia repair, cholecystectomy, and colorectal referrals — alongside insurer pre-authorisation billed through Bupa, Vitality, and AXA Health. DGL and Carebit are the systems most commonly listed by candidates in this specialty, and GP referral letters form a steady part of the daily workload.</p>
+      <button class="coverage-hdr" type="button" aria-expanded="false">
+        <h3>General surgery secretary in London</h3>
+        <span class="coverage-arrow">▾</span>
+      </button>
+      <div class="coverage-body">
+        <p>A general surgery secretary in London manages correspondence for high-volume elective lists — hernia repair, cholecystectomy, and colorectal referrals — alongside insurer pre-authorisation billed through Bupa, Vitality, and AXA Health. DGL and Carebit are the systems most commonly listed by candidates in this specialty, and GP referral letters form a steady part of the daily workload.</p>
+      </div>
     </div>
     <div class="coverage-item">
-      <h3>General surgery secretary in Milton Keynes</h3>
-      <p>General surgery secretaries in Milton Keynes typically support consultants drawing referrals from a wider catchment across Buckinghamshire and Bedfordshire. Expect the same core work — hernia and gallbladder lists, GP correspondence — but with more variation in system experience, since MK-based consultants more often split their private lists across more than one clinic.</p>
+      <button class="coverage-hdr" type="button" aria-expanded="false">
+        <h3>General surgery secretary in Milton Keynes</h3>
+        <span class="coverage-arrow">▾</span>
+      </button>
+      <div class="coverage-body">
+        <p>General surgery secretaries in Milton Keynes typically support consultants drawing referrals from a wider catchment across Buckinghamshire and Bedfordshire. Expect the same core work — hernia and gallbladder lists, GP correspondence — but with more variation in system experience, since MK-based consultants more often split their private lists across more than one clinic.</p>
+      </div>
     </div>
     <div class="coverage-item">
-      <h3>Urology secretary in London</h3>
-      <p>Search for a urology secretary in London and DGL or Semble experience is common, alongside familiarity with cystoscopy, PSA monitoring, and correspondence typed up after robotic-assisted (da Vinci) lists. Insurer pre-authorisation here regularly covers lithotripsy and prostate biopsy, with a steady flow of oncology-adjacent referral letters.</p>
+      <button class="coverage-hdr" type="button" aria-expanded="false">
+        <h3>Urology secretary in London</h3>
+        <span class="coverage-arrow">▾</span>
+      </button>
+      <div class="coverage-body">
+        <p>Search for a urology secretary in London and DGL or Semble experience is common, alongside familiarity with cystoscopy, PSA monitoring, and correspondence typed up after robotic-assisted (da Vinci) lists. Insurer pre-authorisation here regularly covers lithotripsy and prostate biopsy, with a steady flow of oncology-adjacent referral letters.</p>
+      </div>
     </div>
     <div class="coverage-item">
-      <h3>Urology secretary in Milton Keynes</h3>
-      <p>A urology secretary in Milton Keynes typically covers a mix of stone disease referrals, cystoscopy clinics, and general urology follow-up, usually for consultants running a smaller private list than their London counterparts. These roles suit secretaries comfortable moving between a few, more varied clinic types in a single week, rather than the narrower high-volume lists more typical of London practice.</p>
+      <button class="coverage-hdr" type="button" aria-expanded="false">
+        <h3>Urology secretary in Milton Keynes</h3>
+        <span class="coverage-arrow">▾</span>
+      </button>
+      <div class="coverage-body">
+        <p>A urology secretary in Milton Keynes typically covers a mix of stone disease referrals, cystoscopy clinics, and general urology follow-up, usually for consultants running a smaller private list than their London counterparts. These roles suit secretaries comfortable moving between a few, more varied clinic types in a single week, rather than the narrower high-volume lists more typical of London practice.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -452,6 +492,16 @@
   </div>
 </footer>
 
+<script>
+  document.getElementById('coverage-acc').addEventListener('click', function(e){
+    var hdr = e.target.closest('.coverage-hdr');
+    if(!hdr) return;
+    var body = hdr.nextElementSibling;
+    var isOpen = hdr.classList.toggle('open');
+    body.classList.toggle('open', isOpen);
+    hdr.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+</script>
 <script src="mobile-nav.js"></script>
 <script src="cookie-consent.js"></script>
 </body>
