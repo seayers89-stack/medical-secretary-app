@@ -209,6 +209,7 @@
   <h1 id="greeting">Welcome</h1>
   <p class="sub">This is your profile snapshot. Consultants search against this information — keep it current.</p>
   <a href="edit-profile.html" class="btn btn-primary" style="margin-bottom:20px;">Edit profile</a>
+  <span id="my-group-btn-slot"></span>
   <div id="staff-badge-row" style="margin-bottom:8px;"></div>
   <div id="skills-tested-badge-row" style="margin-bottom:8px;"></div>
   <div id="rating-row" style="margin-bottom:20px; font-size:14px; color:var(--slate);"></div>
@@ -375,6 +376,11 @@
     if (staffIds && staffIds.includes(userId)) {
       document.getElementById('staff-badge-row').innerHTML =
         `<span class="result-badge" style="display:inline-flex; align-items:center; gap:5px;">${staffBadgeIconSVG(14)} Veyn Staff</span>`;
+    }
+
+    if (profile.role === 'secretary') {
+      document.getElementById('my-group-btn-slot').innerHTML =
+        `<a href="group.html" class="btn-login" style="margin-left:10px; margin-bottom:20px; display:inline-block;">My group</a>`;
     }
 
     let extraRows = '';

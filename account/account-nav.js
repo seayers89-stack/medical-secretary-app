@@ -20,7 +20,6 @@ const CONSULTANT_NAV_LINKS = [
 const SECRETARY_NAV_LINKS = [
   { label: 'My profile', href: 'profile.html', key: 'profile' },
   { label: 'Messages', href: 'messages.html', key: 'messages' },
-  { label: 'My group', href: 'group.html', key: 'group' },
   { label: 'Job board', href: 'job-board.html', key: 'job-board' },
   { label: 'Academy', href: 'academy.html', key: 'academy' },
   { label: 'Daily Tools', href: 'daily-tools.html', key: 'daily-tools' },
