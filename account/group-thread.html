@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>Conversation — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#2E3F54;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Special Elite', cursive;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(46,63,84,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .nav-links{ display:flex; flex-wrap:wrap; row-gap:8px; column-gap:20px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .logo{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .btn-login{
+    font-family:'Special Elite', cursive; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px;
+  }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:26px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:14px; line-height:1.6; margin-bottom:28px; }
+
+  .thread-card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
+    padding:20px 24px; margin-bottom:20px; min-height:280px; display:flex; flex-direction:column; gap:12px;
+  }
+  .bubble{
+    max-width:80%; padding:11px 16px; border-radius:14px; font-size:14px; line-height:1.5;
+  }
+  .bubble.me{ align-self:flex-end; background:var(--ink); color:var(--paper); }
+  .bubble.them{ align-self:flex-start; background:var(--paper); border:1px solid rgba(46,63,84,0.08); }
+  .bubble-meta{ font-size:11px; opacity:0.6; margin-top:4px; }
+
+  .empty-thread{ color:var(--slate); font-size:14px; text-align:center; margin:auto; }
+
+  .compose{ display:flex; gap:10px; }
+  .compose textarea{
+    flex:1; resize:none; padding:12px 14px; font-family:'Special Elite', cursive; font-size:14.5px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:10px; background:var(--white); color:var(--ink); height:48px;
+  }
+  .compose textarea:focus{ outline:none; border-color:var(--gold); }
+  .send-btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:14px; padding:0 22px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--ink); color:var(--paper);
+  }
+  .send-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+  .blocked-note{
+    background:rgba(184,146,74,0.08); border:1px solid rgba(184,146,74,0.3); color:#8F6F36;
+    padding:16px 18px; border-radius:10px; font-size:14px; line-height:1.6;
+  }
+  .blocked-note a{ font-weight:600; text-decoration:underline; }
+
+  .rating-card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
+    padding:18px 24px; margin-top:16px; display:flex; align-items:center; justify-content:space-between;
+    gap:14px; flex-wrap:wrap;
+  }
+  .rating-label{ font-size:13.5px; color:var(--slate); }
+  .star-row{ display:flex; gap:4px; }
+  .star-btn{
+    background:none; border:none; cursor:pointer; font-size:24px; line-height:1; padding:2px;
+    color:rgba(46,63,84,0.2);
+  }
+  .star-btn.filled{ color:var(--gold); }
+  .star-btn:hover{ color:var(--gold); }
+  .rating-saved-note{ font-size:12px; color:var(--green); }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+</style>
+<link rel="stylesheet" href="../veyn-buttons.css"></head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <a href="messages.html" class="btn-login">All messages</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Conversation</div>
+  <h1 id="thread-title">Loading…</h1>
+  <p class="sub">Messages stay inside Veyn. It's up to you whether to share phone numbers, email, or other contact details once you're talking.</p>
+
+  <p id="loading">Loading conversation…</p>
+  <div id="content" style="display:none;">
+    <div class="thread-card" id="thread-card"></div>
+    <form class="compose" id="compose-form">
+      <textarea id="message-body" placeholder="Write a message…" required></textarea>
+      <button type="submit" class="send-btn" id="send-btn">Send</button>
+    </form>
+
+    <div class="rating-card" id="rating-card" style="display:none;">
+      <span class="rating-label">Rate working with <span id="rating-other-name"></span></span>
+      <div class="star-row" id="star-row">
+        <button type="button" class="star-btn" data-star="1">★</button>
+        <button type="button" class="star-btn" data-star="2">★</button>
+        <button type="button" class="star-btn" data-star="3">★</button>
+        <button type="button" class="star-btn" data-star="4">★</button>
+        <button type="button" class="star-btn" data-star="5">★</button>
+      </div>
+      <span class="rating-saved-note" id="rating-saved-note" style="display:none;">Saved ✓</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const consultantId = params.get('consultant_id');
+  const groupId = params.get('group_id');
+
+  let currentUserId = null;
+  let otherName = 'them';
+
+  async function loadMessages() {
+    const { data, error } = await supabaseClient
+      .from('group_messages')
+      .select('*')
+      .eq('consultant_id', consultantId)
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true });
+
+    const card = document.getElementById('thread-card');
+    if (error) {
+      card.innerHTML = `<div class="empty-thread">Could not load messages: ${error.message}</div>`;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      card.innerHTML = `<div class="empty-thread">No messages yet — say hello.</div>`;
+      return;
+    }
+
+    card.innerHTML = data.map(m => {
+      const mine = m.sender_id === currentUserId;
+      const time = new Date(m.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+      return `
+        <div class="bubble ${mine ? 'me' : 'them'}">
+          ${escapeHtml(m.body)}
+          <div class="bubble-meta">${time}</div>
+        </div>
+      `;
+    }).join('');
+    card.scrollTop = card.scrollHeight;
+  }
+
+  (async () => {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, null);
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUserId = navResult.session.user.id;
+
+    if (!consultantId || !groupId) {
+      document.getElementById('loading').textContent = 'Missing conversation details.';
+      return;
+    }
+
+    const { data: group } = await supabaseClient
+      .from('groups')
+      .select('company_name, admin_id, status')
+      .eq('id', groupId)
+      .single();
+
+    if (!group) {
+      document.getElementById('loading').textContent = 'This group could not be found.';
+      return;
+    }
+
+    const isConsultantSide = currentUserId === consultantId;
+    const isGroupAdmin = currentUserId === group.admin_id;
+
+    if (!isConsultantSide && !isGroupAdmin) {
+      document.getElementById('loading').textContent = 'You are not part of this conversation.';
+      return;
+    }
+
+    if (isConsultantSide) {
+      otherName = group.company_name;
+    } else {
+      const { data: otherProfile } = await supabaseClient
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', consultantId)
+        .single();
+      otherName = otherProfile ? `${otherProfile.first_name} ${otherProfile.last_name}` : 'them';
+    }
+    document.getElementById('thread-title').textContent = `Conversation with ${otherName}`;
+
+    // Check whether this thread is unlocked. If the current user is the
+    // consultant and holds an active pass but hasn't explicitly unlocked
+    // this group yet, create the unlock now (pass-covered, no charge).
+    const { data: existingUnlock } = await supabaseClient
+      .from('group_unlocks')
+      .select('id, refunded_at')
+      .eq('consultant_id', consultantId)
+      .eq('group_id', groupId)
+      .maybeSingle();
+
+    const isRefunded = existingUnlock?.refunded_at != null;
+    let unlocked = (!!existingUnlock && !isRefunded) || navResult.isAdmin;
+
+    if (!unlocked && isConsultantSide) {
+      const { data: con } = await supabaseClient
+        .from('consultant_profiles')
+        .select('pass_expires_at')
+        .eq('profile_id', consultantId)
+        .single();
+
+      if (con && con.pass_expires_at && new Date(con.pass_expires_at) > new Date()) {
+        const { error: unlockError } = await supabaseClient.from('group_unlocks').insert({
+          consultant_id: consultantId,
+          group_id: groupId,
+          price_paid: 0,
+        });
+        unlocked = !unlockError;
+      }
+    }
+
+    const loading = document.getElementById('loading');
+    const content = document.getElementById('content');
+
+    if (isRefunded) {
+      loading.style.display = 'none';
+      content.style.display = 'block';
+      document.getElementById('thread-card').outerHTML = `
+        <div style="background:#fff;border:1px solid rgba(46,63,84,0.08);border-radius:14px;padding:32px 28px;text-align:center;">
+          <div style="font-size:28px;margin-bottom:12px;">🔒</div>
+          <p style="font-weight:600;font-size:15px;margin-bottom:8px;">This conversation has been closed</p>
+          <p style="color:var(--slate);font-size:14px;line-height:1.6;max-width:340px;margin:0 auto 20px;">
+            ${otherName} didn't reply within 14 days, so your £12 has been automatically refunded to your original payment method.
+            Refunds appear within 5–10 business days.
+          </p>
+          <a href="search-secretaries.html" style="display:inline-block;background:var(--ink);color:var(--paper);font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;text-decoration:none;">Browse other secretaries</a>
+        </div>
+      `;
+      document.getElementById('compose-form').style.display = 'none';
+      return;
+    }
+
+    if (group.status === 'paused') {
+      loading.style.display = 'none';
+      content.style.display = 'block';
+      document.getElementById('thread-card').outerHTML = `
+        <p class="blocked-note">This group is currently paused (it has no admin), so its conversations are read-only until a member reactivates it.</p>
+      `;
+      document.getElementById('compose-form').style.display = 'none';
+      await loadMessages();
+      return;
+    }
+
+    if (!unlocked) {
+      loading.style.display = 'none';
+      content.style.display = 'block';
+      document.getElementById('thread-card').outerHTML = `
+        <p class="blocked-note">This conversation isn't unlocked yet. <a href="mock-checkout.html?type=group_contact&group_id=${groupId}&group_name=${encodeURIComponent(otherName)}">Unlock for £12</a> to start messaging.</p>
+      `;
+      document.getElementById('compose-form').style.display = 'none';
+      return;
+    }
+
+    loading.style.display = 'none';
+    content.style.display = 'block';
+    await loadMessages();
+
+    await supabaseClient
+      .from('group_messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('consultant_id', consultantId)
+      .eq('group_id', groupId)
+      .neq('sender_id', currentUserId)
+      .is('read_at', null);
+
+    document.getElementById('rating-other-name').textContent = otherName;
+    document.getElementById('rating-card').style.display = 'flex';
+
+    const { data: existingRating } = await supabaseClient
+      .from('group_ratings')
+      .select('rating')
+      .eq('consultant_id', consultantId)
+      .eq('group_id', groupId)
+      .eq('rater_id', currentUserId)
+      .maybeSingle();
+
+    if (existingRating) setStarDisplay(existingRating.rating);
+
+    document.querySelectorAll('.star-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const rating = Number(btn.dataset.star);
+        setStarDisplay(rating);
+
+        const { error } = await supabaseClient
+          .from('group_ratings')
+          .upsert({
+            consultant_id: consultantId,
+            group_id: groupId,
+            rater_id: currentUserId,
+            rating,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'consultant_id,group_id,rater_id' });
+
+        const savedNote = document.getElementById('rating-saved-note');
+        if (!error) {
+          savedNote.style.display = 'inline';
+          setTimeout(() => { savedNote.style.display = 'none'; }, 1800);
+        }
+      });
+    });
+  })();
+
+  function setStarDisplay(rating) {
+    document.querySelectorAll('.star-btn').forEach(btn => {
+      btn.classList.toggle('filled', Number(btn.dataset.star) <= rating);
+    });
+  }
+
+  document.getElementById('compose-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const textarea = document.getElementById('message-body');
+    const sendBtn = document.getElementById('send-btn');
+    const body = textarea.value.trim();
+    if (!body) return;
+
+    sendBtn.disabled = true;
+    const { error } = await supabaseClient.from('group_messages').insert({
+      consultant_id: consultantId,
+      group_id: groupId,
+      sender_id: currentUserId,
+      body: body,
+    });
+    sendBtn.disabled = false;
+
+    if (error) {
+      alert('Could not send message: ' + error.message);
+      return;
+    }
+
+    textarea.value = '';
+    await loadMessages();
+  });
+</script>
+
+<script src="../mobile-nav.js"></script>
+<script src="../cookie-consent.js"></script>
+</body>
+</html>

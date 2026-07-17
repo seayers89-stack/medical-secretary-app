@@ -126,6 +126,39 @@
     secondaryBtn.style.display = 'block';
     document.getElementById('success-note').textContent = 'If the conversation doesn\'t appear immediately, wait a few seconds and refresh.';
 
+  } else if (type === 'group_contact') {
+    const groupId = params.get('group_id');
+    document.getElementById('success-title').textContent = 'Conversation unlocked';
+    document.getElementById('success-sub').textContent = 'You can now message this group directly — no commission if hired.';
+    if (groupId) {
+      // Webhook may take a second — poll for the unlock then redirect to thread
+      (async () => {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) return;
+        const userId = session.user.id;
+        let attempts = 0;
+        const check = async () => {
+          attempts++;
+          const { data } = await supabaseClient
+            .from('group_unlocks')
+            .select('id')
+            .eq('consultant_id', userId)
+            .eq('group_id', groupId)
+            .maybeSingle();
+          if (data) {
+            primaryBtn.href = `group-thread.html?consultant_id=${userId}&group_id=${groupId}`;
+            primaryBtn.textContent = 'Open conversation';
+          } else if (attempts < 8) {
+            setTimeout(check, 1500);
+          }
+        };
+        check();
+      })();
+    }
+    primaryBtn.textContent = 'Open conversation';
+    secondaryBtn.style.display = 'block';
+    document.getElementById('success-note').textContent = 'If the conversation doesn\'t appear immediately, wait a few seconds and refresh.';
+
   } else if (type === 'pass') {
     document.getElementById('success-title').textContent = 'Pass activated';
     document.getElementById('success-sub').textContent = 'Your unlimited messaging pass is now active. Browse and contact any secretary during your pass period.';
@@ -147,6 +180,12 @@
     document.getElementById('success-sub').textContent = 'Your profile is now featured at the top of consultant search results for 30 days.';
     primaryBtn.href = 'profile.html';
     primaryBtn.textContent = 'View my profile';
+
+  } else if (type === 'group_boost') {
+    document.getElementById('success-title').textContent = 'Group boost activated';
+    document.getElementById('success-sub').textContent = 'Your group is now featured at the top of consultant search results for 30 days.';
+    primaryBtn.href = 'group.html';
+    primaryBtn.textContent = 'View my group';
 
   } else if (type === 'specialist_course') {
     const slug = params.get('slug');

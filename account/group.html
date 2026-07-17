@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>My group — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#2E3F54;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --gold-soft:#E7D9BC;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Special Elite', cursive;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(46,63,84,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; flex-wrap:wrap; row-gap:8px; column-gap:20px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Special Elite', cursive; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer;
+    background:none; transition:border-color .2s ease, background .2s ease;
+  }
+  .btn-login:hover{ border-color:var(--ink); background:rgba(46,63,84,0.04); }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:15px; line-height:1.6; margin-bottom:32px; }
+
+  .card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:16px;
+    padding:26px 28px; margin-bottom:20px;
+  }
+  .card h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; margin-bottom:6px; }
+  .card-note{ color:var(--slate); font-size:13.5px; line-height:1.6; margin-bottom:18px; }
+
+  .field{ margin-bottom:16px; }
+  .field-row2{ display:flex; gap:16px; }
+  .field-row2 .field{ flex:1; }
+  .field label{ display:block; font-size:13px; font-weight:600; margin-bottom:7px; color:var(--ink); }
+  .field input, .field select, .field textarea{
+    width:100%; padding:11px 13px; font-family:'Special Elite', cursive; font-size:14px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper);
+    color:var(--ink); transition:border-color .2s ease;
+  }
+  .field textarea{ resize:vertical; min-height:70px; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--gold); }
+  .field-checkbox{ display:flex; align-items:center; gap:8px; font-size:13.5px; }
+  .field-checkbox input{ width:auto; }
+
+  .btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:14px; padding:11px 22px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--ink); color:var(--paper);
+    display:inline-block;
+  }
+  .btn:hover{ opacity:0.92; }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  .btn-outline{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:13.5px; padding:9px 18px;
+    border-radius:8px; cursor:pointer; border:1.5px solid var(--ink); background:none; color:var(--ink);
+  }
+  .btn-danger{ border-color:#a33; color:#a33; }
+
+  .member-row{
+    display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 0;
+    border-bottom:1px solid rgba(46,63,84,0.06);
+  }
+  .member-row:last-child{ border-bottom:none; }
+  .member-name{ font-weight:600; font-size:14px; }
+  .member-role{ font-size:12.5px; color:var(--slate); }
+  .member-role-input{
+    font-family:'Special Elite', cursive; font-size:12.5px; padding:5px 8px; border-radius:6px;
+    border:1.5px solid rgba(46,63,84,0.15); background:var(--paper); width:150px;
+  }
+  .admin-badge{
+    font-size:10px; text-transform:uppercase; letter-spacing:0.05em; font-weight:700; color:var(--gold);
+    margin-left:6px;
+  }
+
+  .invite-row{
+    display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0;
+    border-bottom:1px solid rgba(46,63,84,0.06); font-size:13px;
+  }
+  .invite-row:last-child{ border-bottom:none; }
+  .invite-link-box{ display:flex; gap:8px; margin-top:8px; }
+  .invite-link-box input{ flex:1; }
+
+  .status-note{
+    background:rgba(184,146,74,0.08); border:1px solid rgba(184,146,74,0.3); color:#8F6F36;
+    padding:14px 16px; border-radius:10px; font-size:13.5px; line-height:1.6; margin-bottom:20px;
+  }
+  .error-note{
+    background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;
+    padding:11px 14px; border-radius:8px; font-size:13px; margin-top:12px; display:none;
+  }
+  .saved-note{ font-size:12px; color:var(--green); margin-top:8px; display:none; }
+
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+</style>
+<link rel="stylesheet" href="../veyn-buttons.css"></head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <button class="btn-login" id="logout-btn">Log out</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Secretarial group</div>
+  <h1>My group</h1>
+  <p class="sub" id="page-sub">Run a shared listing for your agency — consultants find and unlock the group as a whole, and every member keeps their own individual profile.</p>
+
+  <p id="loading">Loading…</p>
+  <div id="content" style="display:none;"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script>
+  let currentUserId = null;
+
+  function escHtml(s) {
+    const div = document.createElement('div');
+    div.textContent = s == null ? '' : String(s);
+    return div.innerHTML;
+  }
+
+  function rateFieldsHtml(prefix, group) {
+    const g = group || {};
+    return `
+      <div class="field">
+        <label for="${prefix}-rate-type">Rate type</label>
+        <select id="${prefix}-rate-type">
+          <option value="hourly">Hourly</option>
+          <option value="day">Day rate</option>
+          <option value="percentage">Percentage of consultant's income</option>
+        </select>
+      </div>
+      <div class="field" id="${prefix}-hourly-field">
+        <label for="${prefix}-hourly-rate">Hourly rate (£)</label>
+        <input type="number" id="${prefix}-hourly-rate" min="0" step="0.5" value="${g.hourly_rate ?? ''}">
+      </div>
+      <div class="field" id="${prefix}-day-field" style="display:none;">
+        <label for="${prefix}-day-rate">Day rate (£)</label>
+        <input type="number" id="${prefix}-day-rate" min="0" step="5" value="${g.day_rate ?? ''}">
+      </div>
+      <div class="field" id="${prefix}-percentage-field" style="display:none;">
+        <label for="${prefix}-percentage-rate">Percentage (%)</label>
+        <input type="number" id="${prefix}-percentage-rate" min="0" max="100" step="0.5" value="${g.percentage_rate ?? ''}">
+      </div>
+      <div class="field field-checkbox">
+        <input type="checkbox" id="${prefix}-rate-negotiable" ${g.rate_negotiable ? 'checked' : ''}>
+        <label for="${prefix}-rate-negotiable" style="margin:0;">Rate is negotiable</label>
+      </div>
+    `;
+  }
+
+  function wireRateTypeToggle(prefix, initialType) {
+    const select = document.getElementById(`${prefix}-rate-type`);
+    const apply = (type) => {
+      document.getElementById(`${prefix}-hourly-field`).style.display = type === 'hourly' ? 'block' : 'none';
+      document.getElementById(`${prefix}-day-field`).style.display = type === 'day' ? 'block' : 'none';
+      document.getElementById(`${prefix}-percentage-field`).style.display = type === 'percentage' ? 'block' : 'none';
+    };
+    select.value = initialType || 'hourly';
+    apply(select.value);
+    select.addEventListener('change', () => apply(select.value));
+  }
+
+  function readRateFields(prefix) {
+    const rateType = document.getElementById(`${prefix}-rate-type`).value;
+    return {
+      rate_type: rateType,
+      hourly_rate: rateType === 'hourly' ? (document.getElementById(`${prefix}-hourly-rate`).value || null) : null,
+      day_rate: rateType === 'day' ? (document.getElementById(`${prefix}-day-rate`).value || null) : null,
+      percentage_rate: rateType === 'percentage' ? (document.getElementById(`${prefix}-percentage-rate`).value || null) : null,
+      rate_negotiable: document.getElementById(`${prefix}-rate-negotiable`).checked,
+    };
+  }
+
+  function renderNoGroup() {
+    document.getElementById('content').innerHTML = `
+      <div class="card">
+        <h3>Start a secretarial group</h3>
+        <p class="card-note">Free to create. Your own listing will fold into the group once it's created, and consultants will find you under the group's company name instead of individually.</p>
+        <form id="create-group-form">
+          <div class="field">
+            <label for="create-company-name">Company name</label>
+            <input type="text" id="create-company-name" required maxlength="120">
+          </div>
+          <div class="field">
+            <label for="create-description">Description</label>
+            <textarea id="create-description" maxlength="500"></textarea>
+          </div>
+          ${rateFieldsHtml('create', null)}
+          <button type="submit" class="btn" id="create-group-btn">Start group</button>
+          <p class="error-note" id="create-group-error"></p>
+        </form>
+      </div>
+      <div class="card">
+        <h3>Have an invite link?</h3>
+        <p class="card-note" style="margin-bottom:0;">Open the link a group admin sent you — it'll ask you to log in (if you aren't already) and join automatically.</p>
+      </div>
+    `;
+    wireRateTypeToggle('create', 'hourly');
+
+    document.getElementById('create-group-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('create-group-btn');
+      const errorBox = document.getElementById('create-group-error');
+      errorBox.style.display = 'none';
+      btn.disabled = true;
+
+      const rate = readRateFields('create');
+      const { error } = await supabaseClient.rpc('create_group', {
+        p_company_name: document.getElementById('create-company-name').value.trim(),
+        p_description: document.getElementById('create-description').value.trim() || null,
+        p_rate_type: rate.rate_type,
+        p_hourly_rate: rate.hourly_rate,
+        p_day_rate: rate.day_rate,
+        p_percentage_rate: rate.percentage_rate,
+        p_rate_negotiable: rate.rate_negotiable,
+      });
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        btn.disabled = false;
+        return;
+      }
+
+      window.location.reload();
+    });
+  }
+
+  async function renderMember(membership, group) {
+    const isAdmin = group.admin_id === currentUserId;
+    if (isAdmin) {
+      await renderAdmin(group);
+      return;
+    }
+
+    const content = document.getElementById('content');
+    const pausedNote = group.status === 'paused'
+      ? `<div class="status-note">This group is currently paused — it has no admin, so it isn't visible to consultants and its existing conversations are read-only. Any member can step up to reactivate it.</div>`
+      : '';
+    const claimBtn = group.status === 'paused'
+      ? `<button class="btn" id="claim-admin-btn">Become admin</button><p class="error-note" id="claim-admin-error"></p>`
+      : '';
+
+    content.innerHTML = `
+      ${pausedNote}
+      <div class="card">
+        <h3>${escHtml(group.company_name)}</h3>
+        <p class="card-note">You're a member of this group${membership.role_title ? ` (${escHtml(membership.role_title)})` : ''}. All consultant contact for the group goes through its admin.</p>
+        ${claimBtn}
+        <div style="margin-top:14px;">
+          <button class="btn-outline btn-danger" id="leave-group-btn">Leave group</button>
+        </div>
+      </div>
+    `;
+
+    const claimEl = document.getElementById('claim-admin-btn');
+    if (claimEl) {
+      claimEl.addEventListener('click', async () => {
+        claimEl.disabled = true;
+        const { error } = await supabaseClient.rpc('claim_group_admin', { p_group_id: group.id });
+        if (error) {
+          const err = document.getElementById('claim-admin-error');
+          err.textContent = error.message;
+          err.style.display = 'block';
+          claimEl.disabled = false;
+          return;
+        }
+        window.location.reload();
+      });
+    }
+
+    document.getElementById('leave-group-btn').addEventListener('click', async () => {
+      if (!confirm('Leave this group? You can start or join another group afterwards.')) return;
+      const { error } = await supabaseClient.from('group_members').delete().eq('group_id', group.id).eq('secretary_id', currentUserId);
+      if (!error) window.location.reload();
+    });
+  }
+
+  async function renderAdmin(group) {
+    const content = document.getElementById('content');
+
+    const { data: members } = await supabaseClient
+      .from('group_members')
+      .select('secretary_id, role_title, profiles(first_name, last_name)')
+      .eq('group_id', group.id)
+      .order('joined_at', { ascending: true });
+
+    const { data: invites } = await supabaseClient
+      .from('group_invites')
+      .select('token, expires_at, max_uses, use_count, revoked, created_at')
+      .eq('group_id', group.id)
+      .order('created_at', { ascending: false });
+
+    const isBoosted = !!(group.premium_active && group.premium_expires_at && new Date(group.premium_expires_at) > new Date());
+    const otherMembers = (members || []).filter(m => m.secretary_id !== currentUserId);
+
+    const memberRows = (members || []).map(m => {
+      const name = m.profiles ? `${m.profiles.first_name} ${m.profiles.last_name}` : 'Member';
+      const isSelf = m.secretary_id === currentUserId;
+      return `
+        <div class="member-row">
+          <div>
+            <span class="member-name">${escHtml(name)}${isSelf ? '<span class="admin-badge">Admin (you)</span>' : ''}</span>
+            <div class="member-role"><input class="member-role-input" data-member="${m.secretary_id}" value="${escHtml(m.role_title || '')}" placeholder="Role (e.g. Typing)"></div>
+          </div>
+          ${isSelf ? '' : `<button class="btn-outline btn-danger" data-remove="${m.secretary_id}">Remove</button>`}
+        </div>
+      `;
+    }).join('');
+
+    const activeInvites = (invites || []).filter(i => !i.revoked && i.use_count < i.max_uses && new Date(i.expires_at) > new Date());
+    const inviteRows = activeInvites.map(i => {
+      const link = `${window.location.origin}${window.location.pathname.replace('group.html', 'join-group.html')}?token=${i.token}`;
+      return `
+        <div class="invite-row">
+          <div>
+            <div>Expires ${new Date(i.expires_at).toLocaleDateString()} · ${i.use_count}/${i.max_uses} used</div>
+            <div class="invite-link-box">
+              <input type="text" readonly value="${escHtml(link)}" onclick="this.select()">
+              <button type="button" class="btn-outline" data-revoke="${i.token}">Revoke</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const transferOptions = otherMembers.map(m => {
+      const name = m.profiles ? `${m.profiles.first_name} ${m.profiles.last_name}` : 'Member';
+      return `<option value="${m.secretary_id}">${escHtml(name)}</option>`;
+    }).join('');
+
+    content.innerHTML = `
+      <div class="card">
+        <h3>Group details</h3>
+        <form id="edit-group-form">
+          <div class="field">
+            <label for="edit-company-name">Company name</label>
+            <input type="text" id="edit-company-name" required maxlength="120" value="${escHtml(group.company_name)}">
+          </div>
+          <div class="field">
+            <label for="edit-description">Description</label>
+            <textarea id="edit-description" maxlength="500">${escHtml(group.description || '')}</textarea>
+          </div>
+          ${rateFieldsHtml('edit', group)}
+          <button type="submit" class="btn" id="edit-group-btn">Save changes</button>
+          <p class="saved-note" id="edit-group-saved">Saved ✓</p>
+          <p class="error-note" id="edit-group-error"></p>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Members</h3>
+        <p class="card-note">Consultants see each member's individual skills in the group listing, but message only you.</p>
+        ${memberRows}
+      </div>
+
+      <div class="card">
+        <h3>Invite a secretary</h3>
+        <p class="card-note">Generate a link — whoever opens it and logs in (or signs up) joins your group automatically.</p>
+        <button class="btn-outline" id="create-invite-btn">Generate invite link</button>
+        <div id="invite-list" style="margin-top:14px;">${inviteRows}</div>
+      </div>
+
+      ${otherMembers.length > 0 ? `
+      <div class="card">
+        <h3>Transfer admin</h3>
+        <p class="card-note">Hand the group over to another member before you leave, so it stays active without interruption.</p>
+        <div class="field">
+          <select id="transfer-target">${transferOptions}</select>
+        </div>
+        <button class="btn-outline" id="transfer-admin-btn">Transfer</button>
+        <p class="error-note" id="transfer-admin-error"></p>
+      </div>` : ''}
+
+      <div class="card">
+        <h3>Group boost</h3>
+        <p class="card-note">${isBoosted ? `Featured until ${new Date(group.premium_expires_at).toLocaleDateString()}.` : 'Featured placement and priority ranking in consultant search results for 30 days.'}</p>
+        ${isBoosted ? '' : `<a class="btn" href="mock-checkout.html?type=group_boost&group_id=${group.id}">Buy group boost — £20/mo</a>`}
+      </div>
+
+      <div class="card">
+        <h3>Messages</h3>
+        <p class="card-note" style="margin-bottom:0;">Consultant conversations for the group appear in your <a href="messages.html" style="text-decoration:underline; font-weight:600;">inbox</a>.</p>
+      </div>
+    `;
+
+    wireRateTypeToggle('edit', group.rate_type);
+
+    document.getElementById('edit-group-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('edit-group-btn');
+      const errorBox = document.getElementById('edit-group-error');
+      const savedNote = document.getElementById('edit-group-saved');
+      errorBox.style.display = 'none';
+      savedNote.style.display = 'none';
+      btn.disabled = true;
+
+      const rate = readRateFields('edit');
+      const { error } = await supabaseClient.from('groups').update({
+        company_name: document.getElementById('edit-company-name').value.trim(),
+        description: document.getElementById('edit-description').value.trim() || null,
+        ...rate,
+      }).eq('id', group.id);
+
+      btn.disabled = false;
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+        return;
+      }
+      savedNote.style.display = 'block';
+      setTimeout(() => { savedNote.style.display = 'none'; }, 1800);
+    });
+
+    document.querySelectorAll('.member-role-input').forEach(input => {
+      input.addEventListener('change', async () => {
+        await supabaseClient.from('group_members')
+          .update({ role_title: input.value.trim() || null })
+          .eq('group_id', group.id)
+          .eq('secretary_id', input.dataset.member);
+      });
+    });
+
+    document.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remove this member from the group?')) return;
+        const { error } = await supabaseClient.from('group_members')
+          .delete()
+          .eq('group_id', group.id)
+          .eq('secretary_id', btn.dataset.remove);
+        if (!error) window.location.reload();
+      });
+    });
+
+    const createInviteBtn = document.getElementById('create-invite-btn');
+    createInviteBtn.addEventListener('click', async () => {
+      createInviteBtn.disabled = true;
+      const { error } = await supabaseClient.from('group_invites').insert({
+        group_id: group.id,
+        created_by: currentUserId,
+      });
+      createInviteBtn.disabled = false;
+      if (!error) window.location.reload();
+    });
+
+    document.querySelectorAll('[data-revoke]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await supabaseClient.from('group_invites').update({ revoked: true }).eq('token', btn.dataset.revoke);
+        window.location.reload();
+      });
+    });
+
+    const transferBtn = document.getElementById('transfer-admin-btn');
+    if (transferBtn) {
+      transferBtn.addEventListener('click', async () => {
+        const target = document.getElementById('transfer-target').value;
+        if (!target) return;
+        if (!confirm('Transfer admin to this member? You will no longer manage the group or receive its messages.')) return;
+        transferBtn.disabled = true;
+        const { error } = await supabaseClient.from('groups').update({ admin_id: target }).eq('id', group.id);
+        if (error) {
+          const err = document.getElementById('transfer-admin-error');
+          err.textContent = error.message;
+          err.style.display = 'block';
+          transferBtn.disabled = false;
+          return;
+        }
+        window.location.reload();
+      });
+    }
+  }
+
+  (async () => {
+    const navResult = await renderAccountNav(document.getElementById('account-nav'), supabaseClient, 'group');
+    if (!navResult) {
+      window.location.href = 'login.html';
+      return;
+    }
+    const { session, profile } = navResult;
+    currentUserId = session.user.id;
+
+    if (profile.role !== 'secretary') {
+      document.getElementById('loading').textContent = 'This page is only available to secretary accounts.';
+      return;
+    }
+
+    const { data: membership } = await supabaseClient
+      .from('group_members')
+      .select('group_id, role_title')
+      .eq('secretary_id', currentUserId)
+      .maybeSingle();
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+    if (!membership) {
+      renderNoGroup();
+      return;
+    }
+
+    const { data: group } = await supabaseClient
+      .from('groups')
+      .select('*')
+      .eq('id', membership.group_id)
+      .single();
+
+    await renderMember(membership, group);
+  })();
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+  });
+</script>
+
+<script src="../mobile-nav.js"></script>
+<script src="../cookie-consent.js"></script>
+</body>
+</html>

@@ -20,6 +20,7 @@ const CONSULTANT_NAV_LINKS = [
 const SECRETARY_NAV_LINKS = [
   { label: 'My profile', href: 'profile.html', key: 'profile' },
   { label: 'Messages', href: 'messages.html', key: 'messages' },
+  { label: 'My group', href: 'group.html', key: 'group' },
   { label: 'Job board', href: 'job-board.html', key: 'job-board' },
   { label: 'Academy', href: 'academy.html', key: 'academy' },
   { label: 'Daily Tools', href: 'daily-tools.html', key: 'daily-tools' },
@@ -44,7 +45,7 @@ const ADMIN_NAV_LINKS = [
 
 const ADMIN_ALLOWLIST = [
   'admin.html', 'admin-accept-invite.html', 'login.html',
-  'view-secretary.html', 'search-secretaries.html',
+  'view-secretary.html', 'search-secretaries.html', 'view-group.html', 'group-thread.html',
   'specialist-course.html', 'specialist-course-exercises.html',
   'specialist-course-quiz.html', 'specialist-course-flashcards.html', 'specialist-course-printables.html',
   'support.html', 'job-board.html', 'academy.html', 'specialist-courses.html',
@@ -112,7 +113,32 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
       .eq(filterColumn, session.user.id)
       .neq('sender_id', session.user.id)
       .is('read_at', null);
-    unread = data;
+    unread = data || [];
+
+    // Group threads only ever have two participants — the consultant and
+    // whichever secretary currently admins the group — so consultants
+    // filter by consultant_id directly, while secretaries only see group
+    // unreads for groups they currently admin (non-admin members don't
+    // participate in group threads at all).
+    let groupUnread;
+    if (profile.role === 'consultant') {
+      const { data: gu } = await supabaseClient
+        .from('group_messages')
+        .select('id')
+        .eq('consultant_id', session.user.id)
+        .neq('sender_id', session.user.id)
+        .is('read_at', null);
+      groupUnread = gu;
+    } else {
+      const { data: gu } = await supabaseClient
+        .from('group_messages')
+        .select('id, groups!inner(admin_id)')
+        .eq('groups.admin_id', session.user.id)
+        .neq('sender_id', session.user.id)
+        .is('read_at', null);
+      groupUnread = gu;
+    }
+    unread = unread.concat(groupUnread || []);
   }
 
   if (unread && unread.length > 0) {
@@ -161,6 +187,12 @@ function formatSecretaryRate(sec) {
   }
   if (!base) return null;
   return sec.rate_negotiable ? `${base} (negotiable)` : base;
+}
+
+// Same formatting as formatSecretaryRate, for a groups row (one rate set by
+// the admin for the whole group, rather than per-member rates).
+function formatGroupRate(group) {
+  return formatSecretaryRate(group);
 }
 
 // Builds the availability badge HTML for a secretary_profiles row, reflecting

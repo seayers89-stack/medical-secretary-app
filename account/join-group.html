@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>Join a group — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#2E3F54;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Special Elite', cursive;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(46,63,84,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .logo{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+
+  .auth-wrap{ display:flex; align-items:center; justify-content:center; padding:80px 32px 100px; min-height:60vh; }
+  .auth-card{
+    width:100%; max-width:440px; background:var(--white); border:1px solid rgba(46,63,84,0.08);
+    border-radius:20px; padding:44px 40px; text-align:center;
+  }
+  .auth-eyebrow{
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:26px; margin-bottom:12px; }
+  .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:26px; }
+
+  .btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:15px; padding:14px 28px;
+    border-radius:8px; cursor:pointer; border:none; width:100%; text-align:center;
+    background:var(--ink); color:var(--paper); box-shadow:0 8px 20px -8px rgba(46,63,84,0.5);
+    display:block; margin-bottom:12px;
+  }
+  .btn-outline{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:14px; padding:12px 24px;
+    border-radius:8px; cursor:pointer; border:1.5px solid var(--ink); background:none; color:var(--ink);
+    width:100%; text-align:center; display:block;
+  }
+  .error-note{
+    background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:#a33;
+    padding:12px 14px; border-radius:8px; font-size:13.5px; margin-top:16px; display:none;
+  }
+
+</style>
+<link rel="stylesheet" href="../veyn-buttons.css"></head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+  </div>
+</header>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-eyebrow">Group invite</div>
+    <h1 id="title">Loading…</h1>
+    <p class="sub" id="sub"></p>
+    <div id="actions"></div>
+    <p class="error-note" id="error-note"></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="supabase-config.js"></script>
+<script>
+  const token = new URLSearchParams(window.location.search).get('token');
+  const titleEl = document.getElementById('title');
+  const subEl = document.getElementById('sub');
+  const actionsEl = document.getElementById('actions');
+  const errorEl = document.getElementById('error-note');
+
+  (async () => {
+    if (!token) {
+      titleEl.textContent = 'Missing invite link';
+      subEl.textContent = 'This link is incomplete — ask the group admin to resend it.';
+      return;
+    }
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+      titleEl.textContent = "You've been invited to join a secretarial group";
+      subEl.textContent = 'Log in or create a secretary account to accept this invite.';
+      const redirect = encodeURIComponent(`join-group.html?token=${token}`);
+      actionsEl.innerHTML = `
+        <a class="btn" href="login.html?redirect=${redirect}">Log in</a>
+        <a class="btn-outline" href="create-profile-secretary.html">Create a secretary account</a>
+      `;
+      subEl.innerHTML += '<br><br>Signing up? Come back to this link once your account is ready.';
+      return;
+    }
+
+    const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
+    if (!profile || profile.role !== 'secretary') {
+      titleEl.textContent = 'This invite is for secretary accounts';
+      subEl.textContent = 'You\'re logged in as a different account type. Log out and log back in as the secretary you\'d like to add.';
+      return;
+    }
+
+    titleEl.textContent = 'Joining group…';
+    subEl.textContent = '';
+
+    const { data: groupId, error } = await supabaseClient.rpc('redeem_group_invite', { p_token: token });
+
+    if (error) {
+      titleEl.textContent = 'Could not join this group';
+      errorEl.textContent = error.message;
+      errorEl.style.display = 'block';
+      actionsEl.innerHTML = `<a class="btn-outline" href="group.html">Go to my group</a>`;
+      return;
+    }
+
+    window.location.href = 'group.html';
+  })();
+</script>
+
+<script src="../mobile-nav.js"></script>
+<script src="../cookie-consent.js"></script>
+</body>
+</html>

@@ -175,6 +175,15 @@
   const errorBox = document.getElementById('form-error');
   const submitBtn = document.getElementById('submit-btn');
 
+  // Only accept a bare "page.html" (optionally with its own query string) as
+  // a post-login redirect target — never a full URL/host, to rule out this
+  // becoming an open redirect via a crafted ?redirect= link.
+  function safeRedirect(target) {
+    if (target && /^[a-zA-Z0-9_-]+\.html(\?[^\s]*)?$/.test(target)) return target;
+    return 'profile.html';
+  }
+  const redirectTarget = safeRedirect(new URLSearchParams(window.location.search).get('redirect'));
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorBox.style.display = 'none';
@@ -194,7 +203,7 @@
       return;
     }
 
-    window.location.href = 'profile.html';
+    window.location.href = redirectTarget;
   });
 
   document.getElementById('pw-toggle').addEventListener('click', function() {

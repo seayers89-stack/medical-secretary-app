@@ -110,6 +110,17 @@
       document.getElementById('pay-btn').textContent = 'Pay £12.00';
       checkoutPayload = { type: 'contact', secretary_id: secretaryId, secretary_name: secretaryName };
 
+    } else if (type === 'group_contact') {
+      const groupId = params.get('group_id');
+      const groupName = params.get('group_name') || 'this group';
+      document.getElementById('checkout-title').textContent = 'Unlock conversation';
+      document.getElementById('checkout-desc').textContent = `Unlock messaging with ${groupName}. No expiry on the thread — no commission if hired.`;
+      document.getElementById('summary-label').textContent = `Contact unlock — ${groupName}`;
+      document.getElementById('summary-price').textContent = '£12.00';
+      document.getElementById('summary-total').textContent = '£12.00';
+      document.getElementById('pay-btn').textContent = 'Pay £12.00';
+      checkoutPayload = { type: 'group_contact', group_id: groupId, group_name: groupName };
+
     } else if (type === 'pass') {
       const plan = PASS_PLANS[params.get('plan')];
       if (!plan) { document.getElementById('checkout-desc').textContent = 'Unknown plan.'; return; }
@@ -151,6 +162,16 @@
       document.getElementById('summary-total').textContent = '£8.00';
       document.getElementById('pay-btn').textContent = 'Pay £8.00';
       checkoutPayload = { type: 'premium_boost' };
+
+    } else if (type === 'group_boost') {
+      const groupId = params.get('group_id');
+      document.getElementById('checkout-title').textContent = 'Group boost';
+      document.getElementById('checkout-desc').textContent = 'Featured placement and priority ranking for your group in consultant search results for 30 days.';
+      document.getElementById('summary-label').textContent = 'Group boost — 30 days';
+      document.getElementById('summary-price').textContent = '£20.00';
+      document.getElementById('summary-total').textContent = '£20.00';
+      document.getElementById('pay-btn').textContent = 'Pay £20.00';
+      checkoutPayload = { type: 'group_boost', group_id: groupId };
 
     } else if (type === 'specialist_course') {
       const course = SPECIALIST_COURSES[params.get('slug')];

@@ -61,6 +61,21 @@ serve(async (req) => {
     successUrl = `${SITE_URL}/account/payment-success.html?type=contact&secretary_id=${secretary_id}`
     cancelUrl = `${SITE_URL}/account/view-secretary.html?id=${secretary_id}`
 
+  } else if (type === 'group_contact') {
+    const { group_id, group_name } = body
+    if (!group_id) return new Response('Missing group_id', { status: 400, headers: CORS })
+    lineItem = {
+      price_data: {
+        currency: 'gbp',
+        unit_amount: 1200,
+        product_data: { name: `Contact unlock — ${group_name || 'secretarial group'}` },
+      },
+      quantity: 1,
+    }
+    metadata.group_id = group_id
+    successUrl = `${SITE_URL}/account/payment-success.html?type=group_contact&group_id=${group_id}`
+    cancelUrl = `${SITE_URL}/account/view-group.html?id=${group_id}`
+
   } else if (type === 'pass') {
     const { plan } = body
     const p = PASS_PLANS[plan]
@@ -151,6 +166,21 @@ serve(async (req) => {
     }
     successUrl = `${SITE_URL}/account/payment-success.html?type=premium_boost`
     cancelUrl = `${SITE_URL}/account/profile.html`
+
+  } else if (type === 'group_boost') {
+    const { group_id } = body
+    if (!group_id) return new Response('Missing group_id', { status: 400, headers: CORS })
+    lineItem = {
+      price_data: {
+        currency: 'gbp',
+        unit_amount: 2000,
+        product_data: { name: 'Group boost — 30 days' },
+      },
+      quantity: 1,
+    }
+    metadata.group_id = group_id
+    successUrl = `${SITE_URL}/account/payment-success.html?type=group_boost&group_id=${group_id}`
+    cancelUrl = `${SITE_URL}/account/group.html`
 
   } else if (type === 'specialist_course') {
     const { slug, title, price } = body

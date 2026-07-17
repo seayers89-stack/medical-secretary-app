@@ -33,6 +33,14 @@ export async function grantPurchaseEffect(
       stripe_payment_intent_id: stripePaymentIntentId,
     })
 
+  } else if (type === 'group_contact') {
+    await db.from('group_unlocks').insert({
+      consultant_id: userId,
+      group_id: meta.group_id,
+      price_paid: 12,
+      stripe_payment_intent_id: stripePaymentIntentId,
+    })
+
   } else if (type === 'pass') {
     const days = parseInt(meta.days, 10)
     if (isNaN(days) || days < 1 || days > 365) throw new Error('Invalid pass duration')
@@ -74,6 +82,16 @@ export async function grantPurchaseEffect(
     await db.from('secretary_profiles')
       .update({ premium_active: true, premium_expires_at: expires })
       .eq('profile_id', userId)
+
+  } else if (type === 'group_boost') {
+    // Only the group's current admin can buy its boost — grant-purchase
+    // runs with service-role privileges, so this check stands in for the
+    // RLS check a normal client insert would get.
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    await db.from('groups')
+      .update({ premium_active: true, premium_expires_at: expires })
+      .eq('id', meta.group_id)
+      .eq('admin_id', userId)
 
   } else if (type === 'specialist_course') {
     const price = parseFloat(meta.price)
