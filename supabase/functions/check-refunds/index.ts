@@ -167,8 +167,143 @@ serve(async (req) => {
     results.push({ id: unlock.id, action: 'refunded', consultant: consultantEmail })
   }
 
-  console.log(`check-refunds complete: ${refundedCount} refunded of ${unlocks.length} checked`)
-  return new Response(JSON.stringify({ refunded: refundedCount, total_checked: unlocks.length, results }), {
+  // Same check, for secretarial group unlocks. group_messages RLS only ever
+  // lets the consultant or the group's *current* admin post to a thread, so
+  // "any message not sent by the consultant" is equivalent to "the group
+  // replied" — and stays correct even if the admin role changes hands.
+  const { data: groupUnlocks, error: groupError } = await db
+    .from('group_unlocks')
+    .select(`
+      id,
+      consultant_id,
+      group_id,
+      created_at,
+      stripe_payment_intent_id,
+      profiles!group_unlocks_consultant_id_fkey (first_name, last_name, email),
+      groups (company_name)
+    `)
+    .eq('price_paid', 12)
+    .is('refunded_at', null)
+    .not('stripe_payment_intent_id', 'is', null)
+    .lt('created_at', cutoff)
+
+  if (groupError) {
+    console.error('Failed to fetch group_unlocks:', groupError)
+  }
+
+  for (const unlock of groupUnlocks || []) {
+    const { data: groupReply } = await db
+      .from('group_messages')
+      .select('id')
+      .eq('consultant_id', unlock.consultant_id)
+      .eq('group_id', unlock.group_id)
+      .neq('sender_id', unlock.consultant_id)
+      .limit(1)
+      .maybeSingle()
+
+    if (groupReply) {
+      results.push({ id: unlock.id, action: 'skipped', reason: 'group replied' })
+      continue
+    }
+
+    try {
+      await stripe.refunds.create({
+        payment_intent: unlock.stripe_payment_intent_id,
+        reason: 'requested_by_customer',
+      })
+    } catch (stripeErr) {
+      console.error(`Stripe refund failed for group unlock ${unlock.id}:`, stripeErr)
+      results.push({ id: unlock.id, action: 'error', reason: stripeErr.message })
+      continue
+    }
+
+    await db
+      .from('group_unlocks')
+      .update({ refunded_at: new Date().toISOString() })
+      .eq('id', unlock.id)
+
+    const { data: spendRow } = await db
+      .from('account_credit_ledger')
+      .select('amount_pence')
+      .eq('stripe_payment_intent_id', unlock.stripe_payment_intent_id)
+      .eq('reason', 'spend')
+      .maybeSingle()
+    if (spendRow) {
+      await db.from('account_credit_ledger').insert({
+        profile_id: unlock.consultant_id,
+        amount_pence: -spendRow.amount_pence,
+        reason: 'refund_reversal',
+        stripe_payment_intent_id: unlock.stripe_payment_intent_id,
+      })
+    }
+
+    const esc = (s: string) => String(s || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
+
+    const consultantProfile = Array.isArray(unlock.profiles) ? unlock.profiles[0] : unlock.profiles
+    const groupProfile = Array.isArray(unlock.groups) ? unlock.groups[0] : unlock.groups
+    const consultantEmail = consultantProfile?.email
+    const consultantName = esc(consultantProfile?.first_name || 'there')
+    const groupName = esc(groupProfile?.company_name || 'the group')
+    const unlockedDate = new Date(unlock.created_at).toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    })
+
+    if (consultantEmail) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'Veyn <noreply@veyn.uk>',
+          to: consultantEmail,
+          subject: 'Your £12 contact unlock has been refunded',
+          html: `
+            <div style="font-family: Inter, sans-serif; max-width: 560px; margin: 0 auto; color: #1B2430;">
+              <div style="padding: 32px 0 16px;">
+                <span style="font-family: Georgia, serif; font-size: 22px; font-weight: 600;">veyn</span>
+              </div>
+              <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 12px;">Your contact unlock has been refunded</h2>
+              <p style="font-size: 15px; line-height: 1.7; color: #5C6470;">Hi ${consultantName},</p>
+              <p style="font-size: 15px; line-height: 1.7; color: #5C6470;">
+                You unlocked a conversation with <strong style="color: #1B2430;">${groupName}</strong> on ${unlockedDate}.
+                As ${groupName} has not replied within 14 days, we have automatically refunded your <strong style="color: #1B2430;">£12.00</strong>
+                to your original payment method.
+              </p>
+              <p style="font-size: 15px; line-height: 1.7; color: #5C6470;">
+                The refund will appear within 5–10 business days depending on your bank.
+                The conversation thread has been closed.
+              </p>
+              <p style="font-size: 15px; line-height: 1.7; color: #5C6470;">
+                If you'd like to find another secretary or group, you're welcome to browse and unlock a new conversation at any time.
+              </p>
+              <div style="margin: 28px 0;">
+                <a href="https://www.veyn.uk/account/search-secretaries.html"
+                   style="display: inline-block; background: #1B2430; color: #F7F4ED; font-size: 14px; font-weight: 600;
+                          padding: 12px 24px; border-radius: 8px; text-decoration: none;">
+                  Browse secretaries
+                </a>
+              </div>
+              <p style="font-size: 13px; color: #5C6470; border-top: 1px solid rgba(27,36,48,0.1); padding-top: 20px; margin-top: 32px;">
+                Questions? Reply to this email or contact us at
+                <a href="mailto:hello@veyn.uk" style="color: #B8924A;">hello@veyn.uk</a>.<br>
+                Veyn · VeynUK Ltd · 43 Crummock Place, Milton Keynes, MK2 3ER
+              </p>
+            </div>
+          `,
+        }),
+      })
+    }
+
+    refundedCount++
+    results.push({ id: unlock.id, action: 'refunded', consultant: consultantEmail })
+  }
+
+  console.log(`check-refunds complete: ${refundedCount} refunded of ${unlocks.length + (groupUnlocks?.length || 0)} checked`)
+  return new Response(JSON.stringify({ refunded: refundedCount, total_checked: unlocks.length + (groupUnlocks?.length || 0), results }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   })
