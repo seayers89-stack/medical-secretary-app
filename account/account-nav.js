@@ -194,6 +194,54 @@ function formatGroupRate(group) {
   return formatSecretaryRate(group);
 }
 
+// Builds the "Skills-tested" card — a gold seal badge plus one stat row per
+// verified credential (typing speed, terminology quiz, each verified
+// system, each specialist course). Returns '' if nothing is verified, so
+// callers can skip rendering the card entirely (same behavior as the old
+// compact pill it replaces).
+function renderVerifiedSkillsCard(sec, passedSystems, passedCourses) {
+  const rows = [];
+
+  if (sec.typing_wpm_verified != null) {
+    const suffix = sec.typing_accuracy_verified != null ? `— ${sec.typing_accuracy_verified}% accuracy` : '';
+    rows.push({ label: 'Typing speed', value: `${sec.typing_wpm_verified} wpm`, suffix });
+  }
+  if (sec.terminology_quiz_passed && sec.terminology_quiz_score != null) {
+    rows.push({ label: 'Terminology', value: `${sec.terminology_quiz_score}%`, suffix: '— passed' });
+  }
+  (passedSystems || []).forEach(r => {
+    const name = (SYSTEM_SKILLS[r.system_slug] && SYSTEM_SKILLS[r.system_slug].name) || r.system_slug;
+    rows.push({ label: 'System', value: name, suffix: r.quiz_score != null ? `— ${r.quiz_score}%` : '' });
+  });
+  (passedCourses || []).forEach(r => {
+    const course = SPECIALIST_COURSES[r.course_slug];
+    if (!course) return;
+    rows.push({ label: 'Specialist', value: course.title, suffix: r.quiz_score != null ? `— ${r.quiz_score}%` : '' });
+  });
+
+  if (rows.length === 0) return '';
+
+  const rowsHtml = rows.map(r => `
+    <div class="skills-stat-row">
+      <div class="skills-stat-label">${escapeHtml(r.label)}</div>
+      <div class="skills-stat-value">${escapeHtml(r.value)} <span class="skills-stat-suffix">${escapeHtml(r.suffix)}</span></div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="card skills-verified-card">
+      <div class="skills-verified-head">
+        <div class="verify-ring">${verifiedSealSVG(64)}</div>
+        <div>
+          <div class="skills-eyebrow">Skills-tested</div>
+          <p class="skills-tagline">Tested directly on the platform — no stored documents, just measured skill.</p>
+        </div>
+      </div>
+      <div class="skills-stat-list">${rowsHtml}</div>
+    </div>
+  `;
+}
+
 // Builds the availability badge HTML for a secretary_profiles row, reflecting
 // the specific "Available now" / "Available within X" / "No availability"
 // state rather than a flat available/not-available boolean.

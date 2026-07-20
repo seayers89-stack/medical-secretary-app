@@ -73,6 +73,21 @@
   .row span:first-child{ color:var(--slate); }
   .row span:last-child{ font-weight:600; }
 
+  .skills-verified-head{ display:flex; align-items:center; gap:20px; margin-bottom:18px; }
+  .skills-eyebrow{
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:6px;
+  }
+  .skills-tagline{ color:var(--slate); font-size:13.5px; line-height:1.6; margin-top:2px; }
+  .skills-stat-row{ padding:12px 0; border-bottom:1px solid rgba(46,63,84,0.06); }
+  .skills-stat-row:last-child{ border-bottom:none; }
+  .skills-stat-label{
+    font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--slate); margin-bottom:4px;
+  }
+  .skills-stat-value{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; color:var(--ink); }
+  .skills-stat-suffix{ font-family:'Special Elite', cursive; font-weight:400; font-size:14px; color:var(--slate); }
+
   .boost-badge{
     display:inline-flex; align-items:center; gap:6px; font-family:'Special Elite', cursive; font-size:10.5px;
     letter-spacing:0.06em; text-transform:uppercase; color:#8F6F36; background:rgba(184,146,74,0.12);
@@ -399,22 +414,12 @@
 
         const { data: passedCourses } = await supabaseClient
           .from('specialist_course_results')
-          .select('course_slug')
+          .select('course_slug, quiz_score')
           .eq('profile_id', userId)
           .eq('quiz_passed', true);
 
-        const skillsParts = [];
-        if (sec.typing_wpm_verified != null) skillsParts.push(`${sec.typing_wpm_verified} WPM`);
-        if (sec.terminology_quiz_passed) skillsParts.push('Terminology passed');
-        (passedSystems || []).forEach(r => skillsParts.push(`${(SYSTEM_SKILLS[r.system_slug] && SYSTEM_SKILLS[r.system_slug].name) || r.system_slug} verified`));
-        (passedCourses || []).forEach(r => {
-          const course = SPECIALIST_COURSES[r.course_slug];
-          if (course) skillsParts.push(`${course.title} specialist certified`);
-        });
-        if (skillsParts.length > 0) {
-          document.getElementById('skills-tested-badge-row').innerHTML =
-            `<span class="result-badge skills-tested-badge">${skillsTestedIconSVG(14)} Skills-Tested · ${skillsParts.join(' · ')}</span>`;
-        }
+        document.getElementById('skills-tested-badge-row').innerHTML =
+          renderVerifiedSkillsCard(sec, passedSystems, passedCourses);
 
         const boostCard = document.getElementById('premium-boost-card');
         const boostActive = sec.premium_active && sec.premium_expires_at && new Date(sec.premium_expires_at) > new Date();
@@ -445,8 +450,7 @@
           <div class="row"><span>Systems</span><span>${(sec.systems || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Specialties</span><span>${(sec.specialties || []).join(', ') || '—'}</span></div>
           <div class="row"><span>Core skills</span><span>${(sec.core_skills || []).join(', ') || '—'}</span></div>
-          <div class="row"><span>Typing speed</span><span>${sec.typing_wpm_verified != null ? `${sec.typing_wpm_verified} WPM ✓ Verified` : (sec.typing_speed || '—')}</span></div>
-          <div class="row"><span>Terminology quiz</span><span>${sec.terminology_quiz_passed ? `Passed (${sec.terminology_quiz_score}%) ✓ Verified` : '—'}</span></div>
+          ${sec.typing_wpm_verified == null ? `<div class="row"><span>Typing speed</span><span>${sec.typing_speed ? `${sec.typing_speed} (self-reported)` : '—'}</span></div>` : ''}
           <div class="row"><span>Training modules completed</span><span id="training-modules-row">—</span></div>
           <div class="row"><span>English fluency</span><span>${sec.english_fluency || '—'}</span></div>
           <div class="row"><span>Other languages</span><span>${[...(sec.languages_spoken || []), sec.languages_other ? 'Other' : null].filter(Boolean).join(', ') || '—'}</span></div>

@@ -24,6 +24,18 @@ function staffBadgeIconSVG(size = 16) {
   </svg>`;
 }
 
+// Verified-skills card seal — same engraved-seal construction (outer solid
+// ring + dashed inner ring) as the badges above, scaled up and rendered in
+// gold with a serif "V" as the card's visual anchor, rather than a small
+// inline glyph.
+function verifiedSealSVG(size = 64) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 120 120" style="flex-shrink:0;">
+    <circle cx="60" cy="60" r="56" fill="none" stroke="#B8924A" stroke-width="3"/>
+    <circle cx="60" cy="60" r="46" fill="none" stroke="#B8924A" stroke-width="1.5" stroke-dasharray="3,7"/>
+    <text x="60" y="79" text-anchor="middle" font-family="'Cormorant Garamond', serif" font-size="52" font-weight="600" fill="#B8924A">V</text>
+  </svg>`;
+}
+
 // Unverified directory-entry badge — same engraved-seal construction, slate
 // grey (a neutral "not yet confirmed" mark, distinct from the green/navy
 // credential badges, for consultant directory entries a secretary added
