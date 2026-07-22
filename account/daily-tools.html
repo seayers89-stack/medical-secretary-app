@@ -278,6 +278,7 @@
       <button class="tab-btn" data-tab="contacts">Contacts</button>
       <button class="tab-btn" data-tab="consultants">Find a consultant</button>
       <button class="tab-btn" data-tab="billing">Billing codes</button>
+      <button class="tab-btn" data-tab="tasktracker">Task Tracker</button>
     </div>
 
     <div class="tab-panel active" id="tab-spelling">
@@ -445,11 +446,24 @@
       </div>
     </div>
 
-    <div class="guide-card" style="margin-top:8px;">
-      <span class="guide-label">Bonus — runs on your PC</span>
-      <h2>Task Tracker</h2>
-      <p>A small offline task timer — time what you're working on, set an optional time budget per task, and see where your day goes by tag. It downloads as a desktop app; your data stays on your own computer, not on Veyn.</p>
-      <a class="btn btn-primary" href="downloads/task-tracker.zip" download>Download Task Tracker</a>
+    <div class="tab-panel" id="tab-tasktracker">
+    <div class="content-narrow">
+      <div class="guide-card">
+        <span class="guide-label">Bonus — runs on your PC</span>
+        <h2>Task Tracker</h2>
+        <p>A small offline task timer built for the middle of a working day. It's a separate desktop app you download — not part of your Veyn dashboard — so your data stays on your own computer, not on Veyn's servers.</p>
+        <p>What it does:</p>
+        <ul style="margin:0 0 18px; padding-left:20px; color:var(--ink); font-size:14.5px; line-height:1.8;">
+          <li>Time what you're working on — start, pause, and mark done with one click</li>
+          <li>Set an optional time budget per task and get an alert when it runs over</li>
+          <li>Tag tasks (billing, letters, admin…) and see where your time actually goes, by day, week, or month</li>
+          <li>Repeating tasks — daily, weekly, or on specific dates — appear automatically each day</li>
+          <li>Works entirely offline, with nothing sent to Veyn</li>
+        </ul>
+        <img src="images/task-tracker-demo.svg" alt="Task Tracker showing a day's tasks, including a running timer, an over-budget alert, tags, and a completed task" style="width:100%; max-width:560px; display:block; border-radius:14px; margin-bottom:22px;">
+        <a class="btn btn-primary" href="downloads/task-tracker.zip" download>Download Task Tracker</a>
+      </div>
+      </div>
     </div>
 
   </div>
