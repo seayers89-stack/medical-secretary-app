@@ -11,6 +11,7 @@ create table profiles (
   email text,
   is_admin boolean not null default false,
   last_active_at timestamptz,
+  community_last_viewed_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -461,6 +462,9 @@ create policy "Admins can delete quiz questions"
 
 grant update (last_active_at) on profiles to authenticated;
 grant select (last_active_at) on profiles to anon, authenticated;
+
+grant select (community_last_viewed_at) on profiles to anon, authenticated;
+grant update (community_last_viewed_at) on profiles to authenticated;
 
 create table ratings (
   id uuid primary key default gen_random_uuid(),

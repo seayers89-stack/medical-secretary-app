@@ -220,6 +220,7 @@
     document.getElementById('page-content').style.display = 'block';
 
     await loadPosts();
+    await supabaseClient.from('profiles').update({ community_last_viewed_at: new Date().toISOString() }).eq('id', currentUserId);
   })();
 
   async function loadPosts() {

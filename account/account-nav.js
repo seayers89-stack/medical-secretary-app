@@ -58,7 +58,9 @@ function buildAccountNavHtml(role, activeKey) {
     const active = l.key === activeKey ? ' class="active"' : '';
     const badge = l.key === 'messages'
       ? '<span id="account-nav-unread" style="display:none; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:999px; background:#C1393C; color:#fff; font-size:10.5px; font-weight:700; line-height:16px; text-align:center; vertical-align:middle;"></span>'
-      : '';
+      : (l.key === 'community'
+        ? '<span id="account-nav-community-unread" style="display:none; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:999px; background:#C1393C; color:#fff; font-size:10.5px; font-weight:700; line-height:16px; text-align:center; vertical-align:middle;"></span>'
+        : '');
     return `<a href="${l.href}"${active}>${l.label}${badge}</a>`;
   }).join('');
 }
@@ -86,7 +88,7 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
 
   const { data: profile } = await supabaseClient
     .from('profiles')
-    .select('role')
+    .select('role, community_last_viewed_at')
     .eq('id', session.user.id)
     .single();
   if (!profile) { reveal(); return null; }
@@ -145,6 +147,37 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
     if (badge) {
       badge.textContent = unread.length > 9 ? '9+' : String(unread.length);
       badge.style.display = 'inline-block';
+    }
+  }
+
+  // Community badge counts posts/replies from other people created since this
+  // profile last viewed the Community tab. A profile with no baseline yet
+  // (never visited) gets one set to "now" here rather than counting all of
+  // community history as "new" — the badge tracks fresh activity going
+  // forward, not a full unread backlog.
+  if (profile.role !== 'consultant') {
+    let since = profile.community_last_viewed_at;
+    if (!since) {
+      since = new Date().toISOString();
+      await supabaseClient.from('profiles').update({ community_last_viewed_at: since }).eq('id', session.user.id);
+    }
+    const { data: newPosts } = await supabaseClient
+      .from('community_posts')
+      .select('id, profile_id')
+      .gt('created_at', since);
+    const { data: newReplies } = await supabaseClient
+      .from('community_replies')
+      .select('id, profile_id')
+      .gt('created_at', since);
+    const communityNew = (newPosts || []).filter(p => p.profile_id !== session.user.id).length
+      + (newReplies || []).filter(r => r.profile_id !== session.user.id).length;
+
+    if (communityNew > 0) {
+      const communityBadge = navEl.querySelector('#account-nav-community-unread');
+      if (communityBadge) {
+        communityBadge.textContent = communityNew > 9 ? '9+' : String(communityNew);
+        communityBadge.style.display = 'inline-block';
+      }
     }
   }
 
