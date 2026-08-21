@@ -1307,7 +1307,7 @@
     list.innerHTML = suggestions.map(s => `
       <div class="card ${s.status !== 'pending' ? 'resolved' : ''}" data-suggestion-id="${s.id}">
         <div class="item-meta">
-          <span class="tag">${s.contact_type === 'gp' ? 'GP practice' : 'Hospital'}</span>
+          <span class="tag">${s.contact_type === 'gp' ? 'GP practice' : s.contact_type === 'insurer' ? 'Insurer' : 'Hospital'}</span>
           <span class="tag ${s.suggestion_kind === 'edit' ? 'reply' : ''}">${s.suggestion_kind === 'edit' ? 'Correction' : 'Addition'}</span>
           <span>Suggested by ${escapeHtml(nameFor(s.submitted_by_profile_id))}</span>
           <span>${formatDate(s.created_at)}</span>
