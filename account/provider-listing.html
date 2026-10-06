@@ -145,6 +145,11 @@
     padding:12px 14px; border-radius:8px; font-size:13.5px; margin-bottom:18px; line-height:1.55;
   }
 
+  .account-group{ margin-top:20px; padding-top:20px; border-top:1px solid rgba(46,63,84,0.08); }
+  .account-group:first-of-type{ margin-top:12px; padding-top:0; border-top:none; }
+  .account-group h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:17px; margin-bottom:10px; }
+  .account-status{ font-size:13px; margin-left:10px; }
+  .account-note{ font-size:13px; line-height:1.6; color:var(--slate); margin-bottom:12px; }
   .danger-zone{ border:1px solid rgba(170,51,51,0.25); border-radius:18px; padding:24px 28px; margin-top:34px; }
   .danger-zone h3{ font-family:'Cormorant Garamond', serif; font-size:19px; margin-bottom:8px; color:var(--red); }
   .danger-zone p{ font-size:13.5px; line-height:1.6; margin-bottom:10px; }
@@ -308,13 +313,47 @@
     <!-- Account -->
     <div class="card" style="margin-top:34px;">
       <span class="card-label">Your account</span>
-      <h2>Organisation name</h2>
-      <div class="field" style="margin-top:12px; margin-bottom:12px;">
-        <label for="org-name" class="sr-only" style="position:absolute; left:-9999px;">Organisation name</label>
-        <input type="text" id="org-name" maxlength="150">
+      <h2>Account details</h2>
+
+      <div class="account-group">
+        <h3>Clinic or organisation name</h3>
+        <div class="field" style="margin-bottom:12px;">
+          <label for="org-name" class="sr-only" style="position:absolute; left:-9999px;">Clinic or organisation name</label>
+          <input type="text" id="org-name" maxlength="150">
+        </div>
+        <button type="button" class="tool-btn" id="org-save-btn">Save name</button>
+        <span class="account-status" id="org-status" role="status"></span>
       </div>
-      <button type="button" class="tool-btn" id="org-save-btn">Save name</button>
-      <span class="meta" id="org-status" style="margin-left:10px;"></span>
+
+      <div class="account-group">
+        <h3>Your name</h3>
+        <p class="account-note">The person responsible for this account. Only our team can see it; it isn't shown in your listings.</p>
+        <div class="grid2">
+          <div class="field">
+            <label for="contact-first">First name</label>
+            <input type="text" id="contact-first" maxlength="100" autocomplete="given-name">
+          </div>
+          <div class="field">
+            <label for="contact-last">Last name</label>
+            <input type="text" id="contact-last" maxlength="100" autocomplete="family-name">
+          </div>
+        </div>
+        <button type="button" class="tool-btn" id="contact-save-btn">Save name</button>
+        <span class="account-status" id="contact-status" role="status"></span>
+      </div>
+
+      <div class="account-group">
+        <h3>Login email</h3>
+        <p class="account-note">Your current login email is <strong id="current-email"></strong>. Your listings' contact emails are separate, and are changed on each listing.</p>
+        <p class="account-note" id="email-pending" style="display:none; color:#8F6F36;"></p>
+        <div class="field" style="max-width:420px; margin-bottom:12px;">
+          <label for="new-email">New email address</label>
+          <input type="email" id="new-email" maxlength="200" autocomplete="email">
+        </div>
+        <button type="button" class="tool-btn" id="email-change-btn">Change email</button>
+        <span class="account-status" id="email-status" role="status"></span>
+        <p class="hint" style="margin-top:10px;">We'll email a confirmation link. Your login email only changes once you've confirmed it. To change your password, use "Forgot password" on the login page.</p>
+      </div>
     </div>
 
     <div class="danger-zone">
@@ -344,6 +383,7 @@
 <script src="providers-data.js"></script>
 <script>
   let userId = null;
+  let currentEmail = '';
   let locations = [];
   let editingId = null; // null = adding a new location
   const servicesSet = new Set();
@@ -604,13 +644,61 @@
   });
 
   // ── Account ─────────────────────────────────────────────────────────
-  $('org-save-btn').addEventListener('click', async () => {
+  function setStatus(el, msg, isError) {
+    el.textContent = msg;
+    el.style.color = isError ? 'var(--red)' : 'var(--green)';
+  }
+
+  // Runs a save with the button disabled so a double click can't send it twice.
+  async function withButton(btn, work) {
+    btn.disabled = true;
+    try { await work(); } finally { btn.disabled = false; }
+  }
+
+  $('org-save-btn').addEventListener('click', () => withButton($('org-save-btn'), async () => {
     const name = $('org-name').value.trim();
-    const status = $('org-status');
-    if (!name) { status.textContent = 'Please enter a name.'; return; }
+    if (!name) return setStatus($('org-status'), 'Please enter a name.', true);
     const { error } = await supabaseClient.from('provider_profiles').upsert({ profile_id: userId, organisation_name: name });
-    status.textContent = error ? 'Could not save: ' + error.message : 'Saved.';
-  });
+    setStatus($('org-status'), error ? 'Could not save: ' + error.message : 'Saved.', !!error);
+  }));
+
+  $('contact-save-btn').addEventListener('click', () => withButton($('contact-save-btn'), async () => {
+    const first = $('contact-first').value.trim();
+    const last = $('contact-last').value.trim();
+    if (!first || !last) return setStatus($('contact-status'), 'Please enter your first and last name.', true);
+    const { error } = await supabaseClient.from('profiles').update({ first_name: first, last_name: last }).eq('id', userId);
+    setStatus($('contact-status'), error ? 'Could not save: ' + error.message : 'Saved.', !!error);
+  }));
+
+  // Changing the login email goes through Supabase Auth, which emails a
+  // confirmation link and only switches the address once it's followed
+  // (migration_70 then copies the new address to profiles.email). The link
+  // returns via confirm-email.html, which already handles a signed-in
+  // returning user and sends providers back to this page.
+  $('email-change-btn').addEventListener('click', () => withButton($('email-change-btn'), async () => {
+    const status = $('email-status');
+    const input = $('new-email');
+    const next = input.value.trim();
+    if (!next || !input.checkValidity()) return setStatus(status, 'Please enter a valid email address.', true);
+    if (next.toLowerCase() === (currentEmail || '').toLowerCase()) return setStatus(status, 'That is already your login email.', true);
+
+    const { error } = await supabaseClient.auth.updateUser(
+      { email: next },
+      { emailRedirectTo: 'https://www.veyn.uk/account/confirm-email.html' }
+    );
+    if (error) return setStatus(status, 'Could not change email: ' + error.message, true);
+
+    input.value = '';
+    setStatus(status, 'Check your inbox: we\u2019ve sent confirmation email(s). Open the link in each to finish the change.', false);
+    showPendingEmail(next);
+  }));
+
+  function showPendingEmail(address) {
+    const el = $('email-pending');
+    if (!address) { el.style.display = 'none'; return; }
+    el.textContent = `A change to ${address} is waiting for your confirmation.`;
+    el.style.display = 'block';
+  }
 
   const deleteInput = $('delete-confirm-input');
   const deleteBtn = $('delete-btn');
@@ -655,6 +743,18 @@
       .eq('profile_id', userId)
       .maybeSingle();
     $('org-name').value = org ? org.organisation_name : '';
+
+    const { data: me } = await supabaseClient
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', userId)
+      .single();
+    $('contact-first').value = me ? me.first_name : '';
+    $('contact-last').value = me ? me.last_name : '';
+
+    currentEmail = navResult.session.user.email || '';
+    $('current-email').textContent = currentEmail;
+    showPendingEmail(navResult.session.user.new_email);
 
     await loadLocations();
     $('loading').style.display = 'none';
