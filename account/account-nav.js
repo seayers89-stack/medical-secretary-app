@@ -1,5 +1,6 @@
 // Veyn: renders the role-aware account nav (My profile / Messages / Search /
-// Post a job / My postings / Practice tools for consultants; My profile / Messages / Job
+// Post a job / My postings / Practice tools for consultants; My listing /
+// Support for clinic providers; My profile / Messages / Job
 // board / Academy / Daily Tools / Business Hub / Community for secretaries)
 // in place of the public marketing nav, once a session is found. Pages with
 // no session keep the marketing nav-links already in their markup — this
@@ -30,6 +31,14 @@ const SECRETARY_NAV_LINKS = [
   { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
   { label: 'Support', href: 'support.html', key: 'support' },
 ];
+
+// Clinics and diagnostic providers only manage their directory listing, so
+// they get a deliberately tiny nav and are kept on these pages.
+const PROVIDER_NAV_LINKS = [
+  { label: 'My listing', href: 'provider-listing.html', key: 'provider-listing' },
+  { label: 'Support', href: 'support.html', key: 'support' },
+];
+const PROVIDER_ALLOWLIST = ['provider-listing.html', 'support.html', 'login.html'];
 
 const ADMIN_NAV_LINKS = [
   { label: 'Admin', href: 'admin.html', key: 'admin' },
@@ -99,7 +108,9 @@ const ADMIN_ALLOWLIST = [
 ];
 
 function buildAccountNavHtml(role, activeKey) {
-  const links = role === 'admin' ? ADMIN_NAV_LINKS : (role === 'consultant' ? CONSULTANT_NAV_LINKS : SECRETARY_NAV_LINKS);
+  const links = role === 'admin' ? ADMIN_NAV_LINKS
+    : role === 'provider' ? PROVIDER_NAV_LINKS
+    : (role === 'consultant' ? CONSULTANT_NAV_LINKS : SECRETARY_NAV_LINKS);
   return links.map(l => {
     const active = l.key === activeKey ? ' class="active"' : '';
     const badge = l.key === 'messages'
@@ -160,6 +171,11 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
 
   // While previewing, report isAdmin=false so pages show what the role would
   // really see (e.g. "Unlock for £12" rather than admin's everything-unlocked).
+  if (profile.role === 'provider' && !PROVIDER_ALLOWLIST.includes(currentPage)) {
+    window.location.replace('provider-listing.html');
+    return { session, profile, isAdmin: false, redirecting: true };
+  }
+
   const { data: isAdminRpc } = await supabaseClient.rpc('is_admin');
   const isAdmin = viewAs ? false : isAdminRpc;
   navEl.innerHTML = buildAccountNavHtml(profile.role, activeKey);
@@ -176,7 +192,7 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
   }
 
   let unread = null;
-  if (profile.role !== 'admin') {
+  if (profile.role === 'consultant' || profile.role === 'secretary') {
     const filterColumn = profile.role === 'consultant' ? 'consultant_id' : 'secretary_id';
     const { data } = await supabaseClient
       .from('messages')
@@ -225,7 +241,7 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
   // (never visited) gets one set to "now" here rather than counting all of
   // community history as "new" — the badge tracks fresh activity going
   // forward, not a full unread backlog.
-  if (profile.role !== 'consultant' && !viewAs) {
+  if (profile.role !== 'consultant' && profile.role !== 'provider' && !viewAs) {
     let since = profile.community_last_viewed_at;
     if (!since) {
       since = new Date().toISOString();

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.resend.com https://api.stripe.com; frame-src https://js.stripe.com;">
+<title>Your Clinic Listing — Veyn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --ink:#2E3F54;
+    --paper:#F7F4ED;
+    --gold:#B8924A;
+    --slate:#5C6470;
+    --green:#3F6B4F;
+    --red:#a33;
+    --white:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Special Elite', cursive;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,244,237,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(46,63,84,0.08);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1180px; margin:0 auto; }
+  .nav-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); display:inline-block; }
+  .nav-links{ display:flex; flex-wrap:wrap; row-gap:8px; column-gap:20px; font-size:14px; font-weight:500; color:var(--slate); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--ink); border-bottom:2px solid var(--gold); padding-bottom:2px; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+  .btn-login{
+    font-family:'Special Elite', cursive; font-size:14px; font-weight:600; color:var(--ink);
+    border:1.5px solid rgba(46,63,84,0.2); padding:9px 20px; border-radius:7px; cursor:pointer; background:none;
+  }
+
+  .wrap{ max-width:820px; margin:0 auto; padding:48px 32px 100px; }
+  .eyebrow{
+    font-family:'Special Elite', cursive; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:32px; margin-bottom:10px; }
+  .sub{ color:var(--slate); font-size:15px; line-height:1.6; margin-bottom:28px; }
+  #loading{ color:var(--slate); font-size:14.5px; }
+
+  .notice{
+    background:rgba(184,146,74,0.1); border:1px solid rgba(184,146,74,0.35); border-radius:12px;
+    padding:14px 18px; font-size:13.5px; line-height:1.65; margin-bottom:18px;
+  }
+  .notice.good{ background:rgba(63,107,79,0.08); border-color:rgba(63,107,79,0.3); color:var(--green); }
+
+  .card{
+    background:var(--white); border:1px solid rgba(46,63,84,0.08); border-radius:18px;
+    padding:26px 30px; margin-bottom:14px;
+  }
+  .card h2{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:21px; margin-bottom:6px; }
+  .card-label{
+    font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:10px; display:block;
+  }
+  .meta{ font-size:13.5px; color:var(--slate); line-height:1.6; }
+
+  .badge{
+    display:inline-block; font-family:'Special Elite', cursive; font-size:10.5px; letter-spacing:0.04em;
+    text-transform:uppercase; padding:4px 10px; border-radius:999px; font-weight:600; white-space:nowrap;
+  }
+  .badge.pending{ background:rgba(184,146,74,0.14); color:#8F6F36; }
+  .badge.approved{ background:rgba(63,107,79,0.12); color:var(--green); }
+  .badge.rejected{ background:rgba(170,51,51,0.1); color:var(--red); }
+
+  .loc-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+  .loc-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .reject-note{ font-size:13px; color:var(--red); background:rgba(170,51,51,0.06); border-radius:8px; padding:10px 14px; margin-top:10px; line-height:1.6; }
+
+  .tool-btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:13px; padding:9px 16px;
+    border-radius:8px; cursor:pointer; border:1.5px solid rgba(46,63,84,0.15); background:var(--white); color:var(--ink);
+  }
+  .tool-btn:hover{ border-color:var(--gold); }
+  .tool-btn.danger{ color:var(--red); }
+  .tool-btn.danger:hover{ border-color:var(--red); }
+  .tool-btn:disabled{ opacity:0.6; cursor:not-allowed; }
+  .primary-btn{
+    font-family:'Special Elite', cursive; font-weight:600; font-size:14.5px; padding:12px 24px;
+    border-radius:8px; cursor:pointer; border:none; background:var(--ink); color:var(--paper);
+  }
+  .primary-btn:disabled{ opacity:0.6; cursor:not-allowed; }
+
+  .field{ margin-bottom:18px; }
+  .field label, .field .label{ display:block; font-size:13px; font-weight:600; margin-bottom:7px; }
+  .field .hint{ font-size:12px; color:var(--slate); margin-top:6px; line-height:1.5; }
+  .field .opt{ font-weight:400; color:var(--slate); }
+  .field input[type="text"], .field input[type="email"], .field input[type="tel"], .field input[type="url"], .field textarea{
+    width:100%; padding:12px 14px; font-family:'Special Elite', cursive; font-size:14.5px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  .field input:focus, .field textarea:focus{ outline:none; border-color:var(--gold); }
+  .field textarea{ resize:vertical; min-height:84px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px){ .grid2{ grid-template-columns:1fr; } }
+
+  .section-title{
+    font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px;
+    margin:26px 0 14px; padding-top:20px; border-top:1px solid rgba(46,63,84,0.08);
+  }
+  .section-title:first-of-type{ border-top:none; margin-top:0; padding-top:0; }
+
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip-toggle{ position:relative; }
+  .chip-toggle input{ position:absolute; opacity:0; width:0; height:0; }
+  .chip-toggle span{
+    display:inline-block; font-size:13.5px; padding:8px 16px; border-radius:999px;
+    border:1px solid rgba(46,63,84,0.15); cursor:pointer; user-select:none; transition:all .15s ease;
+  }
+  .chip-toggle input:checked + span{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .chip-toggle input:focus-visible + span{ outline:2px solid var(--gold); outline-offset:2px; }
+
+  .tag-list{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+  .tag-list:empty{ display:none; }
+  .tag-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:13.5px; font-weight:500;
+    background:var(--ink); color:var(--paper); padding:6px 10px 6px 14px; border-radius:999px;
+  }
+  .tag-pill button{ background:none; border:none; color:var(--paper); cursor:pointer; font-size:14px; line-height:1; padding:2px; opacity:0.7; }
+  .tag-pill button:hover{ opacity:1; }
+
+  .form-actions{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+  #form-error{
+    display:none; background:rgba(193,68,68,0.08); border:1px solid rgba(193,68,68,0.3); color:var(--red);
+    padding:12px 14px; border-radius:8px; font-size:13.5px; margin-bottom:18px; line-height:1.55;
+  }
+
+  .danger-zone{ border:1px solid rgba(170,51,51,0.25); border-radius:18px; padding:24px 28px; margin-top:34px; }
+  .danger-zone h3{ font-family:'Cormorant Garamond', serif; font-size:19px; margin-bottom:8px; color:var(--red); }
+  .danger-zone p{ font-size:13.5px; line-height:1.6; margin-bottom:10px; }
+  .danger-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .danger-row input{
+    flex:1; min-width:180px; padding:10px 14px; font-family:'Special Elite', cursive; font-size:14px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  #delete-status{ font-size:13px; color:var(--red); margin-top:10px; }
+
+  footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
+  .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:600px){
+    .wrap{ padding:32px 16px 80px; }
+    .card{ padding:22px 18px; }
+  }
+
+</style>
+<link rel="stylesheet" href="../veyn-buttons.css"></head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <a href="../index.html" class="logo"><span class="dot"></span>veyn</a>
+      <nav class="nav-links" id="account-nav">
+        <a href="../index.html">Home</a>
+        <a href="../veyn-for-secretaries.html">For Secretaries</a>
+        <a href="../veyn-for-consultants.html">For Consultants</a>
+        <a href="../veyn-about.html">About</a>
+      </nav>
+    </div>
+    <button class="btn-login" id="logout-btn">Log out</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow">Clinics &amp; diagnostics</div>
+  <h1>Your clinic listing</h1>
+  <p class="sub">Your listing is free. Consultants and medical secretaries who are logged in to Veyn can search it by service, area and insurer. Add one listing for each site you run.</p>
+
+  <p id="loading">Loading…</p>
+  <div id="not-provider" style="display:none;" class="notice">This page is for clinic and diagnostic accounts. <a href="profile.html" style="text-decoration:underline;">Go to your profile</a>.</div>
+
+  <div id="page-content" style="display:none;">
+    <div id="flash" class="notice good" style="display:none;" role="status"></div>
+
+    <div id="locations"></div>
+    <button type="button" class="tool-btn" id="add-location-btn" style="display:none;">+ Add a location</button>
+
+    <!-- Add / edit form -->
+    <div class="card" id="form-card" style="display:none; margin-top:14px;">
+      <span class="card-label" id="form-label">New location</span>
+      <h2 id="form-title">Add a location</h2>
+      <p class="meta" style="margin-bottom:20px;">Everything here is shown to logged-in consultants and secretaries. Insurer and service details are self-declared, so please keep them accurate and up to date.</p>
+      <p id="form-error" role="alert"></p>
+
+      <form id="location-form" novalidate>
+        <div class="section-title">About this location</div>
+        <div class="field">
+          <label for="loc-name">Location name</label>
+          <input type="text" id="loc-name" maxlength="150" placeholder="e.g. Riverside Physiotherapy — Leeds">
+        </div>
+        <div class="field">
+          <span class="label">What kind of service is this?</span>
+          <div id="loc-categories" class="chip-row" role="group" aria-label="Categories"></div>
+          <p class="hint">Choose all that apply.</p>
+        </div>
+        <div class="field">
+          <label for="loc-description">Short description <span class="opt">(optional)</span></label>
+          <textarea id="loc-description" maxlength="1500" placeholder="A few lines on what you offer and who you see."></textarea>
+        </div>
+
+        <div class="section-title">Services</div>
+        <div class="field">
+          <div id="loc-service-chips" class="chip-row" role="group" aria-label="Services"></div>
+          <p class="hint" id="loc-service-hint">Pick a category above to see suggested services.</p>
+          <div id="loc-service-tags" class="tag-list"></div>
+          <label for="loc-service-input" style="margin-top:12px;">Add another service</label>
+          <input type="text" id="loc-service-input" maxlength="80" placeholder="Type a service and press Enter">
+        </div>
+
+        <div class="section-title">Insurers</div>
+        <div class="field">
+          <span class="label">Insurers you're recognised by</span>
+          <div id="loc-insurers" class="chip-row" role="group" aria-label="Insurers"></div>
+          <p class="hint">Self-declared. Include self-pay if you see patients without insurance.</p>
+        </div>
+
+        <div class="section-title">How patients are seen</div>
+        <div class="field">
+          <span class="label">Booking routes <span class="opt">(optional)</span></span>
+          <div id="loc-routes" class="chip-row" role="group" aria-label="Booking routes"></div>
+        </div>
+
+        <div class="section-title">Address &amp; contact</div>
+        <div class="field">
+          <label for="loc-addr1">Address line 1</label>
+          <input type="text" id="loc-addr1" maxlength="200" autocomplete="address-line1">
+        </div>
+        <div class="field">
+          <label for="loc-addr2">Address line 2 <span class="opt">(optional)</span></label>
+          <input type="text" id="loc-addr2" maxlength="200" autocomplete="address-line2">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="loc-town">Town / city</label>
+            <input type="text" id="loc-town" maxlength="100" autocomplete="address-level2">
+          </div>
+          <div class="field">
+            <label for="loc-county">County <span class="opt">(optional)</span></label>
+            <input type="text" id="loc-county" maxlength="100">
+          </div>
+        </div>
+        <div class="field" style="max-width:260px;">
+          <label for="loc-postcode">Postcode</label>
+          <input type="text" id="loc-postcode" maxlength="10" autocomplete="postal-code">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="loc-phone">Phone</label>
+            <input type="tel" id="loc-phone" maxlength="40" autocomplete="tel">
+          </div>
+          <div class="field">
+            <label for="loc-email">Email</label>
+            <input type="email" id="loc-email" maxlength="200">
+          </div>
+        </div>
+        <p class="hint" style="margin:-8px 0 18px;">Give a phone number, an email, or both.</p>
+        <div class="field">
+          <label for="loc-website">Website <span class="opt">(optional)</span></label>
+          <input type="url" id="loc-website" maxlength="300" placeholder="https://">
+        </div>
+        <div class="field">
+          <label for="loc-hours">Opening hours <span class="opt">(optional)</span></label>
+          <textarea id="loc-hours" maxlength="600" style="min-height:70px;" placeholder="e.g. Mon–Fri 8am–7pm, Sat 9am–1pm"></textarea>
+        </div>
+
+        <div class="section-title">Registration <span class="opt" style="font-family:'Special Elite', cursive; font-size:12px; font-weight:400; color:var(--slate);">(all optional)</span></div>
+        <div class="grid2">
+          <div class="field">
+            <label for="loc-cqc">CQC registration number</label>
+            <input type="text" id="loc-cqc" maxlength="60">
+          </div>
+          <div class="field">
+            <label for="loc-registration">Professional registration</label>
+            <input type="text" id="loc-registration" maxlength="200" placeholder="e.g. HCPC, CSP, GCC">
+          </div>
+        </div>
+        <p class="hint" style="margin:-8px 0 18px;">Shown as you've entered it. Veyn doesn't verify these.</p>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-btn" id="save-btn">Save listing</button>
+          <button type="button" class="tool-btn" id="cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Account -->
+    <div class="card" style="margin-top:34px;">
+      <span class="card-label">Your account</span>
+      <h2>Organisation name</h2>
+      <div class="field" style="margin-top:12px; margin-bottom:12px;">
+        <label for="org-name" class="sr-only" style="position:absolute; left:-9999px;">Organisation name</label>
+        <input type="text" id="org-name" maxlength="150">
+      </div>
+      <button type="button" class="tool-btn" id="org-save-btn">Save name</button>
+      <span class="meta" id="org-status" style="margin-left:10px;"></span>
+    </div>
+
+    <div class="danger-zone">
+      <h3>Delete account</h3>
+      <p>This permanently deletes your account and every listing on it. This cannot be undone.</p>
+      <p>Type <strong>DELETE</strong> to confirm, then click the button.</p>
+      <div class="danger-row">
+        <input type="text" id="delete-confirm-input" placeholder="Type DELETE to confirm" autocomplete="off" aria-label="Type DELETE to confirm">
+        <button type="button" class="tool-btn danger" id="delete-btn" disabled>Delete my account</button>
+      </div>
+      <p id="delete-status"></p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-bottom">
+    <span>© 2026 Veyn. All rights reserved.</span>
+    <span>Founded by a medical secretary, not a market gap.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script src="supabase-config.js"></script>
+<script src="account-nav.js"></script>
+<script src="insurers-data.js"></script>
+<script src="providers-data.js"></script>
+<script>
+  let userId = null;
+  let locations = [];
+  let editingId = null; // null = adding a new location
+  const servicesSet = new Set();
+
+  const $ = id => document.getElementById(id);
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+  });
+
+  // ── Listing cards ───────────────────────────────────────────────────
+  const STATUS_TEXT = {
+    pending: ['Awaiting review', 'Our team checks each new listing before it appears. Until then only you can see it.'],
+    approved: ['Live', 'Visible to consultants and secretaries who are logged in to Veyn. Edits you make go live straight away.'],
+    rejected: ['Not approved', null],
+  };
+
+  function formatDate(iso) {
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function renderLocations() {
+    const el = $('locations');
+    if (locations.length === 0) {
+      el.innerHTML = `<div class="card"><h2>No locations yet</h2><p class="meta">Add your first location below to get listed.</p></div>`;
+      return;
+    }
+    el.innerHTML = locations.map(l => {
+      const [label, blurb] = STATUS_TEXT[l.status] || STATUS_TEXT.pending;
+      const rejected = l.status === 'rejected'
+        ? `<div class="reject-note">${l.admin_notes ? escapeHtml(l.admin_notes) : 'Our team couldn’t approve this listing.'} Edit it and save to send it back for review.</div>`
+        : '';
+      return `
+        <div class="card">
+          <div class="loc-head">
+            <div>
+              <h2>${escapeHtml(l.name)}</h2>
+              <div class="meta">${escapeHtml(l.town)}, ${escapeHtml(l.postcode)} · ${escapeHtml(l.categories.join(', '))}</div>
+            </div>
+            <span class="badge ${escapeHtml(l.status)}">${label}</span>
+          </div>
+          ${blurb ? `<p class="meta">${blurb}</p>` : ''}
+          ${rejected}
+          <p class="meta" style="margin-top:8px;">Last updated ${formatDate(l.updated_at)}</p>
+          <div class="loc-actions">
+            <button type="button" class="tool-btn" data-edit="${escapeHtml(l.id)}">Edit</button>
+            <button type="button" class="tool-btn danger" data-delete="${escapeHtml(l.id)}">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  $('locations').addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('[data-edit]');
+    const delBtn = e.target.closest('[data-delete]');
+    if (editBtn) {
+      openForm(locations.find(l => l.id === editBtn.dataset.edit));
+    } else if (delBtn) {
+      const loc = locations.find(l => l.id === delBtn.dataset.delete);
+      if (!loc || !window.confirm(`Delete "${loc.name}"? This can't be undone.`)) return;
+      delBtn.disabled = true;
+      const { error } = await supabaseClient.from('provider_locations').delete().eq('id', loc.id);
+      if (error) { alert('Could not delete this location: ' + error.message); delBtn.disabled = false; return; }
+      if (editingId === loc.id) closeForm();
+      await loadLocations();
+      flash('Location deleted.');
+    }
+  });
+
+  async function loadLocations() {
+    const { data, error } = await supabaseClient
+      .from('provider_locations')
+      .select('*')
+      .eq('provider_id', userId)
+      .order('created_at', { ascending: true });
+    if (error) {
+      $('locations').innerHTML = `<div class="notice">Could not load your listings: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    locations = data || [];
+    renderLocations();
+  }
+
+  function flash(msg) {
+    const el = $('flash');
+    el.textContent = msg;
+    el.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Form ────────────────────────────────────────────────────────────
+  function selectedCategories() { return getCheckedValues($('loc-categories')); }
+
+  function suggestedServices() {
+    const out = [];
+    selectedCategories().forEach(c => (PROVIDER_CATEGORIES[c] || []).forEach(s => { if (!out.includes(s)) out.push(s); }));
+    return out;
+  }
+
+  // Suggested services show as chips; anything else the provider has added
+  // (or that came from a category they've since unticked) shows as a
+  // removable tag, so nothing stays selected out of sight.
+  function renderServices() {
+    const suggested = suggestedServices();
+    renderOptionChips($('loc-service-chips'), suggested, [...servicesSet]);
+    $('loc-service-hint').style.display = suggested.length ? 'none' : '';
+    $('loc-service-tags').innerHTML = [...servicesSet].filter(s => !suggested.includes(s)).map(s => `
+      <span class="tag-pill">${escapeHtml(s)}<button type="button" data-remove-service="${escapeHtml(s)}" aria-label="Remove ${escapeHtml(s)}">&times;</button></span>
+    `).join('');
+  }
+
+  $('loc-service-chips').addEventListener('change', (e) => {
+    if (e.target.checked) servicesSet.add(e.target.value); else servicesSet.delete(e.target.value);
+  });
+  $('loc-service-tags').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-remove-service]');
+    if (!btn) return;
+    servicesSet.delete(btn.dataset.removeService);
+    renderServices();
+  });
+  $('loc-service-input').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ',') return;
+    e.preventDefault();
+    const value = $('loc-service-input').value.trim().replace(/,$/, '');
+    if (value) { servicesSet.add(value); renderServices(); }
+    $('loc-service-input').value = '';
+  });
+  $('loc-categories').addEventListener('change', renderServices);
+
+  function openForm(loc) {
+    editingId = loc ? loc.id : null;
+    $('form-label').textContent = loc ? 'Edit location' : 'New location';
+    $('form-title').textContent = loc ? loc.name : 'Add a location';
+    $('form-error').style.display = 'none';
+
+    renderOptionChips($('loc-categories'), PROVIDER_CATEGORY_NAMES, loc ? loc.categories : []);
+    renderInsurerChips($('loc-insurers'), loc ? loc.insurers : []);
+    renderOptionChips($('loc-routes'), PROVIDER_BOOKING_ROUTES, loc ? loc.booking_routes : []);
+
+    servicesSet.clear();
+    (loc ? loc.services : []).forEach(s => servicesSet.add(s));
+    renderServices();
+
+    const v = (id, val) => { $(id).value = val || ''; };
+    v('loc-name', loc && loc.name);
+    v('loc-description', loc && loc.description);
+    v('loc-addr1', loc && loc.address_line1);
+    v('loc-addr2', loc && loc.address_line2);
+    v('loc-town', loc && loc.town);
+    v('loc-county', loc && loc.county);
+    v('loc-postcode', loc && loc.postcode);
+    v('loc-phone', loc && loc.phone);
+    v('loc-email', loc && loc.email);
+    v('loc-website', loc && loc.website);
+    v('loc-hours', loc && loc.opening_hours);
+    v('loc-cqc', loc && loc.cqc_number);
+    v('loc-registration', loc && loc.professional_registration);
+    v('loc-service-input', '');
+
+    $('form-card').style.display = 'block';
+    $('add-location-btn').style.display = 'none';
+    $('form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('loc-name').focus({ preventScroll: true });
+  }
+
+  function closeForm() {
+    editingId = null;
+    $('form-card').style.display = 'none';
+    $('add-location-btn').style.display = 'inline-block';
+  }
+
+  $('add-location-btn').addEventListener('click', () => openForm(null));
+  $('cancel-btn').addEventListener('click', closeForm);
+
+  function formError(msg) {
+    const el = $('form-error');
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // "SW1A1AA" / "sw1a  1aa" -> "SW1A 1AA". Returns null if it doesn't look
+  // like a UK postcode.
+  function normalisePostcode(raw) {
+    const compact = raw.replace(/\s+/g, '').toUpperCase();
+    if (!/^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$/.test(compact)) return null;
+    return `${compact.slice(0, -3)} ${compact.slice(-3)}`;
+  }
+
+  // Accepts "www.example.com" by assuming https://; rejects any other scheme.
+  function normaliseWebsite(raw) {
+    if (!raw) return null;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return /^https?:\/\//i.test(raw) ? raw : false;
+    return `https://${raw}`;
+  }
+
+  $('location-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('form-error').style.display = 'none';
+
+    const text = id => $(id).value.trim();
+    const orNull = id => text(id) || null;
+
+    // Take any half-typed custom service rather than silently dropping it.
+    if (text('loc-service-input')) { servicesSet.add(text('loc-service-input')); $('loc-service-input').value = ''; }
+
+    const categories = selectedCategories();
+    if (!text('loc-name')) return formError('Please give this location a name.');
+    if (categories.length === 0) return formError('Please choose at least one category.');
+    if (!text('loc-addr1') || !text('loc-town')) return formError('Please enter the address and town.');
+    const postcode = normalisePostcode(text('loc-postcode'));
+    if (!postcode) return formError('That postcode doesn’t look right — please check it.');
+    if (!text('loc-phone') && !text('loc-email')) return formError('Please give a phone number, an email address, or both, so people can contact you.');
+    if (text('loc-email') && !$('loc-email').checkValidity()) return formError('That email address doesn’t look right.');
+    const website = normaliseWebsite(text('loc-website'));
+    if (website === false) return formError('The website must start with http:// or https://.');
+
+    const payload = {
+      name: text('loc-name'),
+      categories,
+      description: orNull('loc-description'),
+      services: [...servicesSet],
+      insurers: getSelectedInsurers($('loc-insurers')),
+      booking_routes: getCheckedValues($('loc-routes')),
+      address_line1: text('loc-addr1'),
+      address_line2: orNull('loc-addr2'),
+      town: text('loc-town'),
+      county: orNull('loc-county'),
+      postcode,
+      phone: orNull('loc-phone'),
+      email: orNull('loc-email'),
+      website,
+      opening_hours: orNull('loc-hours'),
+      cqc_number: orNull('loc-cqc'),
+      professional_registration: orNull('loc-registration'),
+    };
+
+    const saveBtn = $('save-btn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    const wasEditing = !!editingId;
+    const previous = wasEditing ? locations.find(l => l.id === editingId) : null;
+    const { error } = wasEditing
+      ? await supabaseClient.from('provider_locations').update(payload).eq('id', editingId)
+      : await supabaseClient.from('provider_locations').insert({ ...payload, provider_id: userId });
+
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save listing';
+    if (error) return formError('Could not save this listing: ' + error.message);
+
+    closeForm();
+    await loadLocations();
+    if (!wasEditing) flash('Saved. Our team will review this listing before it appears to others.');
+    else if (previous && previous.status === 'approved') flash('Saved. Your changes are live.');
+    else flash('Saved. Our team will review this listing before it appears to others.');
+  });
+
+  // ── Account ─────────────────────────────────────────────────────────
+  $('org-save-btn').addEventListener('click', async () => {
+    const name = $('org-name').value.trim();
+    const status = $('org-status');
+    if (!name) { status.textContent = 'Please enter a name.'; return; }
+    const { error } = await supabaseClient.from('provider_profiles').upsert({ profile_id: userId, organisation_name: name });
+    status.textContent = error ? 'Could not save: ' + error.message : 'Saved.';
+  });
+
+  const deleteInput = $('delete-confirm-input');
+  const deleteBtn = $('delete-btn');
+  deleteInput.addEventListener('input', () => { deleteBtn.disabled = deleteInput.value.trim() !== 'DELETE'; });
+  deleteBtn.addEventListener('click', async () => {
+    if (deleteInput.value.trim() !== 'DELETE') return;
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = 'Deleting…';
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session.access_token}`, 'apikey': SUPABASE_ANON_KEY },
+    });
+    if (!res.ok) {
+      $('delete-status').textContent = 'Could not delete account: ' + await res.text();
+      deleteBtn.disabled = false;
+      deleteBtn.textContent = 'Delete my account';
+      return;
+    }
+    await supabaseClient.auth.signOut();
+    window.location.href = '../index.html?account_deleted=1';
+  });
+
+  // ── Start ───────────────────────────────────────────────────────────
+  (async () => {
+    const navResult = await renderAccountNav($('account-nav'), supabaseClient, 'provider-listing');
+    if (!navResult) { window.location.href = 'login.html'; return; }
+    if (navResult.redirecting) return;
+
+    if (navResult.profile.role !== 'provider') {
+      $('loading').style.display = 'none';
+      $('not-provider').style.display = 'block';
+      return;
+    }
+
+    userId = navResult.session.user.id;
+
+    const { data: org } = await supabaseClient
+      .from('provider_profiles')
+      .select('organisation_name')
+      .eq('profile_id', userId)
+      .maybeSingle();
+    $('org-name').value = org ? org.organisation_name : '';
+
+    await loadLocations();
+    $('loading').style.display = 'none';
+    $('page-content').style.display = 'block';
+
+    // First visit: go straight to the form rather than an empty page.
+    if (locations.length === 0) openForm(null);
+    else $('add-location-btn').style.display = 'inline-block';
+  })();
+</script>
+
+<script src="../mobile-nav.js"></script>
+<script src="../cookie-consent.js"></script>
+</body>
+</html>

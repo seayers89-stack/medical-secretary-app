@@ -74,10 +74,12 @@
 
   section.block{ padding:64px 32px; }
 
-  .dual-cta{ display:flex; gap:24px; flex-wrap:wrap; max-width:820px; margin:0 auto; }
+  .dual-cta{ display:flex; gap:24px; flex-wrap:wrap; max-width:1100px; margin:0 auto; }
   .cta-card{ flex:1 1 320px; border-radius:18px; padding:40px 36px; text-align:center; }
   .cta-card.secretary{ background:var(--white); border:1.5px solid rgba(184,146,74,0.3); }
   .cta-card.consultant{ background:var(--ink); }
+  .cta-card.provider{ background:var(--white); border:1.5px solid rgba(46,63,84,0.15); }
+  .cta-card.provider p{ color:var(--slate); }
   .cta-card h3{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:20px; margin-bottom:10px; }
   .cta-card.consultant h3{ color:var(--paper); }
   .cta-card p{ font-size:14px; line-height:1.6; margin-bottom:24px; }
@@ -137,6 +139,11 @@
       <h3>I'm a consultant</h3>
       <p>Set up your practice profile and start searching by system, specialty, and tested skills.</p>
       <a class="btn btn-primary" id="consultant-cta" href="create-profile-consultant.html">Continue as a consultant</a>
+    </div>
+    <div class="cta-card provider">
+      <h3>I run a clinic or diagnostic service</h3>
+      <p>Physio, scans, blood tests and more. Add your clinic to our free directory so consultants and secretaries can find you.</p>
+      <a class="btn btn-ghost" id="provider-cta" href="create-profile-provider.html">List my clinic</a>
     </div>
   </div>
   <div class="auth-switch">Already have an account? <a href="login.html">Log in</a></div>

@@ -227,11 +227,21 @@
           completing = false;
           return;
         }
+      } else if (draft.role === 'provider') {
+        const { error: provErr } = await supabaseClient.from('provider_profiles').insert({
+          profile_id: userId,
+          organisation_name: draft.organisation,
+        });
+        if (provErr) {
+          document.getElementById('completing').innerHTML = 'Could not save your clinic details: ' + provErr.message + '<br>Please contact <a href="mailto:hello@veyn.uk" style="color:var(--gold)">hello@veyn.uk</a>';
+          completing = false;
+          return;
+        }
       }
     }
 
     localStorage.removeItem('veyn_signup_draft');
-    window.location.href = 'profile.html';
+    window.location.href = draft.role === 'provider' ? 'provider-listing.html' : 'profile.html';
   }
 
   // SIGNED_IN / USER_UPDATED fire when Supabase exchanges the confirmation
