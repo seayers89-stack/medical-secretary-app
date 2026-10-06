@@ -52,19 +52,21 @@ const ADMIN_NAV_LINKS = [
   { label: 'Support', href: 'admin.html#support', key: 'support' },
 ];
 
-// "View as" preview for admins — lets an admin see the consultant or
-// secretary experience. This is a UI-only override held in sessionStorage
+// "View as" preview for admins — lets an admin see the consultant,
+// secretary or clinic experience. This is a UI-only override held in sessionStorage
 // (cleared when the tab closes): the admin keeps their own session and
 // permissions, so it only changes which nav and role-gated screens show.
 // It is ignored unless the signed-in profile is genuinely an admin, and it
 // grants nothing the admin didn't already have.
 const VIEW_AS_KEY = 'veyn-view-as';
-const VIEW_AS_LANDING = { consultant: 'search-secretaries.html', secretary: 'job-board.html' };
+const VIEW_AS_LANDING = { consultant: 'search-secretaries.html', secretary: 'job-board.html', provider: 'provider-listing.html' };
+// What each role is called on screen (the clinic role is 'provider' internally).
+const VIEW_AS_LABEL = { consultant: 'consultant', secretary: 'secretary', provider: 'clinic' };
 
 function getViewAs() {
   try {
     const v = sessionStorage.getItem(VIEW_AS_KEY);
-    return v === 'consultant' || v === 'secretary' ? v : null;
+    return v === 'consultant' || v === 'secretary' || v === 'provider' ? v : null;
   } catch { return null; }
 }
 
@@ -76,14 +78,22 @@ function setViewAs(role) {
 
 function renderViewAsBanner(role) {
   if (document.getElementById('view-as-banner')) return;
-  const other = role === 'consultant' ? 'secretary' : 'consultant';
+  const label = VIEW_AS_LABEL[role];
+  const others = Object.keys(VIEW_AS_LABEL).filter(r => r !== role);
+  // Consultants and secretaries run on the admin's own account, so anything
+  // personal is the admin's. The clinic view is read-only sample data instead
+  // (see provider-listing.html), because its account controls could otherwise
+  // change the admin's real login or delete the admin account.
+  const caveat = role === 'provider'
+    ? `This shows sample listings, and nothing you do here is saved.`
+    : `You're still signed in as admin, so anything personal (profile, messages, postings) is yours, not a real ${label}'s.`;
   const bar = document.createElement('div');
   bar.id = 'view-as-banner';
   bar.setAttribute('style', 'background:#B8924A; color:#2E3F54; font-size:13px; line-height:1.5; padding:10px 20px; display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center; justify-content:center; text-align:center; position:relative; z-index:60;');
   bar.innerHTML = `
-    <span><strong>Previewing as a ${role}.</strong> You're still signed in as admin, so anything personal (profile, messages, postings) is yours, not a real ${role}'s.</span>
+    <span><strong>Previewing as a ${label}.</strong> ${caveat}</span>
     <span>
-      <a href="#" data-view-as-switch="${other}" style="text-decoration:underline; font-weight:600; margin-right:14px;">Switch to ${other}</a>
+      ${others.map(r => `<a href="#" data-view-as-switch="${r}" style="text-decoration:underline; font-weight:600; margin-right:14px;">Switch to ${VIEW_AS_LABEL[r]}</a>`).join('')}
       <a href="#" data-view-as-exit style="text-decoration:underline; font-weight:600;">Exit to admin</a>
     </span>`;
   bar.addEventListener('click', (e) => {
@@ -120,7 +130,7 @@ function buildAccountNavHtml(role, activeKey) {
         : '');
     return `<a href="${l.href}"${active}>${l.label}${badge}</a>`;
   }).join('') + (role === 'admin'
-    ? `<a href="#" data-view-as="consultant" style="color:#8F6F36;">View as consultant</a><a href="#" data-view-as="secretary" style="color:#8F6F36;">View as secretary</a>`
+    ? `<a href="#" data-view-as="consultant" style="color:#8F6F36;">View as consultant</a><a href="#" data-view-as="secretary" style="color:#8F6F36;">View as secretary</a><a href="#" data-view-as="provider" style="color:#8F6F36;">View as clinic</a>`
     : '');
 }
 

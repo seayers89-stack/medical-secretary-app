@@ -197,6 +197,7 @@
   <div id="not-provider" style="display:none;" class="notice">This page is for clinic and diagnostic accounts. <a href="profile.html" style="text-decoration:underline;">Go to your profile</a>.</div>
 
   <div id="page-content" style="display:none;">
+    <div id="preview-notice" class="notice" style="display:none;" role="status"><strong>Admin preview.</strong> This is what a clinic sees, using sample listings. Nothing here is saved, and the account settings are hidden.</div>
     <div id="flash" class="notice good" style="display:none;" role="status"></div>
 
     <div id="locations"></div>
@@ -311,7 +312,7 @@
     </div>
 
     <!-- Account -->
-    <div class="card" style="margin-top:34px;">
+    <div class="card" id="account-card" style="margin-top:34px;">
       <span class="card-label">Your account</span>
       <h2>Account details</h2>
 
@@ -356,7 +357,7 @@
       </div>
     </div>
 
-    <div class="danger-zone">
+    <div class="danger-zone" id="danger-zone">
       <h3>Delete account</h3>
       <p>This permanently deletes your account and every listing on it. This cannot be undone.</p>
       <p>Type <strong>DELETE</strong> to confirm, then click the button.</p>
@@ -385,6 +386,35 @@
   let userId = null;
   let currentEmail = '';
   let locations = [];
+  // Admin "View as clinic": read-only, with sample listings in place of the
+  // database. The admin is signed in with their own account, so every action
+  // that could touch it (saving, deleting, email change, delete account) is
+  // blocked in this mode rather than relying on the database to refuse it.
+  let previewMode = false;
+  const PREVIEW_MESSAGE = 'Preview only \u2014 nothing is saved when viewing as a clinic.';
+  const SAMPLE_LOCATIONS = (() => {
+    const now = new Date().toISOString();
+    const base = {
+      provider_id: 'preview', description: null, services: [], insurers: [], booking_routes: [],
+      address_line2: null, county: null, phone: '01234 567890', email: null, website: null,
+      opening_hours: null, cqc_number: null, professional_registration: null, admin_notes: null,
+      created_at: now, updated_at: now,
+    };
+    return [
+      { ...base, id: 'sample-live', status: 'approved', name: 'Riverside Physiotherapy \u2014 Leeds',
+        categories: ['Physiotherapy'], services: ['Musculoskeletal physiotherapy', 'Sports injury'],
+        insurers: ['Bupa', 'AXA Health', 'Self-pay patients'], booking_routes: ['Consultant referral', 'Self-referral'],
+        address_line1: '1 River Street', town: 'Leeds', county: 'West Yorkshire', postcode: 'LS1 4AB',
+        description: 'Sample listing that is live.' },
+      { ...base, id: 'sample-pending', status: 'pending', name: 'Northside Imaging \u2014 York',
+        categories: ['Imaging & scans'], services: ['MRI', 'Ultrasound'], insurers: ['Bupa', 'Vitality'],
+        address_line1: '2 High Street', town: 'York', postcode: 'YO1 7HH', description: 'Sample listing awaiting review.' },
+      { ...base, id: 'sample-rejected', status: 'rejected', name: 'City Bloods \u2014 Hull',
+        categories: ['Blood tests & pathology'], services: ['Phlebotomy (blood draw)'],
+        address_line1: 'Hull city centre', town: 'Hull', postcode: 'HU1 1AA',
+        admin_notes: 'Please add the full street address of this site.' },
+    ];
+  })();
   let editingId = null; // null = adding a new location
   const servicesSet = new Set();
 
@@ -444,6 +474,7 @@
       openForm(locations.find(l => l.id === editBtn.dataset.edit));
     } else if (delBtn) {
       const loc = locations.find(l => l.id === delBtn.dataset.delete);
+      if (previewMode) { alert(PREVIEW_MESSAGE); return; }
       if (!loc || !window.confirm(`Delete "${loc.name}"? This can't be undone.`)) return;
       delBtn.disabled = true;
       const { error } = await supabaseClient.from('provider_locations').delete().eq('id', loc.id);
@@ -455,6 +486,11 @@
   });
 
   async function loadLocations() {
+    if (previewMode) {
+      locations = SAMPLE_LOCATIONS;
+      renderLocations();
+      return;
+    }
     const { data, error } = await supabaseClient
       .from('provider_locations')
       .select('*')
@@ -584,6 +620,7 @@
   $('location-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('form-error').style.display = 'none';
+    if (previewMode) return formError(PREVIEW_MESSAGE);
 
     const text = id => $(id).value.trim();
     const orNull = id => text(id) || null;
@@ -656,6 +693,7 @@
   }
 
   $('org-save-btn').addEventListener('click', () => withButton($('org-save-btn'), async () => {
+    if (previewMode) return;
     const name = $('org-name').value.trim();
     if (!name) return setStatus($('org-status'), 'Please enter a name.', true);
     const { error } = await supabaseClient.from('provider_profiles').upsert({ profile_id: userId, organisation_name: name });
@@ -663,6 +701,7 @@
   }));
 
   $('contact-save-btn').addEventListener('click', () => withButton($('contact-save-btn'), async () => {
+    if (previewMode) return;
     const first = $('contact-first').value.trim();
     const last = $('contact-last').value.trim();
     if (!first || !last) return setStatus($('contact-status'), 'Please enter your first and last name.', true);
@@ -676,6 +715,7 @@
   // returns via confirm-email.html, which already handles a signed-in
   // returning user and sends providers back to this page.
   $('email-change-btn').addEventListener('click', () => withButton($('email-change-btn'), async () => {
+    if (previewMode) return;
     const status = $('email-status');
     const input = $('new-email');
     const next = input.value.trim();
@@ -704,6 +744,7 @@
   const deleteBtn = $('delete-btn');
   deleteInput.addEventListener('input', () => { deleteBtn.disabled = deleteInput.value.trim() !== 'DELETE'; });
   deleteBtn.addEventListener('click', async () => {
+    if (previewMode) return;
     if (deleteInput.value.trim() !== 'DELETE') return;
     deleteBtn.disabled = true;
     deleteBtn.textContent = 'Deleting…';
@@ -736,6 +777,18 @@
     }
 
     userId = navResult.session.user.id;
+
+    if (navResult.viewingAs === 'provider') {
+      previewMode = true;
+      $('preview-notice').style.display = 'block';
+      $('account-card').style.display = 'none';
+      $('danger-zone').style.display = 'none';
+      await loadLocations();
+      $('loading').style.display = 'none';
+      $('page-content').style.display = 'block';
+      $('add-location-btn').style.display = 'inline-block';
+      return;
+    }
 
     const { data: org } = await supabaseClient
       .from('provider_profiles')
