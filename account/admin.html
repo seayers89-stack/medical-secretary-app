@@ -313,6 +313,7 @@
       <button class="tab-btn" data-tab="secretaries">Secretaries</button>
       <button class="tab-btn" data-tab="consultants">Consultants</button>
       <button class="tab-btn" data-tab="directory">Directory <span class="tab-badge" id="badge-directory" style="display:none;"></span></button>
+      <button class="tab-btn" data-tab="clinics">Clinic listings <span class="tab-badge" id="badge-clinics" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="contact-suggestions">Contact suggestions <span class="tab-badge" id="badge-contact-suggestions" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="dept-contacts">Department contacts <span class="tab-badge" id="badge-dept-contacts" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="spelling">Spelling terms <span class="tab-badge" id="badge-spelling" style="display:none;"></span></button>
@@ -360,6 +361,20 @@
 
       <h3 style="font-family:'Cormorant Garamond', serif; font-size:17px; margin:28px 0 12px;">All secretary-added entries</h3>
       <div id="directory-all-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-clinics">
+      <p style="font-size:13.5px; color:var(--slate); margin-bottom:16px;">Directory listings from clinics and diagnostic providers. New listings stay private until you approve them; once approved, the provider's later edits go live straight away (flagged "Edited since approval" so you can re-check). Insurer and registration details are self-declared. A rejection reason is shown to the provider, who can edit and resubmit.</p>
+      <div style="margin-bottom:16px;">
+        <label for="clinic-status-filter" style="font-size:13px; font-weight:600; margin-right:8px;">Show</label>
+        <select id="clinic-status-filter" style="font-family:'Special Elite', cursive; font-size:13.5px; padding:8px 12px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--white); color:var(--ink);">
+          <option value="pending">Awaiting review</option>
+          <option value="approved">Live</option>
+          <option value="rejected">Not approved</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div id="clinic-listings-list"></div>
     </div>
 
     <div class="tab-panel" id="tab-contact-suggestions">
@@ -1279,6 +1294,122 @@
   // directories (see migration_48_contact_suggestions.sql). Purely a review
   // queue — applying a suggestion means manually editing hospitals-data.js
   // or gp-practices.json yourself, then marking it applied here.
+  // ── Clinic listings (provider_locations, migration_66/67) ─────────────
+  let clinicListings = [];
+  let clinicOrgNames = {};
+  let clinicContacts = {};
+
+  async function loadClinicListings() {
+    const list = document.getElementById('clinic-listings-list');
+    const { data, error } = await supabaseClient
+      .from('provider_locations')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load listings: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    clinicListings = data || [];
+    setTabBadge('badge-clinics', clinicListings.filter(l => l.status === 'pending').length);
+
+    const providerIds = [...new Set(clinicListings.map(l => l.provider_id))];
+    clinicOrgNames = {};
+    if (providerIds.length) {
+      const { data: orgs } = await supabaseClient.from('provider_profiles').select('profile_id, organisation_name').in('profile_id', providerIds);
+      (orgs || []).forEach(o => { clinicOrgNames[o.profile_id] = o.organisation_name; });
+    }
+    clinicContacts = await fetchProfilesByIds(providerIds);
+    renderClinicListings();
+  }
+
+  function renderClinicListings() {
+    const list = document.getElementById('clinic-listings-list');
+    const filter = document.getElementById('clinic-status-filter').value;
+    const shown = clinicListings.filter(l => filter === 'all' || l.status === filter);
+
+    if (shown.length === 0) {
+      list.innerHTML = `<div class="empty-state">${filter === 'pending' ? 'Nothing waiting for review.' : 'No listings here yet.'}</div>`;
+      return;
+    }
+
+    const STATUS_LABEL = { pending: 'Awaiting review', approved: 'Live', rejected: 'Not approved' };
+    const row = (label, value) => value ? `<div style="font-size:13.5px; line-height:1.6;"><strong>${label}:</strong> ${value}</div>` : '';
+    // website is validated as http(s) in the database, but is escaped and
+    // given rel=noopener regardless since it ends up in an href.
+    const link = url => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--gold); text-decoration:underline;">${escapeHtml(url)}</a>`;
+
+    list.innerHTML = shown.map(l => {
+      const contact = clinicContacts[l.provider_id];
+      const org = clinicOrgNames[l.provider_id];
+      const edited = l.status === 'approved' && l.approved_at && new Date(l.updated_at) > new Date(l.approved_at);
+      const address = [l.address_line1, l.address_line2, l.town, l.county, l.postcode].filter(Boolean).map(escapeHtml).join(', ');
+      const actions = {
+        pending: `<button type="button" class="success" data-clinic-approve="${l.id}">Approve</button>
+                  <button type="button" data-clinic-reject="${l.id}">Reject…</button>`,
+        approved: `<button type="button" data-clinic-reject="${l.id}">Remove from directory…</button>`,
+        rejected: `<button type="button" class="success" data-clinic-approve="${l.id}">Approve</button>`,
+      }[l.status];
+      return `
+        <div class="card ${l.status === 'rejected' ? 'resolved' : ''}">
+          <div class="item-meta">
+            <span class="tag ${l.status === 'approved' ? 'reply' : ''}">${STATUS_LABEL[l.status]}</span>
+            ${edited ? '<span class="tag">Edited since approval</span>' : ''}
+            <span>${org ? escapeHtml(org) : 'Unknown organisation'}${contact ? ` · contact ${escapeHtml(contact.first_name + ' ' + contact.last_name)}` : ''}</span>
+            <span>Added ${formatDate(l.created_at)} · updated ${formatDate(l.updated_at)}</span>
+          </div>
+          <div class="quoted-content" style="white-space:normal;">
+            <div class="quoted-title">${escapeHtml(l.name)}</div>
+            ${row('Categories', escapeHtml(l.categories.join(', ')))}
+            ${row('Services', escapeHtml(l.services.join(', ')))}
+            ${row('Insurers (self-declared)', escapeHtml(l.insurers.join(', ')))}
+            ${row('Booking routes', escapeHtml(l.booking_routes.join(', ')))}
+            ${row('Address', address)}
+            ${row('Phone', l.phone && escapeHtml(l.phone))}
+            ${row('Email', l.email && escapeHtml(l.email))}
+            ${row('Website', l.website && link(l.website))}
+            ${row('Opening hours', l.opening_hours && `<span style="white-space:pre-wrap;">${escapeHtml(l.opening_hours)}</span>`)}
+            ${row('CQC number', l.cqc_number && escapeHtml(l.cqc_number))}
+            ${row('Professional registration', l.professional_registration && escapeHtml(l.professional_registration))}
+            ${row('Description', l.description && `<span style="white-space:pre-wrap;">${escapeHtml(l.description)}</span>`)}
+          </div>
+          ${l.status === 'rejected' && l.admin_notes ? `<div class="report-reason"><strong>Reason given:</strong> ${escapeHtml(l.admin_notes)}</div>` : ''}
+          <div class="row-actions">
+            ${actions}
+            <button type="button" class="danger" data-clinic-delete="${l.id}">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('clinic-status-filter').addEventListener('change', renderClinicListings);
+
+  document.getElementById('clinic-listings-list').addEventListener('click', async (e) => {
+    const approve = e.target.closest('[data-clinic-approve]');
+    const reject = e.target.closest('[data-clinic-reject]');
+    const del = e.target.closest('[data-clinic-delete]');
+    const btn = approve || reject || del;
+    if (!btn) return;
+
+    if (approve) {
+      btn.disabled = true;
+      const { error } = await supabaseClient.rpc('admin_set_location_status', { p_id: approve.dataset.clinicApprove, p_status: 'approved', p_notes: null });
+      if (error) { alert('Could not approve: ' + error.message); btn.disabled = false; return; }
+    } else if (reject) {
+      const reason = (window.prompt('Reason for the provider (they will see this):') || '').trim();
+      if (!reason) return;
+      btn.disabled = true;
+      const { error } = await supabaseClient.rpc('admin_set_location_status', { p_id: reject.dataset.clinicReject, p_status: 'rejected', p_notes: reason });
+      if (error) { alert('Could not reject: ' + error.message); btn.disabled = false; return; }
+    } else {
+      if (!confirm('Delete this listing permanently?')) return;
+      btn.disabled = true;
+      const { error } = await supabaseClient.from('provider_locations').delete().eq('id', del.dataset.clinicDelete);
+      if (error) { alert('Could not delete: ' + error.message); btn.disabled = false; return; }
+    }
+    await loadClinicListings();
+  });
+
   async function loadContactSuggestions() {
     const list = document.getElementById('contact-suggestions-list');
     const { data: suggestions, error } = await supabaseClient
@@ -2468,6 +2599,7 @@
     await loadSecretaries();
     await loadConsultants();
     await loadDirectoryTab();
+    await loadClinicListings();
     await loadContactSuggestions();
     await loadDeptContactsTab();
     await loadSpellingSuggestions();
