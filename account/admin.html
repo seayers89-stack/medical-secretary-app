@@ -53,7 +53,7 @@
   h1{ font-family:'Cormorant Garamond', serif; font-weight:600; font-size:30px; margin-bottom:10px; }
   .sub{ color:var(--slate); font-size:14.5px; line-height:1.6; margin-bottom:32px; }
 
-  .tab-row{ display:flex; gap:8px; margin-bottom:28px; border-bottom:1px solid rgba(46,63,84,0.08); }
+  .tab-row{ display:flex; flex-wrap:wrap; gap:4px 12px; margin-bottom:28px; border-bottom:1px solid rgba(46,63,84,0.08); }
   .tab-btn{
     font-family:'Special Elite', cursive; font-weight:600; font-size:14.5px; color:var(--slate);
     background:none; border:none; cursor:pointer; padding:10px 4px; margin-bottom:-1px;
@@ -293,6 +293,10 @@
         <div class="admin-stat-value" id="stat-consultants">—</div>
         <div class="admin-stat-label">Consultants registered</div>
       </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-value" id="stat-clinics">—</div>
+        <div class="admin-stat-label">Clinics registered</div>
+      </div>
     </div>
 
     <div class="card" id="healix-sync-card" style="margin-bottom:24px;">
@@ -312,6 +316,7 @@
       <button class="tab-btn" data-tab="ideas">Ideas <span class="tab-badge" id="badge-ideas" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="secretaries">Secretaries</button>
       <button class="tab-btn" data-tab="consultants">Consultants</button>
+      <button class="tab-btn" data-tab="clinic-accounts">Clinic accounts</button>
       <button class="tab-btn" data-tab="directory">Directory <span class="tab-badge" id="badge-directory" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="clinics">Clinic listings <span class="tab-badge" id="badge-clinics" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="contact-suggestions">Contact suggestions <span class="tab-badge" id="badge-contact-suggestions" style="display:none;"></span></button>
@@ -350,6 +355,12 @@
     <div class="tab-panel" id="tab-consultants">
       <input type="text" class="search-input" id="con-search" placeholder="Search by name…">
       <div id="consultants-list"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-clinic-accounts">
+      <p style="font-size:13.5px; color:var(--slate); margin-bottom:16px;">Every registered clinic and diagnostic provider account, including ones that haven't added a listing yet. Review the listings themselves in the Clinic listings tab.</p>
+      <input type="text" class="search-input" id="clinic-acc-search" placeholder="Search by clinic, name or email…">
+      <div id="clinic-accounts-list"></div>
     </div>
 
     <div class="tab-panel" id="tab-directory">
@@ -829,7 +840,8 @@
   function updateStatsVisibility() {
     const secDone = document.getElementById('stat-secretaries').textContent !== '—';
     const conDone = document.getElementById('stat-consultants').textContent !== '—';
-    if (secDone || conDone) document.getElementById('admin-stats').style.display = 'flex';
+    const clinicDone = document.getElementById('stat-clinics').textContent !== '—';
+    if (secDone || conDone || clinicDone) document.getElementById('admin-stats').style.display = 'flex';
   }
 
   async function loadSecretaries() {
@@ -928,6 +940,64 @@
   }
 
   document.getElementById('con-search').addEventListener('input', renderConsultants);
+
+  // ── Clinic accounts tab ───────────────────────────────────────────────────
+  // Registered provider accounts (migration_66), via admin_list_providers()
+  // (migration_71) so the login email is included.
+  let allClinicAccounts = [];
+
+  async function loadClinicAccounts() {
+    const list = document.getElementById('clinic-accounts-list');
+    list.innerHTML = '<div class="empty-state">Loading…</div>';
+    const { data, error } = await supabaseClient.rpc('admin_list_providers');
+    if (error) { list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(error.message)}</div>`; return; }
+    allClinicAccounts = data || [];
+    document.getElementById('stat-clinics').textContent = allClinicAccounts.length;
+    updateStatsVisibility();
+    renderClinicAccounts();
+  }
+
+  function renderClinicAccounts() {
+    const list = document.getElementById('clinic-accounts-list');
+    const q = document.getElementById('clinic-acc-search').value.trim().toLowerCase();
+    const rows = allClinicAccounts.filter(c =>
+      `${c.organisation_name || ''} ${c.first_name || ''} ${c.last_name || ''} ${c.email || ''}`.toLowerCase().includes(q));
+    if (rows.length === 0) {
+      list.innerHTML = `<div class="empty-state">${allClinicAccounts.length === 0 ? 'No clinics have registered yet.' : 'No clinics found.'}</div>`;
+      return;
+    }
+
+    // "2 live · 1 awaiting review", or a badge when they haven't listed anything.
+    const listingsCell = c => {
+      if (!Number(c.listings_total)) return '<span class="result-badge unavailable">No listing yet</span>';
+      const parts = [];
+      if (Number(c.listings_approved)) parts.push(`${c.listings_approved} live`);
+      if (Number(c.listings_pending)) parts.push(`${c.listings_pending} awaiting review`);
+      if (Number(c.listings_rejected)) parts.push(`${c.listings_rejected} not approved`);
+      return escapeHtml(parts.join(' · '));
+    };
+
+    list.innerHTML = `
+      <div style="overflow-x:auto;">
+      <table class="data-table">
+        <thead><tr>
+          <th>Clinic</th><th>Contact</th><th>Email</th><th>Listings</th><th>Joined</th><th>Last active</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(c => `<tr>
+            <td><strong>${escapeHtml(c.organisation_name || '—')}</strong></td>
+            <td>${escapeHtml(`${c.first_name || ''} ${c.last_name || ''}`.trim() || '—')}</td>
+            <td>${escapeHtml(c.email || '—')}</td>
+            <td>${listingsCell(c)}</td>
+            <td style="white-space:nowrap;">${formatDate(c.created_at)}</td>
+            <td style="white-space:nowrap;">${c.last_active_at ? formatDate(c.last_active_at) : '—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      </div>`;
+  }
+
+  document.getElementById('clinic-acc-search').addEventListener('input', renderClinicAccounts);
 
   // ── Directory tab ──────────────────────────────────────────────────────────
   // consultant_directory_entries: secretary-added consultant listings (see
@@ -2669,6 +2739,7 @@
     await loadHealixSyncStatus();
     await loadSecretaries();
     await loadConsultants();
+    await loadClinicAccounts();
     await loadDirectoryTab();
     await loadClinicListings();
     await loadContactSuggestions();
