@@ -236,6 +236,36 @@
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
+  .billing-view-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:18px; }
+  .billing-view-btn{
+    font-family:'Special Elite', cursive; font-size:13px; font-weight:600; padding:8px 16px;
+    border-radius:999px; border:1.5px solid rgba(46,63,84,0.15); background:var(--white); color:var(--ink); cursor:pointer;
+  }
+  .billing-view-btn.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  #billing-print-btn{ margin-left:auto; display:none; }
+  .billing-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .star-btn{
+    flex-shrink:0; background:none; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; cursor:pointer;
+    font-size:16px; line-height:1; padding:6px 9px; color:var(--slate);
+  }
+  .star-btn:hover{ border-color:var(--gold); color:#8F6F36; }
+  .star-btn.on{ background:rgba(184,146,74,0.14); border-color:var(--gold); color:#8F6F36; }
+  .code-note-input{
+    width:100%; margin-top:10px; padding:9px 12px; font-family:'Special Elite', cursive; font-size:13.5px;
+    border:1.5px solid rgba(46,63,84,0.12); border-radius:8px; background:var(--white); color:var(--ink);
+  }
+  .code-note-input:focus{ outline:none; border-color:var(--gold); }
+
+  #billing-print-sheet{ display:none; }
+  @media print{
+    body{ background:#fff !important; }
+    body > *:not(#billing-print-sheet){ display:none !important; }
+    #billing-print-sheet{ display:block !important; padding:24px; font-family:Georgia, serif; color:#000; }
+    #billing-print-sheet h1{ font-size:20px; margin-bottom:4px; }
+    #billing-print-sheet table{ width:100%; border-collapse:collapse; margin-top:14px; font-size:12px; }
+    #billing-print-sheet th, #billing-print-sheet td{ border:1px solid #999; padding:6px 8px; text-align:left; vertical-align:top; }
+  }
+
   footer{ background:var(--ink); color:rgba(247,244,237,0.7); padding:40px 32px 28px; margin-top:40px; }
   .foot-bottom{ max-width:1180px; margin:0 auto; font-size:12.5px; color:rgba(247,244,237,0.45); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
 
@@ -265,9 +295,9 @@
 
 <div class="wrap">
   <div class="page-head">
-    <div class="eyebrow">Daily Tools</div>
-    <h1>The tools you'll reach for every day</h1>
-    <p class="sub">Spelling lookups, insurer and hospital contacts, the consultant directory, and CCSD billing codes — in one place, separate from the business/tax side in Business Hub.</p>
+    <div class="eyebrow" id="page-eyebrow">Daily Tools</div>
+    <h1 id="page-title">The tools you'll reach for every day</h1>
+    <p class="sub" id="page-sub">Spelling lookups, insurer and hospital contacts, the consultant directory, and CCSD billing codes — in one place, separate from the business/tax side in Business Hub.</p>
   </div>
 
   <p id="loading">Loading…</p>
@@ -425,6 +455,11 @@
         <h2>Billing codes</h2>
         <p>Search the full CCSD code list by code, description, chapter, or section. Healix's reimbursement fee is shown where available, pulled directly from Healix's own published fee schedule<span id="healix-synced-label"></span>. The other major insurers don't offer a public fee schedule we can pull from, so we link straight to their official lookup tools instead.</p>
         <div id="insurer-links-row" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;"></div>
+        <div class="billing-view-row">
+          <button type="button" class="billing-view-btn on" id="billing-view-all">All codes</button>
+          <button type="button" class="billing-view-btn" id="billing-view-mine">★ My codes <span id="my-codes-count"></span></button>
+          <button type="button" class="copy-btn" id="billing-print-btn">Print my codes</button>
+        </div>
         <input type="text" id="billing-search" placeholder="Search by code or description…" autocomplete="off">
         <div class="field-row2" style="display:flex; gap:14px; margin-top:14px;">
           <div class="field" style="flex:1;">
@@ -470,6 +505,8 @@
 
   </div>
 </div>
+
+<div id="billing-print-sheet"></div>
 
 <footer>
   <div class="foot-bottom">
@@ -557,23 +594,46 @@
     isSecretaryOrAdmin = navResult.profile.role === 'secretary' || navResult.isAdmin;
     if (isSecretaryOrAdmin) document.getElementById('add-consultant-hub-link').style.display = 'inline';
 
+    // Consultants reach this page as "Practice tools": the spelling search
+    // and Task Tracker are secretary workflow tools, so they're hidden and
+    // the page opens on Billing codes instead.
+    const isConsultant = navResult.profile.role === 'consultant';
+    if (isConsultant) {
+      document.title = 'Practice Tools — Veyn';
+      document.getElementById('page-eyebrow').textContent = 'Practice tools';
+      document.getElementById('page-title').textContent = 'Codes, contacts and colleagues';
+      document.getElementById('page-sub').textContent = 'Search CCSD billing codes and star the ones you use, look up insurer, GP and hospital contacts, and find consultants for cross-referrals.';
+      ['spelling', 'tasktracker'].forEach(tab => {
+        document.querySelector(`.tab-btn[data-tab="${tab}"]`).remove();
+        document.getElementById(`tab-${tab}`).remove();
+      });
+    }
+
     await loadHospitals();
     await loadHospitalDepartments();
-    await loadSpellingTerms();
+    if (!isConsultant) await loadSpellingTerms();
+    await loadSavedCodes();
+
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    const startTab = document.querySelector(`.tab-btn[data-tab="${requestedTab}"]`)
+      || (isConsultant ? document.querySelector('.tab-btn[data-tab="billing"]') : null);
+    if (startTab) activateTab(startTab);
 
     loading.style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
   })();
 
+  function activateTab(btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+    if (btn.dataset.tab === 'contacts') loadGpData();
+    if (btn.dataset.tab === 'consultants') loadConsultantDirectory();
+  }
+
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
-      if (btn.dataset.tab === 'contacts') loadGpData();
-      if (btn.dataset.tab === 'consultants') loadConsultantDirectory();
-    });
+    btn.addEventListener('click', () => activateTab(btn));
   });
 
   // ── Spelling search tab ──────────────────────────────────────────────
@@ -1787,7 +1847,9 @@
     const resultsEl = document.getElementById('billing-results');
     document.getElementById('billing-results-count').textContent = `${list.length} of ${BILLING_CODES.length} codes`;
     if (list.length === 0) {
-      resultsEl.innerHTML = `<div class="insurer-empty">No billing codes match that search.</div>`;
+      resultsEl.innerHTML = billingView === 'mine' && savedCodes.size === 0
+        ? `<div class="insurer-empty">You haven't starred any codes yet. Tap ☆ on a code in All codes to keep it here.</div>`
+        : `<div class="insurer-empty">No billing codes match that search.</div>`;
       return;
     }
     const shown = cap ? list.slice(0, cap) : list;
@@ -1796,12 +1858,18 @@
       const healixRow = healix
         ? `<div class="insurer-row"><span>Healix fee</span><span>£${healix.procedure_fee ?? '—'}${healix.anaesthetic_fee != null ? ` (+£${healix.anaesthetic_fee} anaesthetic)` : ''}</span></div>`
         : '';
+      const saved = savedCodes.get(c.code);
+      const starLabel = saved ? `Remove ${c.code} from My codes` : `Add ${c.code} to My codes`;
       return `
       <div class="insurer-card">
-        <h3>${escapeHtml(c.code)} — ${escapeHtml(c.description)}</h3>
+        <div class="billing-card-head">
+          <h3>${escapeHtml(c.code)} — ${escapeHtml(c.description)}</h3>
+          <button type="button" class="star-btn${saved ? ' on' : ''}" data-code="${escapeHtml(c.code)}" aria-label="${escapeHtml(starLabel)}" title="${escapeHtml(starLabel)}">${saved ? '★' : '☆'}</button>
+        </div>
         <div class="insurer-row"><span>Chapter</span><span>${escapeHtml(c.chapter)}</span></div>
         <div class="insurer-row"><span>Section</span><span>${escapeHtml(c.section)}</span></div>
         ${healixRow}
+        ${saved ? `<input type="text" class="code-note-input" data-code="${escapeHtml(c.code)}" maxlength="300" placeholder="Private note — e.g. 'use for follow-ups at Spire'" aria-label="Note for ${escapeHtml(c.code)}" value="${escapeHtml(saved.note || '')}">` : ''}
       </div>
     `;
     }).join('');
@@ -1816,6 +1884,7 @@
     const section = document.getElementById('billing-section-filter').value;
 
     const filtered = BILLING_CODES.filter(c => {
+      if (billingView === 'mine' && !savedCodes.has(c.code)) return false;
       if (query && !c.code.toLowerCase().includes(query) && !c.description.toLowerCase().includes(query)) return false;
       if (chapter && c.chapter !== chapter) return false;
       if (section && c.section !== section) return false;
@@ -1823,9 +1892,89 @@
     });
     // Only cap unfiltered free-text browsing — selecting a chapter/section
     // is an explicit request to see everything in it, however many codes.
-    const cap = (chapter || section) ? null : 200;
+    const cap = (chapter || section || billingView === 'mine') ? null : 200;
     renderBillingCodes(filtered, cap);
   }
+
+  // ── My codes (saved_billing_codes, migration_63_consultant_tools.sql) ──
+  // Starred codes with an optional private note — available to every role,
+  // printable as a one-page sheet to hand to a secretary.
+  let billingView = 'all';
+  const savedCodes = new Map(); // ccsd_code → { note }
+
+  async function loadSavedCodes() {
+    const { data } = await supabaseClient
+      .from('saved_billing_codes')
+      .select('ccsd_code, note')
+      .eq('profile_id', currentUserId);
+    savedCodes.clear();
+    (data || []).forEach(r => savedCodes.set(r.ccsd_code, { note: r.note }));
+    updateMyCodesCount();
+    filterBillingCodes();
+  }
+
+  function updateMyCodesCount() {
+    document.getElementById('my-codes-count').textContent = savedCodes.size ? `(${savedCodes.size})` : '';
+  }
+
+  function setBillingView(view) {
+    billingView = view;
+    document.getElementById('billing-view-all').classList.toggle('on', view === 'all');
+    document.getElementById('billing-view-mine').classList.toggle('on', view === 'mine');
+    document.getElementById('billing-print-btn').style.display = view === 'mine' && savedCodes.size ? 'inline-block' : 'none';
+    filterBillingCodes();
+  }
+
+  document.getElementById('billing-view-all').addEventListener('click', () => setBillingView('all'));
+  document.getElementById('billing-view-mine').addEventListener('click', () => setBillingView('mine'));
+
+  document.getElementById('billing-results').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.star-btn');
+    if (!btn || !currentUserId) return;
+    const code = btn.dataset.code;
+    btn.disabled = true;
+    if (savedCodes.has(code)) {
+      const { error } = await supabaseClient.from('saved_billing_codes').delete()
+        .eq('profile_id', currentUserId).eq('ccsd_code', code);
+      if (!error) savedCodes.delete(code);
+    } else {
+      const { error } = await supabaseClient.from('saved_billing_codes')
+        .insert({ profile_id: currentUserId, ccsd_code: code });
+      if (!error) savedCodes.set(code, { note: null });
+    }
+    updateMyCodesCount();
+    setBillingView(billingView);
+  });
+
+  document.getElementById('billing-results').addEventListener('change', async (e) => {
+    const input = e.target.closest('.code-note-input');
+    if (!input) return;
+    const code = input.dataset.code;
+    const note = input.value.trim() || null;
+    const { error } = await supabaseClient.from('saved_billing_codes').update({ note })
+      .eq('profile_id', currentUserId).eq('ccsd_code', code);
+    if (!error && savedCodes.has(code)) savedCodes.get(code).note = note;
+  });
+
+  document.getElementById('billing-print-btn').addEventListener('click', () => {
+    const rows = BILLING_CODES.filter(c => savedCodes.has(c.code)).map(c => {
+      const healix = healixFeesByCode[c.code];
+      return `<tr>
+        <td>${escapeHtml(c.code)}</td>
+        <td>${escapeHtml(c.description)}</td>
+        <td>${healix && healix.procedure_fee != null ? `£${healix.procedure_fee}` : '—'}</td>
+        <td>${escapeHtml(savedCodes.get(c.code).note || '')}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('billing-print-sheet').innerHTML = `
+      <h1>My CCSD codes</h1>
+      <p>Printed ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} from Veyn. Check fees against each insurer's current schedule before billing.</p>
+      <table>
+        <thead><tr><th>Code</th><th>Description</th><th>Healix fee</th><th>Note</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    window.print();
+  });
 
   document.getElementById('billing-search').addEventListener('input', filterBillingCodes);
   document.getElementById('billing-chapter-filter').addEventListener('change', filterBillingCodes);

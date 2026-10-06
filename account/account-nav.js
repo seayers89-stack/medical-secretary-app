@@ -1,5 +1,5 @@
 // Veyn: renders the role-aware account nav (My profile / Messages / Search /
-// Post a job / My postings for consultants; My profile / Messages / Job
+// Post a job / My postings / Practice tools for consultants; My profile / Messages / Job
 // board / Academy / Daily Tools / Business Hub / Community for secretaries)
 // in place of the public marketing nav, once a session is found. Pages with
 // no session keep the marketing nav-links already in their markup — this
@@ -12,6 +12,7 @@ const CONSULTANT_NAV_LINKS = [
   { label: 'Search', href: 'search-secretaries.html', key: 'search' },
   { label: 'Post a job', href: 'post-job.html', key: 'post-job' },
   { label: 'My postings', href: 'my-postings.html', key: 'my-postings' },
+  { label: 'Practice tools', href: 'daily-tools.html', key: 'daily-tools' },
   { label: 'Refer & earn', href: 'referrals.html', key: 'referrals' },
   { label: 'Ideas', href: 'ideas.html', key: 'ideas' },
   { label: 'Support', href: 'support.html', key: 'support' },
