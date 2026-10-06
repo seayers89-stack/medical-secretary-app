@@ -43,6 +43,51 @@ const ADMIN_NAV_LINKS = [
   { label: 'Support', href: 'admin.html#support', key: 'support' },
 ];
 
+// "View as" preview for admins — lets an admin see the consultant or
+// secretary experience. This is a UI-only override held in sessionStorage
+// (cleared when the tab closes): the admin keeps their own session and
+// permissions, so it only changes which nav and role-gated screens show.
+// It is ignored unless the signed-in profile is genuinely an admin, and it
+// grants nothing the admin didn't already have.
+const VIEW_AS_KEY = 'veyn-view-as';
+const VIEW_AS_LANDING = { consultant: 'search-secretaries.html', secretary: 'job-board.html' };
+
+function getViewAs() {
+  try {
+    const v = sessionStorage.getItem(VIEW_AS_KEY);
+    return v === 'consultant' || v === 'secretary' ? v : null;
+  } catch { return null; }
+}
+
+function setViewAs(role) {
+  try {
+    if (role) sessionStorage.setItem(VIEW_AS_KEY, role); else sessionStorage.removeItem(VIEW_AS_KEY);
+  } catch { /* storage unavailable — preview just won't persist */ }
+}
+
+function renderViewAsBanner(role) {
+  if (document.getElementById('view-as-banner')) return;
+  const other = role === 'consultant' ? 'secretary' : 'consultant';
+  const bar = document.createElement('div');
+  bar.id = 'view-as-banner';
+  bar.setAttribute('style', 'background:#B8924A; color:#2E3F54; font-size:13px; line-height:1.5; padding:10px 20px; display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center; justify-content:center; text-align:center; position:relative; z-index:60;');
+  bar.innerHTML = `
+    <span><strong>Previewing as a ${role}.</strong> You're still signed in as admin, so anything personal (profile, messages, postings) is yours, not a real ${role}'s.</span>
+    <span>
+      <a href="#" data-view-as-switch="${other}" style="text-decoration:underline; font-weight:600; margin-right:14px;">Switch to ${other}</a>
+      <a href="#" data-view-as-exit style="text-decoration:underline; font-weight:600;">Exit to admin</a>
+    </span>`;
+  bar.addEventListener('click', (e) => {
+    const sw = e.target.closest('[data-view-as-switch]');
+    const exit = e.target.closest('[data-view-as-exit]');
+    if (!sw && !exit) return;
+    e.preventDefault();
+    if (sw) { setViewAs(sw.dataset.viewAsSwitch); window.location.href = VIEW_AS_LANDING[sw.dataset.viewAsSwitch]; }
+    else { setViewAs(null); window.location.href = 'admin.html'; }
+  });
+  document.body.insertBefore(bar, document.body.firstChild);
+}
+
 const ADMIN_ALLOWLIST = [
   'admin.html', 'admin-accept-invite.html', 'login.html',
   'view-secretary.html', 'search-secretaries.html', 'view-group.html', 'group-thread.html',
@@ -63,7 +108,9 @@ function buildAccountNavHtml(role, activeKey) {
         ? '<span id="account-nav-community-unread" style="display:none; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:999px; background:#C1393C; color:#fff; font-size:10.5px; font-weight:700; line-height:16px; text-align:center; vertical-align:middle;"></span>'
         : '');
     return `<a href="${l.href}"${active}>${l.label}${badge}</a>`;
-  }).join('');
+  }).join('') + (role === 'admin'
+    ? `<a href="#" data-view-as="consultant" style="color:#8F6F36;">View as consultant</a><a href="#" data-view-as="secretary" style="color:#8F6F36;">View as secretary</a>`
+    : '');
 }
 
 // Call with the <nav class="nav-links"> element, the page's nav key
@@ -94,17 +141,39 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
     .single();
   if (!profile) { reveal(); return null; }
 
+  const currentPage = window.location.pathname.split('/').pop() || '';
+
+  // Only a real admin can preview; admin.html is always the real admin view.
+  const viewAs = profile.role === 'admin' && currentPage !== 'admin.html' ? getViewAs() : null;
+  if (viewAs) {
+    renderViewAsBanner(viewAs);
+    profile.realRole = 'admin';
+    profile.role = viewAs;
+  }
+
   if (profile.role === 'admin') {
-    const currentPage = window.location.pathname.split('/').pop() || '';
     if (!ADMIN_ALLOWLIST.includes(currentPage)) {
       window.location.replace('admin.html');
       return { session, profile, isAdmin: true, redirecting: true };
     }
   }
 
-  const { data: isAdmin } = await supabaseClient.rpc('is_admin');
+  // While previewing, report isAdmin=false so pages show what the role would
+  // really see (e.g. "Unlock for £12" rather than admin's everything-unlocked).
+  const { data: isAdminRpc } = await supabaseClient.rpc('is_admin');
+  const isAdmin = viewAs ? false : isAdminRpc;
   navEl.innerHTML = buildAccountNavHtml(profile.role, activeKey);
   reveal();
+
+  if (!viewAs && profile.role === 'admin') {
+    navEl.querySelectorAll('[data-view-as]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        setViewAs(a.dataset.viewAs);
+        window.location.href = VIEW_AS_LANDING[a.dataset.viewAs];
+      });
+    });
+  }
 
   let unread = null;
   if (profile.role !== 'admin') {
@@ -156,7 +225,7 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
   // (never visited) gets one set to "now" here rather than counting all of
   // community history as "new" — the badge tracks fresh activity going
   // forward, not a full unread backlog.
-  if (profile.role !== 'consultant') {
+  if (profile.role !== 'consultant' && !viewAs) {
     let since = profile.community_last_viewed_at;
     if (!since) {
       since = new Date().toISOString();
@@ -182,9 +251,11 @@ async function renderAccountNav(navEl, supabaseClient, activeKey) {
     }
   }
 
-  await supabaseClient.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', session.user.id);
+  if (!viewAs) {
+    await supabaseClient.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', session.user.id);
+  }
 
-  return { session, profile, isAdmin: !!isAdmin };
+  return { session, profile, isAdmin: !!isAdmin, viewingAs: viewAs };
 }
 
 // Shared "last active" formatter for search results / profile views. Buckets
