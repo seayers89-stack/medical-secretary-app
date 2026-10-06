@@ -236,6 +236,22 @@
 
   #loading{ color:var(--slate); font-size:14.5px; }
 
+  #service-search, #service-category-filter, #service-type-filter, #service-insurer-filter,
+  #service-town-filter, #service-county-filter, #service-route-filter{
+    width:100%; padding:12px 14px; font-family:'Special Elite', cursive; font-size:14.5px;
+    border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
+  }
+  #service-search{ margin-bottom:14px; }
+  #service-category-filter, #service-type-filter, #service-insurer-filter,
+  #service-town-filter, #service-county-filter, #service-route-filter{ cursor:pointer; }
+  #service-search:focus, #service-category-filter:focus, #service-type-filter:focus, #service-insurer-filter:focus,
+  #service-town-filter:focus, #service-county-filter:focus, #service-route-filter:focus{ outline:none; border-color:var(--gold); }
+  .service-filters{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .service-filters label{ display:block; font-size:13px; font-weight:600; margin-bottom:7px; }
+  @media (max-width:640px){ .service-filters{ grid-template-columns:1fr; } }
+  .service-link{ color:var(--gold); text-decoration:underline; }
+  .service-desc{ font-size:13.5px; line-height:1.6; color:var(--slate); margin:6px 0 10px; white-space:pre-wrap; }
+
   .billing-view-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:18px; }
   .billing-view-btn{
     font-family:'Special Elite', cursive; font-size:13px; font-weight:600; padding:8px 16px;
@@ -297,7 +313,7 @@
   <div class="page-head">
     <div class="eyebrow" id="page-eyebrow">Daily Tools</div>
     <h1 id="page-title">The tools you'll reach for every day</h1>
-    <p class="sub" id="page-sub">Spelling lookups, insurer and hospital contacts, the consultant directory, and CCSD billing codes — in one place, separate from the business/tax side in Business Hub.</p>
+    <p class="sub" id="page-sub">Spelling lookups, insurer and hospital contacts, the consultant and clinic directories, and CCSD billing codes — in one place, separate from the business/tax side in Business Hub.</p>
   </div>
 
   <p id="loading">Loading…</p>
@@ -307,6 +323,7 @@
       <button class="tab-btn active" data-tab="spelling">Spelling search</button>
       <button class="tab-btn" data-tab="contacts">Contacts</button>
       <button class="tab-btn" data-tab="consultants">Find a consultant</button>
+      <button class="tab-btn" data-tab="services">Find a service</button>
       <button class="tab-btn" data-tab="billing">Billing codes</button>
       <button class="tab-btn" data-tab="tasktracker">Task Tracker</button>
     </div>
@@ -455,6 +472,52 @@
       </div>
     </div>
 
+    <div class="tab-panel" id="tab-services">
+    <div class="content-narrow">
+      <div class="guide-card" id="service-directory">
+        <span class="guide-label">Clinics &amp; diagnostics</span>
+        <h2>Find a service</h2>
+        <p>Physio, scans, blood tests and other diagnostic services, listed by the clinics themselves. Search by service, area and the insurers they say they work with. Insurer and registration details are <strong>self-declared</strong> — confirm with the clinic, and the patient's insurer, before booking.</p>
+        <input type="text" id="service-search" placeholder="Search by clinic, town, postcode or service…" autocomplete="off">
+        <div class="service-filters">
+          <div>
+            <label for="service-category-filter">Type of service</label>
+            <select id="service-category-filter"><option value="">Any type</option></select>
+          </div>
+          <div>
+            <label for="service-type-filter">Specific service</label>
+            <select id="service-type-filter"><option value="">Any service</option></select>
+          </div>
+          <div>
+            <label for="service-insurer-filter">Insurer</label>
+            <select id="service-insurer-filter"><option value="">Any insurer</option></select>
+          </div>
+          <div>
+            <label for="service-route-filter">How patients are seen</label>
+            <select id="service-route-filter"><option value="">Any</option></select>
+          </div>
+          <div>
+            <label for="service-town-filter">Town / city</label>
+            <select id="service-town-filter"><option value="">Anywhere</option></select>
+          </div>
+          <div>
+            <label for="service-county-filter">County</label>
+            <select id="service-county-filter"><option value="">Any county</option></select>
+          </div>
+        </div>
+        <p id="service-results-count" style="font-size:13px; color:var(--slate); margin-top:14px;"></p>
+        <div id="service-results"></div>
+        <div style="margin-top:22px; padding-top:18px; border-top:1px solid rgba(46,63,84,0.08);">
+          <p style="font-size:13.5px; margin-bottom:10px;"><strong>Can't find a clinic you use?</strong> Listing is free for clinics. Send them this link.</p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="service-invite-link" readonly style="flex:1; min-width:220px; padding:10px 12px; font-family:'Special Elite', cursive; font-size:13px; border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);" aria-label="Link to list a clinic">
+            <button type="button" class="copy-btn" id="service-invite-copy">Copy link</button>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
     <div class="tab-panel" id="tab-billing">
     <div class="content-narrow">
       <div class="guide-card" id="billing-codes-card">
@@ -529,6 +592,7 @@
 <script src="specialties-data.js"></script>
 <script src="billing-codes-data.js"></script>
 <script src="insurers-data.js"></script>
+<script src="providers-data.js"></script>
 <script>
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
@@ -610,7 +674,7 @@
       document.title = 'Practice Tools — Veyn';
       document.getElementById('page-eyebrow').textContent = 'Practice tools';
       document.getElementById('page-title').textContent = 'Codes, contacts and colleagues';
-      document.getElementById('page-sub').textContent = 'Search CCSD billing codes and star the ones you use, look up insurer, GP and hospital contacts, and find consultants for cross-referrals.';
+      document.getElementById('page-sub').textContent = 'Search CCSD billing codes and star the ones you use, look up insurer, GP and hospital contacts, and find consultants and clinics for referrals.';
       ['spelling', 'tasktracker'].forEach(tab => {
         document.querySelector(`.tab-btn[data-tab="${tab}"]`).remove();
         document.getElementById(`tab-${tab}`).remove();
@@ -638,6 +702,7 @@
     document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
     if (btn.dataset.tab === 'contacts') loadGpData();
     if (btn.dataset.tab === 'consultants') loadConsultantDirectory();
+    if (btn.dataset.tab === 'services') loadServiceDirectory();
   }
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1809,6 +1874,202 @@
   document.getElementById('consultant-specialty-filter').addEventListener('change', renderConsultantDirectory);
   document.getElementById('consultant-hospital-filter').addEventListener('change', renderConsultantDirectory);
   document.getElementById('consultant-insurer-filter').addEventListener('change', renderConsultantDirectory);
+
+  // ── Find a service tab ─────────────────────────────────────────────────
+  // Approved clinic / diagnostic listings (provider_locations — see
+  // migration_66_provider_listings.sql). Only status = 'approved' is asked
+  // for, even when an admin is looking, so this shows what members see.
+  // Filtering is client-side: the whole approved set is fetched once.
+  let allServiceListings = [];
+  let serviceDataLoaded = false;
+  const SERVICE_RENDER_CAP = 100;
+  const svc = id => document.getElementById(id);
+
+  // Distinct values, case-insensitively, as [{ key, label }] sorted by label.
+  // Providers type towns / counties / custom services freely, so "leeds" and
+  // "Leeds" must not appear twice.
+  function distinctValues(values) {
+    const seen = new Map();
+    values.forEach(v => {
+      const label = (v || '').trim();
+      const key = label.toLowerCase();
+      if (key && !seen.has(key)) seen.set(key, label);
+    });
+    return [...seen.entries()].map(([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  function fillSelect(selectEl, items, previousValue) {
+    const first = selectEl.options[0];
+    selectEl.innerHTML = '';
+    selectEl.appendChild(first);
+    items.forEach(({ key, label }) => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = label;
+      selectEl.appendChild(opt);
+    });
+    if (previousValue && items.some(i => i.key === previousValue)) selectEl.value = previousValue;
+  }
+
+  // Service / town / county options follow the chosen type of service, so
+  // you're only offered values that exist for it.
+  function refreshServiceOptions() {
+    const category = svc('service-category-filter').value;
+    const pool = allServiceListings.filter(l => !category || l.categories.includes(category));
+    fillSelect(svc('service-type-filter'), distinctValues(pool.flatMap(l => l.services)), svc('service-type-filter').value);
+    fillSelect(svc('service-town-filter'), distinctValues(pool.map(l => l.town)), svc('service-town-filter').value);
+    fillSelect(svc('service-county-filter'), distinctValues(pool.map(l => l.county)), svc('service-county-filter').value);
+  }
+
+  async function loadServiceDirectory() {
+    if (serviceDataLoaded) return;
+    serviceDataLoaded = true;
+
+    svc('service-invite-link').value = `${window.location.origin}/account/create-profile-provider.html`;
+
+    // Same paging as the Healix fees: Supabase caps a response at 1000 rows.
+    const PAGE_SIZE = 1000;
+    let rows = [];
+    let from = 0;
+    while (true) {
+      const { data, error } = await supabaseClient
+        .from('provider_locations')
+        .select('*')
+        .eq('status', 'approved')
+        .order('name')
+        .range(from, from + PAGE_SIZE - 1);
+      if (error) {
+        serviceDataLoaded = false; // let the next visit to the tab retry
+        svc('service-results').innerHTML = `<div class="insurer-empty">Could not load the directory: ${escapeHtml(error.message)}</div>`;
+        return;
+      }
+      rows = rows.concat(data || []);
+      if (!data || data.length < PAGE_SIZE) break;
+      from += PAGE_SIZE;
+    }
+    allServiceListings = rows;
+
+    PROVIDER_CATEGORY_NAMES.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      svc('service-category-filter').appendChild(opt);
+    });
+    CONSULTANT_INSURERS.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      svc('service-insurer-filter').appendChild(opt);
+    });
+    PROVIDER_BOOKING_ROUTES.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      svc('service-route-filter').appendChild(opt);
+    });
+    refreshServiceOptions();
+    renderServiceDirectory();
+  }
+
+  function renderServiceDirectory() {
+    const query = svc('service-search').value.trim().toLowerCase();
+    const category = svc('service-category-filter').value;
+    const service = svc('service-type-filter').value;
+    const insurer = svc('service-insurer-filter').value;
+    const route = svc('service-route-filter').value;
+    const town = svc('service-town-filter').value;
+    const county = svc('service-county-filter').value;
+
+    const filtered = allServiceListings.filter(l => {
+      if (query) {
+        const haystack = [l.name, l.town, l.county, l.postcode, ...l.services, ...l.categories].join(' ').toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      if (category && !l.categories.includes(category)) return false;
+      if (service && !l.services.some(s => s.trim().toLowerCase() === service)) return false;
+      if (insurer && !l.insurers.includes(insurer)) return false;
+      if (route && !l.booking_routes.includes(route)) return false;
+      if (town && (l.town || '').trim().toLowerCase() !== town) return false;
+      if (county && (l.county || '').trim().toLowerCase() !== county) return false;
+      return true;
+    });
+
+    svc('service-results-count').textContent = `${filtered.length} listing${filtered.length === 1 ? '' : 's'}`;
+    const resultsEl = svc('service-results');
+    if (filtered.length === 0) {
+      resultsEl.innerHTML = `<div class="insurer-empty">${allServiceListings.length === 0
+        ? 'No clinics have been listed yet.'
+        : 'No listings match those filters.'}</div>`;
+      return;
+    }
+    const shown = filtered.slice(0, SERVICE_RENDER_CAP);
+    resultsEl.innerHTML = shown.map(renderServiceCard).join('')
+      + (filtered.length > SERVICE_RENDER_CAP ? `<div class="insurer-empty">Showing the first ${SERVICE_RENDER_CAP} of ${filtered.length} — narrow your search to see more.</div>` : '');
+  }
+
+  function renderServiceCard(l) {
+    const row = (label, valueHtml) => valueHtml ? `<div class="insurer-row"><span>${label}</span><span>${valueHtml}</span></div>` : '';
+    const address = [l.address_line1, l.address_line2, l.town, l.county, l.postcode].filter(Boolean).map(escapeHtml).join(', ');
+    const phoneDigits = (l.phone || '').replace(/[^\d+]/g, '');
+    const phone = l.phone ? (phoneDigits ? `<a class="service-link" href="tel:${escapeHtml(phoneDigits)}">${escapeHtml(l.phone)}</a>` : escapeHtml(l.phone)) : '';
+    const email = l.email ? `<a class="service-link" href="mailto:${escapeHtml(l.email)}">${escapeHtml(l.email)}</a>` : '';
+    // The database only allows http(s) URLs; this re-checks before linking.
+    const website = l.website && /^https?:\/\//i.test(l.website)
+      ? `<a class="service-link" href="${escapeHtml(l.website)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.website)}</a>` : '';
+
+    return `
+      <div class="insurer-card">
+        <h3>${escapeHtml(l.name)} <span style="font-family:'Cormorant Garamond', serif; font-weight:400; font-size:16px; color:var(--slate);">— ${escapeHtml(l.categories.join(', '))}</span></h3>
+        ${l.description ? `<div class="service-desc">${escapeHtml(l.description)}</div>` : ''}
+        ${row('Address', address)}
+        ${row('Phone', phone)}
+        ${row('Email', email)}
+        ${row('Website', website)}
+        ${row('Opening hours', l.opening_hours && `<span style="white-space:pre-wrap;">${escapeHtml(l.opening_hours)}</span>`)}
+        ${row('Services', escapeHtml(l.services.join(', ')))}
+        ${row('Insurers (self-declared)', escapeHtml(l.insurers.join(', ')))}
+        ${row('How patients are seen', escapeHtml(l.booking_routes.join(', ')))}
+        ${row('CQC number (self-declared)', l.cqc_number && escapeHtml(l.cqc_number))}
+        ${row('Registration (self-declared)', l.professional_registration && escapeHtml(l.professional_registration))}
+        <div style="margin-top:8px; font-size:12px; color:var(--slate);">
+          Details last updated ${new Date(l.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} ·
+          <button type="button" style="background:none; border:none; font-family:inherit; font-size:12px; color:var(--slate); text-decoration:underline; cursor:pointer; padding:0;" data-report-service="${escapeHtml(l.id)}">Report a problem</button>
+        </div>
+      </div>`;
+  }
+
+  svc('service-results').addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-report-service]');
+    if (!btn) return;
+    const reason = window.prompt("What's wrong with this listing? (optional)");
+    if (reason === null) return; // cancelled
+    btn.disabled = true;
+    const { error } = await supabaseClient.from('provider_location_reports')
+      .insert({ location_id: btn.dataset.reportService, reporter_id: currentUserId, reason: reason.trim() || null });
+    if (error) {
+      alert(error.code === '23505' ? "You've already reported this listing — thanks, we'll look into it." : `Could not submit report: ${error.message}`);
+      btn.disabled = false;
+      return;
+    }
+    alert('Thanks — this has been reported for review.');
+  });
+
+  svc('service-search').addEventListener('input', renderServiceDirectory);
+  svc('service-category-filter').addEventListener('change', () => { refreshServiceOptions(); renderServiceDirectory(); });
+  ['service-type-filter', 'service-insurer-filter', 'service-route-filter', 'service-town-filter', 'service-county-filter']
+    .forEach(id => svc(id).addEventListener('change', renderServiceDirectory));
+
+  svc('service-invite-copy').addEventListener('click', async () => {
+    const btn = svc('service-invite-copy');
+    try {
+      await navigator.clipboard.writeText(svc('service-invite-link').value);
+      btn.textContent = 'Copied!';
+    } catch {
+      svc('service-invite-link').select();
+      btn.textContent = 'Press Ctrl+C to copy';
+    }
+    setTimeout(() => { btn.textContent = 'Copy link'; }, 1800);
+  });
 
   // ── Billing codes tab ──────────────────────────────────────────────────
   const INSURER_LINKS = [

@@ -375,6 +375,9 @@
         </select>
       </div>
       <div id="clinic-listings-list"></div>
+      <h3 style="font-family:'Cormorant Garamond', serif; font-size:20px; margin:30px 0 6px;">Reports from members</h3>
+      <p style="font-size:13.5px; color:var(--slate); margin-bottom:14px;">Secretaries and consultants flag listings that look wrong. Nothing changes until you act.</p>
+      <div id="clinic-reports-list"></div>
     </div>
 
     <div class="tab-panel" id="tab-contact-suggestions">
@@ -1311,7 +1314,6 @@
       return;
     }
     clinicListings = data || [];
-    setTabBadge('badge-clinics', clinicListings.filter(l => l.status === 'pending').length);
 
     const providerIds = [...new Set(clinicListings.map(l => l.provider_id))];
     clinicOrgNames = {};
@@ -1321,7 +1323,76 @@
     }
     clinicContacts = await fetchProfilesByIds(providerIds);
     renderClinicListings();
+    await loadClinicReports();
   }
+
+  async function loadClinicReports() {
+    const list = document.getElementById('clinic-reports-list');
+    const { data: reports, error } = await supabaseClient
+      .from('provider_location_reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      list.innerHTML = `<div class="empty-state">Could not load reports: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    const open = (reports || []).filter(r => !r.resolved).length;
+    setTabBadge('badge-clinics', clinicListings.filter(l => l.status === 'pending').length + open);
+
+    if (!reports || reports.length === 0) {
+      list.innerHTML = '<div class="empty-state">No reports.</div>';
+      return;
+    }
+    const reporters = await fetchProfilesByIds(reports.map(r => r.reporter_id));
+    const listingsById = Object.fromEntries(clinicListings.map(l => [l.id, l]));
+
+    list.innerHTML = reports.map(r => {
+      const l = listingsById[r.location_id];
+      const reporter = reporters[r.reporter_id];
+      return `
+        <div class="card ${r.resolved ? 'resolved' : ''}">
+          <div class="item-meta">
+            <span>Reported by ${reporter ? escapeHtml(reporter.first_name + ' ' + reporter.last_name) : 'Unknown'}</span>
+            <span>${formatDate(r.created_at)}</span>
+            ${r.resolved ? '<span>· Resolved</span>' : ''}
+          </div>
+          <div class="quoted-content" style="white-space:normal;">
+            ${l ? `<strong>${escapeHtml(l.name)}</strong> — ${escapeHtml(l.town)} (${l.status === 'approved' ? 'live' : escapeHtml(l.status)})` : '<em>Listing no longer exists.</em>'}
+          </div>
+          ${r.reason ? `<div class="report-reason"><strong>Reason given:</strong> ${escapeHtml(r.reason)}</div>` : ''}
+          <div class="row-actions">
+            ${!r.resolved ? `<button type="button" class="success" data-clinic-report-resolve="${r.id}">Mark resolved</button>` : ''}
+            ${l && l.status === 'approved' ? `<button type="button" data-clinic-report-remove="${r.id}" data-listing="${l.id}">Remove listing…</button>` : ''}
+            <button type="button" class="danger" data-clinic-report-delete="${r.id}">Delete report</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('clinic-reports-list').addEventListener('click', async (e) => {
+    const resolve = e.target.closest('[data-clinic-report-resolve]');
+    const remove = e.target.closest('[data-clinic-report-remove]');
+    const del = e.target.closest('[data-clinic-report-delete]');
+    const btn = resolve || remove || del;
+    if (!btn) return;
+
+    if (resolve) {
+      btn.disabled = true;
+      await supabaseClient.from('provider_location_reports').update({ resolved: true }).eq('id', resolve.dataset.clinicReportResolve);
+    } else if (remove) {
+      const reason = (window.prompt('Reason for the provider (they will see this):') || '').trim();
+      if (!reason) return;
+      btn.disabled = true;
+      const { error } = await supabaseClient.rpc('admin_set_location_status', { p_id: remove.dataset.listing, p_status: 'rejected', p_notes: reason });
+      if (error) { alert('Could not remove: ' + error.message); btn.disabled = false; return; }
+      await supabaseClient.from('provider_location_reports').update({ resolved: true }).eq('id', remove.dataset.clinicReportRemove);
+    } else {
+      if (!confirm('Delete this report? The listing is not affected.')) return;
+      btn.disabled = true;
+      await supabaseClient.from('provider_location_reports').delete().eq('id', del.dataset.clinicReportDelete);
+    }
+    await loadClinicListings();
+  });
 
   function renderClinicListings() {
     const list = document.getElementById('clinic-listings-list');
