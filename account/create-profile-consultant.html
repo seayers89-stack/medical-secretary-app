@@ -87,6 +87,16 @@
   }
   .pw-toggle:hover{ color:var(--ink); }
 
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip-toggle{ position:relative; }
+  .chip-toggle input{ position:absolute; opacity:0; width:0; height:0; }
+  .chip-toggle span{
+    display:inline-block; font-size:13.5px; padding:8px 16px; border-radius:999px;
+    border:1px solid rgba(46,63,84,0.15); cursor:pointer; user-select:none; transition:all .15s ease;
+  }
+  .chip-toggle input:checked + span{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .chip-toggle input:focus-visible + span{ outline:2px solid var(--gold); outline-offset:2px; }
+
   .tag-list{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
   .tag-list:empty{ display:none; }
   .tag-pill{
@@ -183,6 +193,11 @@
         <input type="text" id="hospital-tag-input" placeholder="Type a hospital name and press Enter">
         <p style="font-size:12px; color:var(--slate); margin-top:6px;">Add as many as apply — you can always update this later.</p>
       </div>
+      <div class="field">
+        <label>Insurers you work with</label>
+        <div id="insurer-chips" class="chip-row"></div>
+        <p style="font-size:12px; color:var(--slate); margin-top:6px;">Optional. Secretaries and other consultants can search by insurer.</p>
+      </div>
       <div style="margin:20px 0 4px; display:flex; flex-direction:column; gap:12px;">
         <div style="display:flex; align-items:flex-start; gap:10px;">
           <input type="checkbox" id="agree-terms" style="margin-top:3px; flex-shrink:0;">
@@ -215,6 +230,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
 <script src="supabase-config.js"></script>
 <script src="specialties-data.js"></script>
+<script src="insurers-data.js"></script>
 <script>
   const form = document.getElementById('signup-form');
   const errorBox = document.getElementById('form-error');
@@ -226,6 +242,9 @@
     opt.textContent = s;
     specialtySelect.appendChild(opt);
   });
+
+  const insurerChipsEl = document.getElementById('insurer-chips');
+  renderInsurerChips(insurerChipsEl, []);
 
   let hospitalTags = [];
   const hospitalTagsEl = document.getElementById('hospital-tags');
@@ -287,6 +306,7 @@
       role: 'consultant',
       firstName, lastName, email,
       practice, specialty, hospitals: hospitalTags,
+      insurers: getSelectedInsurers(insurerChipsEl),
       ref: refCode || null,
     };
 
@@ -329,6 +349,7 @@
       practice_name: practice,
       specialty: specialty,
       hospitals: hospitalTags,
+      insurers: conDraft.insurers,
     });
     if (conProfileError) {
       errorBox.textContent = conProfileError.message;

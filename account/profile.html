@@ -477,6 +477,7 @@
           <div class="row"><span>Practice</span><span>${con.practice_name || '—'}</span></div>
           <div class="row"><span>Specialty</span><span>${con.specialty || '—'}</span></div>
           <div class="row"><span>Hospitals</span><span>${(con.hospitals || []).join(', ') || '—'}</span></div>
+          <div class="row"><span>Insurers</span><span>${(con.insurers || []).join(', ') || '—'}</span></div>
         `;
       }
     }
@@ -637,6 +638,7 @@
         `Practice name: ${fmt(conProfile.practice_name)}`,
         `Specialty:    ${fmt(conProfile.specialty)}`,
         `Hospitals:    ${fmt((conProfile.hospitals || []).join(', '))}`,
+        `Insurers:     ${fmt((conProfile.insurers || []).join(', '))}`,
         `Pass type:    ${fmt(conProfile.pass_type)}`,
         `Pass expires: ${fmtDate(conProfile.pass_expires_at)}`,
       ]));

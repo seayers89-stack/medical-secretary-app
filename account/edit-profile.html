@@ -575,6 +575,11 @@
           <input type="text" id="hospital-tag-input" placeholder="Type a hospital name and press Enter">
           <p style="font-size:12px; color:var(--slate); margin-top:6px;">Add as many as apply.</p>
         </div>
+        <div class="field">
+          <label>Insurers you work with</label>
+          <div id="insurer-chips" class="chip-row"></div>
+          <p style="font-size:12px; color:var(--slate); margin-top:6px;">Shown on your profile, and used when people search for a consultant by insurer.</p>
+        </div>
       </div>
 
       <button type="submit" class="btn" id="submit-btn">Save changes</button>
@@ -594,6 +599,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
 <script src="supabase-config.js"></script>
 <script src="account-nav.js"></script>
+<script src="insurers-data.js"></script>
 <script>
   let userId = null;
   let role = null;
@@ -725,6 +731,7 @@
         document.getElementById('specialty').value = con.specialty || '';
         hospitalTags = [...(con.hospitals || [])];
         renderHospitalTags();
+        renderInsurerChips(document.getElementById('insurer-chips'), con.insurers);
       }
     }
 
@@ -860,7 +867,7 @@
 
       const { error } = await supabaseClient
         .from('consultant_profiles')
-        .update({ practice_name: practice, specialty, hospitals: hospitalTags })
+        .update({ practice_name: practice, specialty, hospitals: hospitalTags, insurers: getSelectedInsurers(document.getElementById('insurer-chips')) })
         .eq('profile_id', userId);
       roleError = error;
     }

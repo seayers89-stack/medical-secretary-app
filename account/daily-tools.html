@@ -86,15 +86,15 @@
   }
 
   #insurer-search, #gp-search, #gp-town-filter, #hospital-search, #hospital-area-filter,
-  #consultant-search, #consultant-specialty-filter, #consultant-hospital-filter,
+  #consultant-search, #consultant-specialty-filter, #consultant-hospital-filter, #consultant-insurer-filter,
   #billing-search, #billing-chapter-filter, #billing-section-filter{
     width:100%; padding:12px 14px; font-family:'Special Elite', cursive; font-size:14.5px;
     border:1.5px solid rgba(46,63,84,0.15); border-radius:8px; background:var(--paper); color:var(--ink);
     margin-bottom:18px;
   }
-  #gp-town-filter, #hospital-area-filter, #consultant-specialty-filter, #consultant-hospital-filter, #billing-chapter-filter, #billing-section-filter{ margin-bottom:0; cursor:pointer; }
+  #gp-town-filter, #hospital-area-filter, #consultant-specialty-filter, #consultant-hospital-filter, #consultant-insurer-filter, #billing-chapter-filter, #billing-section-filter{ margin-bottom:0; cursor:pointer; }
   #insurer-search:focus, #gp-search:focus, #gp-town-filter:focus, #hospital-search:focus, #hospital-area-filter:focus,
-  #consultant-search:focus, #consultant-specialty-filter:focus, #consultant-hospital-filter:focus,
+  #consultant-search:focus, #consultant-specialty-filter:focus, #consultant-hospital-filter:focus, #consultant-insurer-filter:focus,
   #billing-search:focus, #billing-chapter-filter:focus, #billing-section-filter:focus{ outline:none; border-color:var(--gold); }
 
   .hospital-link{ color:var(--gold); text-decoration:underline; cursor:pointer; }
@@ -442,6 +442,13 @@
             <option value="">Any hospital</option>
           </select>
         </div>
+        <div class="field" style="margin-top:14px;">
+          <label for="consultant-insurer-filter" style="display:block; font-size:13px; font-weight:600; margin-bottom:7px;">Filter by insurer they work with</label>
+          <select id="consultant-insurer-filter">
+            <option value="">Any insurer</option>
+          </select>
+          <p id="consultant-insurer-note" style="font-size:12px; color:var(--slate); margin-top:6px; display:none;">Insurer lists come from consultants' own profiles, so consultants added by a secretary aren't included.</p>
+        </div>
         <p id="consultant-results-count" style="font-size:13px; color:var(--slate); margin-top:14px;"></p>
         <div id="consultant-results"></div>
       </div>
@@ -521,6 +528,7 @@
 <script src="badges.js"></script>
 <script src="specialties-data.js"></script>
 <script src="billing-codes-data.js"></script>
+<script src="insurers-data.js"></script>
 <script>
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
@@ -1430,11 +1438,17 @@
         opt.textContent = s;
         document.getElementById('consultant-specialty-filter').appendChild(opt);
       });
+      CONSULTANT_INSURERS.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        document.getElementById('consultant-insurer-filter').appendChild(opt);
+      });
     }
 
     const [{ data: registered, error: registeredError }, { data: directory }] = await Promise.all([
       supabaseClient.from('consultant_profiles')
-        .select('profile_id, specialty, hospitals, profiles(first_name, last_name)'),
+        .select('profile_id, specialty, hospitals, insurers, profiles(first_name, last_name)'),
       supabaseClient.from('consultant_directory_entries')
         .select('id, first_name, last_name, specialty, hospitals, website_url'),
     ]);
@@ -1450,6 +1464,7 @@
       name: `${c.profiles?.first_name || ''} ${c.profiles?.last_name || ''}`.trim() || 'Consultant',
       specialty: c.specialty,
       hospitals: c.hospitals || [],
+      insurers: c.insurers || [],
       website_url: null,
     }));
 
@@ -1459,6 +1474,7 @@
       name: `${c.first_name} ${c.last_name}`.trim(),
       specialty: c.specialty,
       hospitals: c.hospitals || [],
+      insurers: null,
       website_url: c.website_url,
     }));
 
@@ -1482,6 +1498,8 @@
     const query = document.getElementById('consultant-search').value.trim().toLowerCase();
     const specialty = document.getElementById('consultant-specialty-filter').value;
     const hospital = document.getElementById('consultant-hospital-filter').value;
+    const insurer = document.getElementById('consultant-insurer-filter').value;
+    document.getElementById('consultant-insurer-note').style.display = insurer ? 'block' : 'none';
 
     const filtered = allDirectoryConsultants.filter(c => {
       if (query) {
@@ -1490,6 +1508,7 @@
       }
       if (specialty && c.specialty !== specialty) return false;
       if (hospital && !(c.hospitals || []).includes(hospital)) return false;
+      if (insurer && !(c.insurers || []).includes(insurer)) return false;
       return true;
     });
 
@@ -1555,6 +1574,7 @@
         <div>${badge}</div>
         <h3>${escapeHtml(c.name)}${c.specialty ? ` <span style="font-family:'Cormorant Garamond', serif; font-weight:400; font-size:16px; color:var(--slate);">— ${escapeHtml(c.specialty)}</span>` : ''}</h3>
         <div class="insurer-row"><span>Hospitals</span><span>${renderHospitalLinks(c.hospitals)}</span></div>
+        ${c.insurers ? `<div class="insurer-row"><span>Insurers</span><span>${c.insurers.length ? escapeHtml(c.insurers.join(', ')) : 'Not listed'}</span></div>` : ''}
         ${website}
         <div style="margin-top:8px;"><a href="${buildConsultantLookupUrl(c.name, c.specialty)}" target="_blank" rel="noopener" style="font-size:12.5px; color:var(--gold); text-decoration:underline;">Look this up ↗</a></div>
         ${report}
@@ -1788,6 +1808,7 @@
   document.getElementById('consultant-search').addEventListener('input', renderConsultantDirectory);
   document.getElementById('consultant-specialty-filter').addEventListener('change', renderConsultantDirectory);
   document.getElementById('consultant-hospital-filter').addEventListener('change', renderConsultantDirectory);
+  document.getElementById('consultant-insurer-filter').addEventListener('change', renderConsultantDirectory);
 
   // ── Billing codes tab ──────────────────────────────────────────────────
   const INSURER_LINKS = [

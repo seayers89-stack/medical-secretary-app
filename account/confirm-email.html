@@ -220,6 +220,7 @@
           practice_name: draft.practice || null,
           specialty: draft.specialty || null,
           hospitals: draft.hospitals || [],
+          insurers: draft.insurers || [],
         });
         if (conErr) {
           document.getElementById('completing').innerHTML = 'Could not save consultant details: ' + conErr.message + '<br>Please contact <a href="mailto:hello@veyn.uk" style="color:var(--gold)">hello@veyn.uk</a>';
